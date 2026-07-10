@@ -1,0 +1,10870 @@
+/* action_button_dark */
+
+box-sizing: border-box;
+
+position: relative;
+width: 410px;
+height: 244px;
+left: 86px;
+top: 77px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* action-button=default */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 56px;
+left: calc(50% - 370px/2);
+top: 20px;
+
+/* G/300 */
+background: #CCCBC9;
+border-radius: 12px;
+
+
+/* 버튼 내용 */
+
+width: 60px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action-button=click */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 56px;
+left: calc(50% - 370px/2);
+top: 94px;
+
+/* G/500 */
+background: #989792;
+border-radius: 12px;
+
+
+/* 버튼 내용 */
+
+width: 60px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action-button=disabled */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 56px;
+left: calc(50% - 370px/2);
+top: 168px;
+
+/* G/200 */
+background: #E6E6E5;
+border-radius: 12px;
+
+
+/* 버튼 내용 */
+
+width: 60px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action_button */
+
+box-sizing: border-box;
+
+position: relative;
+width: 410px;
+height: 244px;
+left: 516px;
+top: 77px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* action-button=default */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 56px;
+left: calc(50% - 370px/2);
+top: 20px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 12px;
+
+
+/* 버튼 내용 */
+
+width: 60px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action-button=click */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 56px;
+left: calc(50% - 370px/2);
+top: 94px;
+
+/* P/700 */
+background: #B67805;
+border-radius: 12px;
+
+
+/* 버튼 내용 */
+
+width: 60px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action-button=disabled */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 56px;
+left: calc(50% - 370px/2);
+top: 168px;
+
+/* G/200 */
+background: #E6E6E5;
+border-radius: 12px;
+
+
+/* 버튼 내용 */
+
+width: 60px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* header_detail */
+
+box-sizing: border-box;
+
+position: relative;
+width: 442px;
+height: 239px;
+left: 86px;
+top: 380px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* view=delete */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 16px;
+gap: 154px;
+isolation: isolate;
+
+position: absolute;
+width: 402px;
+height: 56px;
+left: 20px;
+top: 20px;
+
+/* G/200 */
+border-bottom: 1px solid #E6E6E5;
+
+
+/* 내용 */
+
+position: absolute;
+width: 28px;
+height: 24px;
+left: calc(50% - 28px/2);
+top: 16px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* chevron_left */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 16px;
+top: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* x */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 362px;
+top: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* view=main */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 16px;
+gap: 154px;
+isolation: isolate;
+
+position: absolute;
+width: 402px;
+height: 56px;
+left: 20px;
+top: 163px;
+
+
+
+/* 내용 */
+
+position: absolute;
+display: none;
+width: 28px;
+height: 24px;
+left: calc(50% - 28px/2);
+top: 16px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Group 3 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 3px;
+
+position: absolute;
+width: 98.71px;
+height: 23.24px;
+left: 16px;
+top: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Group 5 */
+
+width: 22.13px;
+height: 23.24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Group */
+
+position: absolute;
+left: 0%;
+right: 77.58%;
+top: 69.41%;
+bottom: 0%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 0%;
+right: 77.58%;
+top: 74.95%;
+bottom: 0%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 7.65%;
+right: 85.23%;
+top: 69.41%;
+bottom: 25.05%;
+
+background: #F3AB24;
+
+
+/* Group */
+
+position: absolute;
+left: 0%;
+right: 77.58%;
+top: 0%;
+bottom: 36.14%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 0%;
+right: 77.58%;
+top: 0%;
+bottom: 77.78%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 0%;
+right: 77.58%;
+top: 41.64%;
+bottom: 36.14%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 0%;
+right: 77.58%;
+top: 0%;
+bottom: 50%;
+
+background: #F3AB24;
+
+
+/* Group 6 */
+
+width: 22.13px;
+height: 23.24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Group */
+
+position: absolute;
+left: 41.34%;
+right: 52.12%;
+top: 0%;
+bottom: 47.25%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 42.56%;
+right: 45.02%;
+top: 0%;
+bottom: 77.44%;
+
+background: #F3AB24;
+transform: rotate(-90deg);
+
+
+/* Vector */
+
+position: absolute;
+left: 41.34%;
+right: 57.44%;
+top: 12.55%;
+bottom: 62.4%;
+
+background: #F3AB24;
+transform: rotate(-180deg);
+
+
+/* Group */
+
+position: absolute;
+left: 25.46%;
+right: 52.12%;
+top: 55.31%;
+bottom: 0%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 25.46%;
+right: 52.12%;
+top: 55.31%;
+bottom: 29.14%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 25.46%;
+right: 52.12%;
+top: 84.45%;
+bottom: 0%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 25.46%;
+right: 52.12%;
+top: 55.31%;
+bottom: 9.7%;
+
+background: #F3AB24;
+
+
+/* Group */
+
+position: absolute;
+left: 25.46%;
+right: 59.53%;
+top: 0%;
+bottom: 46.71%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 25.46%;
+right: 60.02%;
+top: 0%;
+bottom: 84.31%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 25.46%;
+right: 59.53%;
+top: 0%;
+bottom: 46.71%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 25.46%;
+right: 63.33%;
+top: 0.03%;
+bottom: 64.69%;
+
+background: #F3AB24;
+
+
+/* Group 7 */
+
+width: 23.32px;
+height: 23.24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Group */
+
+position: absolute;
+left: 50.92%;
+right: 34.1%;
+top: 0%;
+bottom: 5.78%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 56.35%;
+right: 34.1%;
+top: 67.88%;
+bottom: 5.78%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 56.35%;
+right: 34.1%;
+top: 33.95%;
+bottom: 39.7%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 56.35%;
+right: 34.1%;
+top: 0.02%;
+bottom: 73.63%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 50.92%;
+right: 26.9%;
+top: 0%;
+bottom: 74.82%;
+
+background: #F3AB24;
+transform: rotate(-90deg);
+
+
+/* Group */
+
+position: absolute;
+left: 67.58%;
+right: 25.46%;
+top: 0%;
+bottom: 0%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 72.85%;
+right: 25.46%;
+top: 34.6%;
+bottom: 40.35%;
+
+background: #F3AB24;
+transform: rotate(-180deg);
+
+
+/* Vector */
+
+position: absolute;
+left: 67.58%;
+right: 8.88%;
+top: 0%;
+bottom: 77.44%;
+
+background: #F3AB24;
+transform: rotate(90deg);
+
+
+/* Group 8 */
+
+width: 22.13px;
+height: 23.24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 94.69%;
+right: -8.73%;
+top: 0%;
+bottom: 77.44%;
+
+background: #F3AB24;
+transform: rotate(90deg);
+
+
+/* Vector */
+
+position: absolute;
+left: 77.58%;
+right: 6.1%;
+top: 0%;
+bottom: 40.35%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 77.58%;
+right: 0%;
+top: 61.78%;
+bottom: 0%;
+
+background: #F3AB24;
+
+
+/* Vector */
+
+position: absolute;
+left: 85.01%;
+right: 11.83%;
+top: 18.64%;
+bottom: 63.45%;
+
+background: #FFFFFF;
+
+
+/* bell */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 362px;
+top: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 8.33%;
+bottom: 29.17%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* Vector */
+
+position: absolute;
+left: 42.79%;
+right: 42.79%;
+top: 87.5%;
+bottom: 8.35%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* view=range */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 16px;
+gap: 154px;
+isolation: isolate;
+
+position: absolute;
+width: 402px;
+height: 56px;
+left: 20px;
+top: 92px;
+
+/* G/200 */
+border-bottom: 1px solid #E6E6E5;
+
+
+/* 내용 */
+
+position: absolute;
+width: 28px;
+height: 24px;
+left: calc(50% - 28px/2);
+top: 16px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* chevron_left */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 16px;
+top: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* chevron_right */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 362px;
+top: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* chevron */
+
+box-sizing: border-box;
+
+position: relative;
+width: 97px;
+height: 62px;
+left: 86px;
+top: 680px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* chevron=on */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 53px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* chevron=off */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 20px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* check_box */
+
+box-sizing: border-box;
+
+position: relative;
+width: 100px;
+height: 64px;
+left: 340px;
+top: 678px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* check-box=on */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 20px;
+top: 20px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 8px;
+
+
+/* Vector */
+
+width: 10.51px;
+height: 7.01px;
+
+/* G/white */
+border: 2px solid #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* check-box=off */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 56px;
+top: 20px;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+border-radius: 8px;
+
+
+/* Vector */
+
+width: 10.51px;
+height: 7.01px;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* toggle */
+
+box-sizing: border-box;
+
+position: relative;
+width: 92px;
+height: 107px;
+left: 86px;
+top: 904px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* state=off */
+
+position: absolute;
+width: 52px;
+height: 28px;
+left: 20px;
+top: 20px;
+
+/* G/300 */
+background: #CCCBC9;
+border-radius: 40px;
+
+
+/* handle */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 2px;
+top: 2px;
+
+/* G/white */
+background: #FFFFFF;
+box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+border-radius: 20px;
+
+
+/* state=on */
+
+position: absolute;
+width: 52px;
+height: 28px;
+left: 20px;
+top: 59px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 40px;
+
+
+/* handle */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 26px;
+top: 2px;
+
+/* G/white */
+background: #FFFFFF;
+box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.1);
+border-radius: 20px;
+
+
+/* chip */
+
+box-sizing: border-box;
+
+position: relative;
+width: 92px;
+height: 136px;
+left: 210px;
+top: 768px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* state=off */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 8px 12px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 40px;
+left: 20px;
+top: 20px;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+border-radius: 40px;
+
+
+/* 이름 */
+
+width: 28px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* state=on */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 8px 12px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 40px;
+left: 20px;
+top: 76px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 40px;
+
+
+/* 이름 */
+
+width: 28px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* bell */
+
+box-sizing: border-box;
+
+position: relative;
+width: 93px;
+height: 64px;
+left: 209px;
+top: 678px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* view=default */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 20px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 8.33%;
+bottom: 29.17%;
+
+border: 2px solid #000000;
+
+
+/* Vector */
+
+position: absolute;
+left: 42.79%;
+right: 42.79%;
+top: 87.5%;
+bottom: 8.35%;
+
+border: 2px solid #000000;
+
+
+/* view=notification */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 49px;
+top: 20px;
+
+
+
+/* bell */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 0px;
+top: 0px;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 8.33%;
+bottom: 29.17%;
+
+border: 2px solid #000000;
+
+
+/* Vector */
+
+position: absolute;
+left: 42.79%;
+right: 42.79%;
+top: 87.5%;
+bottom: 8.35%;
+
+border: 2px solid #000000;
+
+
+/* Ellipse 30 */
+
+position: absolute;
+height: 6px;
+left: 62.5%;
+right: 12.5%;
+top: 2px;
+
+/* P/500 */
+background: #F3AB24;
+
+
+/* tag */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 8px;
+gap: 4px;
+
+position: relative;
+width: 42px;
+height: 29px;
+left: 357px;
+top: 793px;
+
+background: rgba(243, 171, 36, 0.15);
+/* P/500 */
+border: 2px solid #F3AB24;
+border-radius: 8px;
+
+
+/* 태그 */
+
+width: 26px;
+height: 17px;
+
+/* 14/Semibold */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 17px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* tag */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 8px;
+gap: 4px;
+
+position: relative;
+width: 42px;
+height: 29px;
+left: 357px;
+top: 793px;
+
+background: rgba(243, 171, 36, 0.15);
+/* P/500 */
+border: 2px solid #F3AB24;
+border-radius: 8px;
+
+
+/* 태그 */
+
+width: 26px;
+height: 17px;
+
+/* 14/Semibold */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 17px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* reservation_tag */
+
+box-sizing: border-box;
+
+position: relative;
+width: 95px;
+height: 147px;
+left: 330px;
+top: 847px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* view=wait */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 8px;
+gap: 4px;
+
+position: absolute;
+width: 55px;
+height: 29px;
+left: 20px;
+top: 20px;
+
+background: rgba(243, 171, 36, 0.15);
+/* P/500 */
+border: 2px solid #F3AB24;
+border-radius: 8px;
+
+
+/* 태그 */
+
+width: 39px;
+height: 17px;
+
+/* 14/Semibold */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 17px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* view=confirm */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 8px;
+gap: 4px;
+
+position: absolute;
+width: 55px;
+height: 29px;
+left: 20px;
+top: 59px;
+
+background: rgba(102, 219, 90, 0.15);
+/* S/success */
+border: 2px solid #66DB5A;
+border-radius: 8px;
+
+
+/* 태그 */
+
+width: 39px;
+height: 17px;
+
+/* 14/Semibold */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 17px;
+/* identical to box height */
+text-align: center;
+
+/* S/success */
+color: #66DB5A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* view=reject */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 8px;
+gap: 4px;
+
+position: absolute;
+width: 55px;
+height: 29px;
+left: 20px;
+top: 98px;
+
+background: rgba(235, 64, 49, 0.15);
+/* S/danger */
+border: 2px solid #EB4031;
+border-radius: 8px;
+
+
+/* 태그 */
+
+width: 39px;
+height: 17px;
+
+/* 14/Semibold */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 17px;
+/* identical to box height */
+text-align: center;
+
+/* S/danger */
+color: #EB4031;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* text_field_1 */
+
+box-sizing: border-box;
+
+position: relative;
+width: 410px;
+height: 316px;
+left: 566px;
+top: 380px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* view=default */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 16px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 52px;
+left: calc(50% - 370px/2);
+top: 20px;
+
+/* G/300 */
+border: 1px solid #CCCBC9;
+border-radius: 8px;
+
+
+/* 텍스트 내용 */
+
+margin: 0 auto;
+width: 74px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* chevron */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* view=active */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 16px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 52px;
+left: calc(50% - 370px/2);
+top: 88px;
+
+/* P/500 */
+border: 1px solid #F3AB24;
+border-radius: 8px;
+
+
+/* 텍스트 내용 */
+
+margin: 0 auto;
+width: 74px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* chevron */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* view=filled */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 16px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 52px;
+left: calc(50% - 370px/2);
+top: 156px;
+
+/* G/300 */
+border: 1px solid #CCCBC9;
+border-radius: 8px;
+
+
+/* 텍스트 내용 */
+
+margin: 0 auto;
+width: 74px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* chevron */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* view=error */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 72px;
+left: 20px;
+top: 224px;
+
+
+
+/* text_field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 16px;
+gap: 4px;
+
+width: 370px;
+height: 52px;
+
+/* S/danger */
+border: 1px solid #EB4031;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+margin: 0 auto;
+width: 74px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* chevron */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* 텍스트 내용 */
+
+width: 370px;
+height: 16px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* or 18px */
+
+/* S/danger */
+color: #EB4031;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 1;
+
+
+/* text_field/bottom_sheet_time_picker */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+align-items: center;
+padding: 12px 0px 0px;
+gap: 12px;
+
+position: relative;
+width: 402px;
+height: 319px;
+left: calc(50% - 402px/2 - 479px);
+top: calc(50% - 319px/2 + 68px);
+
+background: #FFFFFF;
+border-radius: 24px 24px 0px 0px;
+
+
+/* handle */
+
+margin: 0 auto;
+width: 60px;
+height: 4px;
+
+/* G/200 */
+background: #E6E6E5;
+border-radius: 2px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Time_Picker */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 44px;
+
+margin: 0 auto;
+width: 402px;
+height: 160px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* AM_PM_Picker */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 44px;
+height: 90px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 오전 */
+
+width: 32px;
+height: 27px;
+
+/* 18/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 18px;
+line-height: 150%;
+/* identical to box height, or 27px */
+text-align: center;
+
+/* G/500 */
+color: #989792;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 오후 */
+
+width: 42px;
+height: 36px;
+
+/* 24/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 24px;
+line-height: 150%;
+/* identical to box height, or 36px */
+text-align: center;
+
+/* G/700 */
+color: #62615D;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Hour_Picker */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 15px;
+height: 90px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 4 */
+
+width: 12px;
+height: 27px;
+
+/* 18/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 18px;
+line-height: 150%;
+/* identical to box height, or 27px */
+text-align: center;
+
+/* G/500 */
+color: #989792;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 5 */
+
+width: 15px;
+height: 36px;
+
+/* 24/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 24px;
+line-height: 150%;
+/* identical to box height, or 36px */
+text-align: center;
+
+/* G/700 */
+color: #62615D;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 5 */
+
+width: 11px;
+height: 27px;
+
+/* 18/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 18px;
+line-height: 150%;
+/* identical to box height, or 27px */
+text-align: center;
+
+/* G/500 */
+color: #989792;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Minute-Picker */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 30px;
+height: 90px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 59 */
+
+width: 23px;
+height: 27px;
+
+/* 18/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 18px;
+line-height: 150%;
+/* identical to box height, or 27px */
+text-align: center;
+
+/* G/500 */
+color: #989792;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 00 */
+
+width: 30px;
+height: 36px;
+
+/* 24/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 24px;
+line-height: 150%;
+/* identical to box height, or 36px */
+text-align: center;
+
+/* G/700 */
+color: #62615D;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 01 */
+
+width: 20px;
+height: 27px;
+
+/* 18/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 18px;
+line-height: 150%;
+/* identical to box height, or 27px */
+text-align: center;
+
+/* G/500 */
+color: #989792;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* button_list */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px 16px;
+gap: 8px;
+
+margin: 0 auto;
+width: 402px;
+height: 56px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* action_button */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 370px;
+height: 56px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 버튼 내용 */
+
+width: 28px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* heart */
+
+box-sizing: border-box;
+
+position: relative;
+width: 108px;
+height: 64px;
+left: 86px;
+top: 1066px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* Property 1=false */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 20px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 8.33%;
+right: 8.33%;
+top: 12.5%;
+bottom: 12.5%;
+
+/* G/300 */
+border: 2px solid #CCCBC9;
+
+
+/* Property 1=true */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 64px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 8.33%;
+right: 8.33%;
+top: 12.5%;
+bottom: 12.5%;
+
+/* P/500 */
+background: #F3AB24;
+/* P/500 */
+border: 2px solid #F3AB24;
+
+
+/* chevron_small */
+
+box-sizing: border-box;
+
+position: relative;
+width: 97px;
+height: 64px;
+left: 83px;
+top: 777px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* chevron_small=on */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 53px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+width: 8px;
+height: 4px;
+left: calc(50% - 8px/2);
+top: calc(50% - 4px/2);
+
+/* G/300 */
+border: 1px solid #CCCBC9;
+
+
+/* chevron_small=off */
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 20px;
+top: 20px;
+
+
+
+/* Vector */
+
+position: absolute;
+width: 8px;
+height: 4px;
+left: calc(50% - 8px/2);
+top: calc(50% - 4px/2);
+
+/* G/300 */
+border: 1px solid #CCCBC9;
+
+
+/* RadioButtonText */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+position: relative;
+width: 66px;
+height: 24px;
+left: 223px;
+top: 1085px;
+
+
+
+/* radio_button */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 5px;
+gap: 10px;
+
+width: 24px;
+height: 24px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Ellipse 26 */
+
+width: 10px;
+height: 10px;
+
+/* G/white */
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 32px;
+height: 21px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+
+/* G/Black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* radio_button */
+
+box-sizing: border-box;
+
+position: relative;
+width: 101px;
+height: 64px;
+left: 205px;
+top: 962px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* radio_button=on */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 5px;
+gap: 10px;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 20px;
+top: 20px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 12px;
+
+
+/* Ellipse 26 */
+
+width: 10px;
+height: 10px;
+
+/* G/white */
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* radio_button=off */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 5px;
+gap: 10px;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 57px;
+top: 20px;
+
+/* G/300 */
+background: #CCCBC9;
+border-radius: 12px;
+
+
+/* Ellipse 26 */
+
+width: 10px;
+height: 10px;
+
+/* G/white */
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date_field */
+
+box-sizing: border-box;
+
+position: relative;
+width: 410px;
+height: 228px;
+left: 1041px;
+top: 77px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* property=default */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 16px;
+gap: 12px;
+
+position: absolute;
+width: 370px;
+height: 52px;
+left: calc(50% - 370px/2);
+top: 20px;
+
+/* G/200 */
+border: 1px solid #E6E6E5;
+border-radius: 40px;
+
+
+/* calendar */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 16.67%;
+bottom: 8.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 66.67%;
+right: 33.33%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 33.33%;
+right: 66.67%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 41.67%;
+bottom: 58.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* 텍스트 내용 */
+
+width: 266px;
+height: 19px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* chevron */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* property=active */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 16px;
+gap: 12px;
+
+position: absolute;
+width: 370px;
+height: 52px;
+left: calc(50% - 370px/2);
+top: 88px;
+
+/* G/200 */
+border: 1px solid #E6E6E5;
+border-radius: 40px;
+
+
+/* calendar */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 16.67%;
+bottom: 8.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 66.67%;
+right: 33.33%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 33.33%;
+right: 66.67%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 41.67%;
+bottom: 58.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 19px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 20px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 1;
+
+
+/* chevron */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* property=filled */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 16px;
+gap: 12px;
+
+position: absolute;
+width: 370px;
+height: 52px;
+left: calc(50% - 370px/2);
+top: 156px;
+
+/* G/200 */
+border: 1px solid #E6E6E5;
+border-radius: 40px;
+
+
+/* calendar */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 16.67%;
+bottom: 8.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 66.67%;
+right: 33.33%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 33.33%;
+right: 66.67%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 41.67%;
+bottom: 58.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 20px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 1;
+
+
+/* chevron */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* text_field_2 */
+
+box-sizing: border-box;
+
+position: relative;
+width: 410px;
+height: 447px;
+left: 1031px;
+top: 380px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* property=active */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+position: absolute;
+width: 370px;
+height: 80px;
+left: calc(50% - 370px/2);
+top: 121px;
+
+
+
+/* title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+width: 370px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 내용 */
+
+width: 28px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+width: 8px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* text-field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 0px;
+gap: 4px;
+
+width: 370px;
+height: 52px;
+
+/* P/500 */
+border-bottom: 2px solid #F3AB24;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 32px;
+height: 21px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+display: none;
+width: 40px;
+height: 44px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* property=filled */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+position: absolute;
+width: 370px;
+height: 80px;
+left: calc(50% - 370px/2);
+top: 223px;
+
+
+
+/* title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+width: 370px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 내용 */
+
+width: 28px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+width: 8px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* text-field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 0px;
+gap: 4px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 2px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 32px;
+height: 21px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+display: none;
+width: 40px;
+height: 44px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* property=error */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 370px;
+height: 102px;
+left: calc(50% - 370px/2);
+top: 325px;
+
+
+
+/* title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+width: 370px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 내용 */
+
+width: 28px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+width: 8px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* text-field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 0px;
+gap: 4px;
+
+width: 370px;
+height: 52px;
+
+/* S/danger */
+border-bottom: 2px solid #EB4031;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 32px;
+height: 21px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+display: none;
+width: 40px;
+height: 44px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* text */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 45px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 45px;
+height: 14px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 14px;
+
+/* S/danger */
+color: #EB4031;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* property=default */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+position: absolute;
+width: 370px;
+height: 80px;
+left: calc(50% - 370px/2);
+top: 20px;
+
+
+
+/* title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+width: 370px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 내용 */
+
+width: 28px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+width: 8px;
+height: 19px;
+
+/* 16/Medium */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* text-field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 0px;
+gap: 4px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 2px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 32px;
+height: 21px;
+
+/* 18/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 21px;
+display: flex;
+align-items: center;
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+box-sizing: border-box;
+
+position: relative;
+width: 356px;
+height: 80px;
+left: 86px;
+top: 1212px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* state=default */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 152px;
+top: 20px;
+
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* state=false */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 218px;
+top: 20px;
+
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/500 */
+color: #989792;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* state=select */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 86px;
+top: 20px;
+
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* G/300 */
+background: #CCCBC9;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 16px;
+height: 15px;
+
+/* 12/Semibold */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 12px;
+line-height: 15px;
+/* identical to box height */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* state=today */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 20px;
+top: 20px;
+
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 18px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* state=today-unselect */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 284px;
+top: 20px;
+
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 18px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* P/500 */
+color: #F3AB24;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date_detail */
+
+box-sizing: border-box;
+
+position: relative;
+width: 296px;
+height: 92px;
+left: 92px;
+top: 1356px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* style=start */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 20px;
+top: 20px;
+
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 42px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 20px 0px 0px 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* style=end */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 156px;
+top: 20px;
+
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 42px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px 20px 20px 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* style=only */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 224px;
+top: 20px;
+
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* style=date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+position: absolute;
+width: 52px;
+height: 52px;
+left: 88px;
+top: 20px;
+
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* bottom-sheet */
+
+box-sizing: border-box;
+
+position: relative;
+width: 875px;
+height: 594px;
+left: 1506px;
+top: 77px;
+
+border: 1px dashed #9747FF;
+border-radius: 5px;
+
+
+/* property=default */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 12px 16px 0px;
+gap: 40px;
+
+position: absolute;
+width: 402px;
+height: 554px;
+left: 20px;
+top: 20px;
+
+background: #FFFFFF;
+border-radius: 24px 24px 0px 0px;
+
+
+/* handle */
+
+width: 60px;
+height: 4px;
+
+/* G/700 */
+background: #505659;
+border-radius: 2px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 20px;
+
+width: 370px;
+height: 498px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date_field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 16px;
+gap: 12px;
+
+width: 370px;
+height: 52px;
+
+/* G/200 */
+border: 1px solid #E6E6E5;
+border-radius: 40px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* calendar */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 16.67%;
+bottom: 8.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 66.67%;
+right: 33.33%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 33.33%;
+right: 66.67%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 41.67%;
+bottom: 58.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 19px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 20px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 1;
+
+
+/* chevron */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* bottom-sheet-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 20px;
+
+width: 370px;
+height: 426px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* calender */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 32px;
+
+width: 370px;
+height: 350px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* month */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px 16px;
+gap: 109px;
+
+width: 370px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* chevron_left */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+margin: 0 auto;
+width: 81px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 2026년 */
+
+width: 54px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 1월 */
+
+width: 23px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* chevron_right */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* calender */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 294px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* weak-label */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 8px 0px;
+
+width: 370px;
+height: 34px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 일 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 월 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 화 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 수 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* 목 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* 금 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* 토 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 7px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 8px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 16px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 13px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 14px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 16px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 7px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action_button */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 370px;
+height: 56px;
+
+/* G/200 */
+background: #E6E6E5;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 버튼 내용 */
+
+width: 56px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* property=filled */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 12px 16px 0px;
+gap: 40px;
+
+position: absolute;
+width: 402px;
+height: 554px;
+left: 453px;
+top: 20px;
+
+background: #FFFFFF;
+border-radius: 24px 24px 0px 0px;
+
+
+/* handle */
+
+width: 60px;
+height: 4px;
+
+/* G/700 */
+background: #505659;
+border-radius: 2px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 20px;
+
+width: 370px;
+height: 498px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date_field */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 16px;
+gap: 12px;
+
+width: 370px;
+height: 52px;
+
+/* G/200 */
+border: 1px solid #E6E6E5;
+border-radius: 40px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* calendar */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 16.67%;
+bottom: 8.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 66.67%;
+right: 33.33%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 33.33%;
+right: 66.67%;
+top: 8.33%;
+bottom: 75%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 41.67%;
+bottom: 58.33%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* 텍스트 내용 */
+
+width: 20px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/400 */
+color: #B2B1AE;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 텍스트 내용 */
+
+width: 111px;
+height: 24px;
+
+/* 16/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 1;
+
+
+/* chevron */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+/* G/400 */
+border: 2px solid #B2B1AE;
+
+
+/* bottom-sheet-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 20px;
+
+width: 370px;
+height: 426px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* calender */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 32px;
+
+width: 370px;
+height: 350px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* month */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px 16px;
+gap: 109px;
+
+width: 370px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* chevron_left */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+margin: 0 auto;
+width: 81px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 2026년 */
+
+width: 54px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 1월 */
+
+width: 23px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* chevron_right */
+
+margin: 0 auto;
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+/* G/black */
+border: 2px solid #111111;
+
+
+/* calender */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 294px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* weak-label */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 8px 0px;
+
+width: 370px;
+height: 34px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 일 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 월 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 화 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 수 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* 목 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* 금 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* 토 */
+
+width: 52px;
+height: 18px;
+
+/* 12/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 150%;
+/* identical to box height, or 18px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 7px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 8px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 9px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 42px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 20px 0px 0px 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 52px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/black */
+color: #111111;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date_detail */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-background */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 42px;
+height: 28px;
+
+/* P/200 */
+background: #FFDC9B;
+border-radius: 0px 20px 20px 0px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 28px;
+height: 21px;
+
+/* 14/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* weak */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 370px;
+height: 52px;
+
+/* G/300 */
+border-bottom: 1px solid #CCCBC9;
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 16px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 17px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 15px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/800 */
+color: #474643;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* date */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 6px 0px;
+gap: 4px;
+
+width: 52px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+
+
+/* date-wrap */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 28px;
+height: 28px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 29 */
+
+width: 7px;
+height: 21px;
+
+/* 14/Regular */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 150%;
+/* identical to box height, or 21px */
+text-align: center;
+
+/* G/300 */
+color: #CCCBC9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* action_button */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 370px;
+height: 56px;
+
+/* P/500 */
+background: #F3AB24;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 버튼 내용 */
+
+width: 56px;
+height: 24px;
+
+/* 16/Semibold */
+font-family: 'Pretendard';
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%;
+/* identical to box height, or 24px */
+text-align: center;
+
+/* G/white */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Component Preview</title>
+    <link rel="stylesheet" href="./components.css">
+  </head>
+  <body>
+    <main class="component-page">
+      <h1>Component Preview</h1>
+
+      <section class="component-section">
+        <h2>Action Button</h2>
+        <div class="component-row">
+          <button class="action-button">버튼 내용</button>
+          <button class="action-button is-click">버튼 내용</button>
+          <button class="action-button" disabled>버튼 내용</button>
+          <button class="action-button is-dark">버튼 내용</button>
+        </div>
+      </section>
+
+      <section class="component-section">
+        <h2>Header Detail</h2>
+        <header class="app-header">
+          <button class="icon-button" aria-label="뒤로">
+            <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <strong class="app-header__title">내용</strong>
+          <button class="icon-button" aria-label="닫기">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </header>
+      </section>
+
+      <section class="component-section">
+        <h2>Controls</h2>
+        <div class="component-row">
+          <span class="check-box is-on" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg>
+          </span>
+          <span class="check-box" aria-hidden="true"></span>
+          <button class="toggle" aria-label="꺼짐"></button>
+          <button class="toggle is-on" aria-label="켜짐"></button>
+          <span class="chip">이름</span>
+          <span class="chip is-on">이름</span>
+          <span class="tag">태그</span>
+          <span class="reservation-tag is-wait">대기</span>
+          <span class="reservation-tag is-done">완료</span>
+        </div>
+      </section>
+
+      <section class="component-section">
+        <h2>Text Field</h2>
+        <div class="component-row">
+          <label class="text-field">
+            <span class="text-field__label">제목</span>
+            <input class="text-field__input" placeholder="내용을 입력하세요">
+            <span class="text-field__message">도움말 텍스트</span>
+          </label>
+          <label class="text-field is-error">
+            <span class="text-field__label">제목</span>
+            <input class="text-field__input" value="입력값">
+            <span class="text-field__message">오류 메시지</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="component-section">
+        <h2>Radio</h2>
+        <div class="component-row">
+          <span class="radio-button-text"><span class="radio-button is-on"></span>선택됨</span>
+          <span class="radio-button-text"><span class="radio-button"></span>선택 안 됨</span>
+        </div>
+      </section>
+
+      <section class="component-section">
+        <h2>Bottom Sheet Time Picker</h2>
+        <div class="bottom-sheet">
+          <div class="bottom-sheet__handle"></div>
+          <div class="time-picker">
+            <div class="time-picker__column">
+              <span class="time-picker__item">오전</span>
+              <span class="time-picker__item is-active">오후</span>
+            </div>
+            <div class="time-picker__column">
+              <span class="time-picker__item">01</span>
+              <span class="time-picker__item is-active">02</span>
+              <span class="time-picker__item">03</span>
+            </div>
+            <div class="time-picker__column">
+              <span class="time-picker__item">00</span>
+              <span class="time-picker__item is-active">30</span>
+              <span class="time-picker__item">45</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="component-section">
+        <h2>Calendar</h2>
+        <div class="calendar">
+          <div class="calendar__month">
+            <button class="icon-button" aria-label="이전 달"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+            <span>2026.07</span>
+            <button class="icon-button" aria-label="다음 달"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></button>
+          </div>
+          <div class="calendar__week">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div class="calendar__days">
+            <span class="calendar__day is-muted">28</span>
+            <span class="calendar__day is-muted">29</span>
+            <span class="calendar__day is-muted">30</span>
+            <span class="calendar__day">1</span>
+            <span class="calendar__day is-selected">2</span>
+            <span class="calendar__day">3</span>
+            <span class="calendar__day">4</span>
+            <span class="calendar__day">5</span>
+            <span class="calendar__day is-range is-start">6</span>
+            <span class="calendar__day is-range">7</span>
+            <span class="calendar__day is-range is-end">8</span>
+            <span class="calendar__day">9</span>
+            <span class="calendar__day">10</span>
+            <span class="calendar__day">11</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
