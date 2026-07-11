@@ -7,14 +7,14 @@ import ChevronLeft from '../../icon/chevron_left.svg'; import ChevronRight from 
 type Page='main'|'profile'|'favorites'|'mode'|'notifications'|'welcome';
 const favoriteProducts:Product[]=[{id:1,title:'제주 흑돼지 모둠 도시락 세트',discount:'62.5%',shop:'춘자네 흑돼지 협재점',location:'제주시 한림읍 · 850m',detail:'당일 재고 · 마감 22:00',insight:'',original:'20,000원',price:'7,500원',remaining:'잔여수량 2개',urgent:true},{id:2,title:'바다 전망 커플룸 당일 숙박권',discount:'20%',shop:'푸른바다 게스트하우스',location:'제주시 애월읍 · 2.4km',detail:'당일 공실 · 마감 23:00',insight:'',original:'90,000원',price:'72,000원',remaining:'잔여수량 1개'}];
 
-export function MyPageScreen({onHome,onWithdraw}:{onHome:()=>void;onWithdraw:()=>Promise<void>}){const[page,setPage]=useState<Page>('main');const[name,setName]=useState('로컬이');const[dialog,setDialog]=useState<'logout'|'withdraw'|null>(null);const[certified,setCertified]=useState(false);
+export function MyPageScreen({onHome,onSellerMode,onLogout,onWithdraw}:{onHome:()=>void;onSellerMode:()=>void;onLogout:()=>Promise<void>;onWithdraw:()=>Promise<void>}){const[page,setPage]=useState<Page>('main');const[name,setName]=useState('로컬이');const[dialog,setDialog]=useState<'logout'|'withdraw'|null>(null);const[certified,setCertified]=useState(false);
   if(page==='profile')return <ProfilePage name={name} onSave={v=>{setName(v);setPage('main')}} onBack={()=>setPage('main')}/>;
   if(page==='favorites')return <FavoritesPage onBack={()=>setPage('main')}/>;
   if(page==='mode')return <ModePage certified={certified} onCertify={()=>setCertified(true)} onComplete={()=>setPage('welcome')} onBack={()=>setPage('main')}/>;
   if(page==='notifications')return <NotificationPage onBack={()=>setPage('main')}/>;
-  if(page==='welcome')return <WelcomePage name={name} onDone={()=>setPage('main')}/>;
+  if(page==='welcome')return <WelcomePage name={name} onDone={onSellerMode}/>;
   const rows=[['찜한 상품/자원 관리',()=>setPage('favorites')],['서비스 모드 전환',()=>setPage('mode')],['알림 설정',()=>setPage('notifications')],['로그아웃',()=>setDialog('logout')],['회원 탈퇴',()=>setDialog('withdraw')]] as const;
-  const confirmAccountAction=async()=>{try{if(dialog==='withdraw'){await onWithdraw();return}setDialog(null);Alert.alert('로그아웃 완료')}catch(e){Alert.alert('처리 실패',e instanceof Error?e.message:'요청 처리 중 오류가 발생했습니다.')}};
+  const confirmAccountAction=async()=>{try{if(dialog==='withdraw')await onWithdraw();else await onLogout()}catch(e){Alert.alert('처리 실패',e instanceof Error?e.message:'요청 처리 중 오류가 발생했습니다.')}};
   return <View style={s.root}><AppHeader/><View style={s.pageHeader}><Text style={s.pageTitle}>마이페이지</Text></View><Pressable style={s.profileRow} onPress={()=>setPage('profile')}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><Text style={s.kakaoText}>k</Text></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{rows.map(([label,onPress])=><Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>)}<BottomNavigation active="mypage" onSelect={x=>x==='home'&&onHome()}/><ConfirmDialog type={dialog} onClose={()=>setDialog(null)} onConfirm={confirmAccountAction}/></View>;
 }
 
