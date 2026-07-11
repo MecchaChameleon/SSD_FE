@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "scheme": "localtime",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "backgroundColor": "#ffffff",
       "resizeMode": "contain"
