@@ -25,7 +25,7 @@ export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'localtime',
+    scheme: 'jejulocaltime',
     path: 'oauth/kakao',
   });
   const [request, response, promptAsync] = AuthSession.useAuthRequest(

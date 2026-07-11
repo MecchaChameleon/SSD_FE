@@ -4,9 +4,8 @@
     "slug": "localtime",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "localtime",
+    "scheme": "jejulocaltime",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
     "splash": {
       "backgroundColor": "#ffffff",
       "resizeMode": "contain"
