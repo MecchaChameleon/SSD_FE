@@ -25,6 +25,13 @@ body {
   background: #fafafa;
 }
 
+.preview-heading { padding: 24px 0 12px; }
+.preview-heading p { margin: 0 0 6px; color: var(--color-primary-700); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.preview-heading h1 { margin: 0 0 6px; font-size: 32px; }
+.preview-heading span, .component-section small { color: var(--color-gray-500); font-size: 13px; font-weight: 500; }
+.component-stack { display: grid; gap: 12px; }
+.component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
 button,
 input {
   font: inherit;
@@ -136,6 +143,9 @@ input {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.icon-button img { width: 24px; height: 24px; }
+.icon-button.has-dot::after { content: ""; position: absolute; width: 6px; height: 6px; margin: -16px 0 0 16px; border: 2px solid white; border-radius: 50%; background: var(--color-primary-500); }
 
 .chevron {
   width: 24px;
@@ -269,6 +279,11 @@ input {
   color: var(--color-white);
 }
 
+.reservation-tag.is-confirm { background: #e8f8ef; color: #16804c; }
+.reservation-tag.is-reject { background: #fff0f0; color: #d74747; }
+.heart { width: 32px; height: 32px; border: 0; background: transparent; color: var(--color-gray-300); font-size: 28px; line-height: 1; cursor: pointer; }
+.heart.is-on { color: var(--color-primary-500); }
+
 .text-field {
   display: flex;
   flex-direction: column;
@@ -293,6 +308,15 @@ input {
   color: var(--color-black);
   outline: none;
 }
+
+.field-shell { position: relative; display: flex; align-items: center; }
+.field-shell .text-field__input { padding-right: 44px; }
+.field-shell > span { position: absolute; right: 16px; color: var(--color-gray-400); pointer-events: none; }
+
+.date-field { display: grid; grid-template-columns: 24px 1fr 24px; align-items: center; gap: 10px; width: min(370px, 100%); min-height: 52px; padding: 0 16px; border: 1px solid var(--color-gray-200); border-radius: 12px; background: white; color: var(--color-gray-400); text-align: left; }
+.date-field img { width: 24px; height: 24px; opacity: .7; }
+.date-field.is-active { border-color: var(--color-primary-500); box-shadow: 0 0 0 3px rgba(243,171,36,.18); color: var(--color-black); }
+.date-field.is-filled { color: var(--color-black); }
 
 .text-field__input:focus,
 .text-field.is-active .text-field__input {
