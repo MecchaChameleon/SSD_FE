@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff"><title>로컬타임 로그인</title>
+  <link rel="stylesheet" href="./login.css">
+</head>
+<body>
+<main class="auth" data-home-url="" data-user-type="buyer" aria-live="polite">
+  <section class="auth-screen login-screen is-active" data-screen="login">
+    <div class="login-brand"><img src="../icon/로컬타임_아이콘 1.svg" alt=""><img src="../icon/로컬타임_로고1 1.svg" alt="로컬타임"><p>제주 로컬의 남은 자원을 가치 있게</p></div>
+    <button class="kakao-button" type="button"><span class="kakao-mark" aria-hidden="true">●</span>카카오로 시작하기</button>
+  </section>
+
+  <section class="auth-screen signup-screen" data-screen="signup">
+    <header class="detail-header"><button class="back-button" type="button" aria-label="이전"><img src="../icon/chevron_left.svg" alt=""></button><h1>회원가입</h1></header>
+    <button class="avatar" type="button" aria-label="프로필 사진 추가"><img src="../icon/user.svg" alt=""><span>＋</span></button>
+    <form class="signup-form" novalidate>
+      <label class="nickname-field"><span>닉네임 <b>*</b></span><input name="nickname" minlength="2" maxlength="10" placeholder="2~10자 이내" autocomplete="nickname"></label>
+      <div class="agreement"><label><input name="privacy" type="checkbox"><i aria-hidden="true">✓</i><span>개인정보 수집 및 이용 동의 (필수)</span></label><button class="policy-button" type="button">자세히 보기</button></div>
+      <button class="submit-button" type="submit" disabled>가입하기</button>
+    </form>
+  </section>
+
+  <section class="auth-screen complete-screen" data-screen="complete">
+    <div class="celebration" aria-hidden="true"><span>✦</span><img src="../icon/로컬타임_캐릭터 1.svg" alt=""><span>✦</span></div>
+    <div class="complete-copy"><h1><strong class="complete-name">로컬이</strong>님, 환영합니다!</h1><p class="buyer-copy">내 주변 제주의 실시간 마감 할인 상품을 조회하고<br>예약해 보세요.</p><p class="seller-copy">매장의 마감 상품 및 자원을 등록하고,<br>AI 가격 제안으로 매출을 극대화해 보세요.</p></div>
+    <button class="start-button" type="button">시작하기</button>
+  </section>
+
+  <dialog class="policy-dialog"><h2>개인정보 수집 및 이용 동의</h2><p>서비스 제공을 위해 닉네임과 카카오 계정 식별 정보를 수집합니다. 실제 약관 문구는 백엔드 연동 시 교체해 주세요.</p><button type="button">확인</button></dialog>
+</main>
+<script src="./login.js"></script>
+</body></html>
