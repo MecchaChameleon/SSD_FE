@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "로컬타임", "slug": "localtime", "version": "1.0.0", "orientation": "portrait",
+    "userInterfaceStyle": "light", "newArchEnabled": true,
+    "splash": { "backgroundColor": "#ffffff", "resizeMode": "contain" },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.localtime.app" },
+    "android": { "package": "com.localtime.app", "adaptiveIcon": { "backgroundColor": "#ffffff" } },
+    "web": { "bundler": "metro", "name": "로컬타임" }
+  }
+}

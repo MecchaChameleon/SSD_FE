@@ -1,6 +1,6 @@
 # Components
 
-Figma의 44개 상태 디자인을 메인 프레임에서 재사용할 수 있도록 정리한 기본 컴포넌트입니다.
+Figma의 44개 상태 디자인 원본 HTML 프로토타입입니다. 실제 앱 컴포넌트는 `src/components/ui.tsx`, 앱 내부 미리보기는 `ComponentGalleryScreen.tsx`를 사용합니다.
 
 - `components.css`: usable component classes and design tokens.
 - `preview.html`: static preview for the components.
