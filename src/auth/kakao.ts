@@ -13,6 +13,16 @@ const discovery: AuthSession.DiscoveryDocument = {
 const kakaoClientId = process.env.EXPO_PUBLIC_KAKAO_REST_API_KEY ?? '';
 const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://jeju-localtime-api.onrender.com').replace(/\/$/, '');
 
+export async function withdrawAccount() {
+  const accessToken = await AsyncStorage.getItem('localtime:access-token');
+  if (!accessToken) throw new Error('로그인 정보가 없습니다.');
+  const response = await fetch(`${apiUrl}/api/auth/me`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok && response.status !== 404) throw new Error(`회원 탈퇴에 실패했습니다. (${response.status})`);
+}
+
 export type LoginUser = {
   accessToken: string;
   userId: number;
