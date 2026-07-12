@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ActionButton } from '../components/ui';
 import { colors, radius } from '../theme';
+import { Product as ApiProduct, sellerApi } from '../api';
 import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import MoreIcon from '../../icon/more_vertical.svg';
@@ -14,13 +15,20 @@ const seed: Product[] = [
   {id:3,name:'제주 갈치회 세트',category:'음식점',type:'당일 재고',quantity:'4',regular:'35,000',minimum:'25,000',start:'오후 3:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매종료',reservations:0},
 ];
 
+const businessLabel = {RESTAURANT:'음식점',LODGING:'숙박',EXPERIENCE:'체험',RENTAL_MOBILITY:'렌탈/모빌리티'} as const;
+const categoryLabel = {SAME_DAY_INVENTORY:'당일 재고',EMPTY_TIME_RESOURCE:'빈 시간대 자원',SAME_DAY_ROOM:'당일 공실',TOUR_REMAINDER:'이동/관광 잔여 상품'} as const;
+const businessTypeByLabel = {음식점:'RESTAURANT',숙박:'LODGING',체험:'EXPERIENCE','렌탈/모빌리티':'RENTAL_MOBILITY'} as const;
+const categoryByLabel = {'당일 재고':'SAME_DAY_INVENTORY','빈 시간대 자원':'EMPTY_TIME_RESOURCE','당일 공실':'SAME_DAY_ROOM','이동/관광 잔여 상품':'TOUR_REMAINDER'} as const;
+const toViewProduct=(item:ApiProduct):Product=>({id:item.id,name:item.name,category:businessLabel[item.businessType],type:categoryLabel[item.category],quantity:String(item.qty),regular:String(item.price),minimum:String(item.minPrice),start:item.openTime?new Date(item.openTime).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'}):'',end:new Date(item.deadline).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'}),location:item.address??'',status:item.status==='ACTIVE'?'판매중':item.status==='PAUSED'?'판매중지':'판매종료',reservations:0});
+
 export function RegisteredProductsScreen({onBack}:{onBack:()=>void}){
   const[items,setItems]=useState(seed); const[menu,setMenu]=useState<number|null>(null); const[editing,setEditing]=useState<Product|null>(null); const[deleting,setDeleting]=useState<Product|null>(null); const[sortDesc,setSortDesc]=useState(true);
+  useEffect(()=>{sellerApi.products().then(page=>setItems(page.content.map(toViewProduct))).catch(()=>undefined)},[]);
   const shown=useMemo(()=>sortDesc?[...items]:[...items].reverse(),[items,sortDesc]);
-  if(editing)return <EditProduct product={editing} onBack={()=>setEditing(null)} onSave={next=>{setItems(list=>list.map(item=>item.id===next.id?next:item));setEditing(null)}}/>;
+  if(editing)return <EditProduct product={editing} onBack={()=>setEditing(null)} onSave={async next=>{await sellerApi.updateProduct(next.id,{name:next.name,businessType:businessTypeByLabel[next.category as keyof typeof businessTypeByLabel],category:categoryByLabel[next.type as keyof typeof categoryByLabel],qty:Number(next.quantity),price:Number(next.regular.replace(/,/g,'')),minPrice:Number(next.minimum.replace(/,/g,'')),address:next.location});setItems(list=>list.map(item=>item.id===next.id?next:item));setEditing(null)}}/>;
   return <View style={s.root}><Header title="등록 상품/자원 수" onBack={onBack}/><ScrollView contentContainerStyle={s.list}>
     {items.length?<><Pressable style={s.sort} onPress={()=>setSortDesc(v=>!v)}><Text style={s.sortText}>{sortDesc?'높은 할인율순':'낮은 할인율순'}</Text><ChevronDown width={18} height={18} color={colors.g500}/></Pressable>{shown.map(item=><ProductCard key={item.id} item={item} menu={menu===item.id} onMenu={()=>setMenu(menu===item.id?null:item.id)} onEdit={()=>{setMenu(null);setEditing(item)}} onDelete={()=>{setMenu(null);setDeleting(item)}}/>)}</>:<Empty/>}
-  </ScrollView><DeleteDialog product={deleting} onClose={()=>setDeleting(null)} onDelete={()=>{if(deleting)setItems(list=>list.filter(item=>item.id!==deleting.id));setDeleting(null)}}/></View>;
+</ScrollView><DeleteDialog product={deleting} onClose={()=>setDeleting(null)} onDelete={async()=>{if(!deleting)return;try{await sellerApi.deleteProduct(deleting.id);setItems(list=>list.filter(item=>item.id!==deleting.id))}finally{setDeleting(null)}}}/></View>;
 }
 function Header({title,onBack}:{title:string;onBack:()=>void}){return <View style={s.header}><Pressable onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black}/></Pressable><Text style={s.headerTitle}>{title}</Text><View style={{width:24}}/></View>}
 function Empty(){return <View style={s.empty}><Character width={112} height={112}/><Text style={s.emptyTitle}>등록된 상품/자원이 없어요.</Text><Text style={s.emptyBody}>당일 폐기되는 상품이나 빈 객실을 등록해 보세요!</Text></View>}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import { ApiError, authApi } from '../api';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -11,16 +12,9 @@ const discovery: AuthSession.DiscoveryDocument = {
 };
 
 const kakaoClientId = process.env.EXPO_PUBLIC_KAKAO_REST_API_KEY ?? '';
-const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://jeju-localtime-api.onrender.com').replace(/\/$/, '');
-
 export async function withdrawAccount() {
-  const accessToken = await AsyncStorage.getItem('localtime:access-token');
-  if (!accessToken) throw new Error('로그인 정보가 없습니다.');
-  const response = await fetch(`${apiUrl}/api/auth/me`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!response.ok && response.status !== 404) throw new Error(`회원 탈퇴에 실패했습니다. (${response.status})`);
+  try { await authApi.withdraw(); }
+  catch (error) { if (!(error instanceof ApiError && error.status === 404)) throw error; }
 }
 
 export type LoginUser = {
@@ -69,14 +63,7 @@ export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
           { clientId: kakaoClientId, code: authorizationCode, redirectUri },
           discovery,
         );
-        const backendResponse = await fetch(`${apiUrl}/api/auth/kakao`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: token.accessToken }),
-        });
-        if (!backendResponse.ok) throw new Error(`백엔드 로그인 실패 (${backendResponse.status})`);
-
-        const user = (await backendResponse.json()) as LoginUser;
+        const user = await authApi.kakaoLogin(token.accessToken);
         await AsyncStorage.multiSet([
           ['localtime:access-token', user.accessToken],
           ['localtime:user', JSON.stringify(user)],

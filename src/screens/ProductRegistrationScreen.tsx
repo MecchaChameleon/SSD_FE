@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, radius } from '../theme';
+import { ApiError, sellerApi } from '../api';
 import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import CloseIcon from '../../icon/x.svg';
@@ -17,6 +18,20 @@ const categoryTypes: Record<Category, string[]> = {
 };
 const times = ['오전 9:00', '오전 10:00', '오전 11:00', '오후 12:00', '오후 1:00', '오후 2:00', '오후 3:00', '오후 4:00', '오후 5:00', '오후 6:00', '오후 7:00', '오후 8:00', '오후 9:00', '오후 10:00', '오후 11:00'];
 const locations = ['동문시장 한라봉집', '제주시 중앙로 12', '서귀포 바다점'];
+const businessTypes = ['RESTAURANT', 'LODGING', 'EXPERIENCE', 'RENTAL_MOBILITY'] as const;
+const productCategories = [
+  ['SAME_DAY_INVENTORY', 'EMPTY_TIME_RESOURCE'],
+  ['SAME_DAY_ROOM'],
+  ['EMPTY_TIME_RESOURCE'],
+  ['TOUR_REMAINDER'],
+] as const;
+
+function timeToIso(value: string) {
+  const index = times.indexOf(value);
+  const date = new Date();
+  date.setHours(index < 0 ? 0 : 9 + index, 0, 0, 0);
+  return date.toISOString();
+}
 
 export function ProductRegistrationScreen({ onBack }: { onBack: () => void }) {
   const [name, setName] = useState('');
@@ -31,11 +46,38 @@ export function ProductRegistrationScreen({ onBack }: { onBack: () => void }) {
   const [sheet, setSheet] = useState<Sheet>(null);
   const [submitted, setSubmitted] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
 
   const valid = !!(name.trim() && category && type && quantity && regular && minimum && start && end && location);
   const types = useMemo(() => category ? categoryTypes[category] : [], [category]);
   const digits = (value: string, setter: (value: string) => void) => setter(value.replace(/\D/g, ''));
   const error = (value: string) => submitted && !value;
+  const submit = async () => {
+    setSubmitted(true);
+    setRequestError(null);
+    if (!valid || !category) return;
+    const categoryIndex = Object.keys(categoryTypes).indexOf(category);
+    const typeIndex = categoryTypes[category].indexOf(type);
+    if (categoryIndex < 0 || typeIndex < 0) return;
+    setSaving(true);
+    try {
+      await sellerApi.createProduct({
+        name: name.trim(),
+        businessType: businessTypes[categoryIndex],
+        category: productCategories[categoryIndex][typeIndex],
+        qty: Number(quantity),
+        price: Number(regular),
+        minPrice: Number(minimum),
+        openTime: timeToIso(start),
+        deadline: timeToIso(end),
+        address: location,
+      });
+      setComplete(true);
+    } catch (cause) {
+      setRequestError(cause instanceof ApiError ? cause.message : '상품 등록 요청에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally { setSaving(false); }
+  };
 
   if (complete) return <Completion onDone={onBack} />;
 
@@ -66,9 +108,10 @@ export function ProductRegistrationScreen({ onBack }: { onBack: () => void }) {
       <FormField label="매장 위치" error={error(location)} message="상품/자원을 등록할 매장을 선택해주세요.">
         <Select value={location} placeholder="매장 선택" onPress={() => setSheet('location')} error={error(location)} />
       </FormField>
-      <Pressable style={[s.submit, !valid && s.submitDisabled]} onPress={() => { setSubmitted(true); if (valid) setComplete(true); }}>
-        <Text style={[s.submitText, !valid && s.submitTextDisabled]}>상품/자원 등록하기</Text>
+      <Pressable disabled={saving} style={[s.submit, (!valid || saving) && s.submitDisabled]} onPress={submit}>
+        <Text style={[s.submitText, (!valid || saving) && s.submitTextDisabled]}>{saving ? '등록 중...' : '상품/자원 등록하기'}</Text>
       </Pressable>
+      {requestError ? <Text style={s.requestError}>{requestError}</Text> : null}
     </ScrollView>
     <ChoiceSheet
       kind={sheet}
@@ -115,7 +158,7 @@ const s = StyleSheet.create({
   root:{flex:1,backgroundColor:colors.white}, header:{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, headerTitle:{fontSize:16,fontWeight:'600',color:colors.black},
   form:{padding:16,paddingBottom:100,gap:24}, title:{fontSize:20,fontWeight:'600',color:colors.black}, field:{gap:8}, label:{fontSize:14,fontWeight:'500',color:colors.black}, required:{color:colors.primary500}, input:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,fontSize:16,color:colors.black,backgroundColor:colors.white}, inputError:{borderColor:colors.danger}, errorText:{fontSize:12,color:colors.danger},
   select:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:colors.white}, selectDisabled:{backgroundColor:colors.g100,borderColor:colors.g200}, selectText:{flex:1,fontSize:16,color:colors.black}, placeholder:{color:colors.g400}, money:{flexDirection:'row',alignItems:'center',gap:10}, moneyInput:{flex:1}, won:{fontSize:16,color:colors.black,paddingHorizontal:8}, timeRow:{flexDirection:'row',gap:12}, timeCell:{flex:1},
-  submit:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:8}, submitDisabled:{backgroundColor:colors.g200}, submitText:{fontSize:16,fontWeight:'600',color:colors.white}, submitTextDisabled:{color:colors.g400},
+  submit:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:8}, submitDisabled:{backgroundColor:colors.g200}, submitText:{fontSize:16,fontWeight:'600',color:colors.white}, submitTextDisabled:{color:colors.g400}, requestError:{fontSize:12,lineHeight:18,color:colors.danger,textAlign:'center'},
   overlay:{flex:1,backgroundColor:'rgba(17,17,17,.28)',justifyContent:'flex-end',alignItems:'center'}, sheet:{width:'100%',maxWidth:402,maxHeight:'72%',backgroundColor:colors.white,borderTopLeftRadius:24,borderTopRightRadius:24,padding:20,paddingBottom:28}, sheetHead:{flexDirection:'row',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}, sheetTitle:{fontSize:18,fontWeight:'600',color:colors.black}, sheetHint:{fontSize:12,color:colors.g500,marginTop:5}, options:{maxHeight:450}, option:{minHeight:54,borderBottomWidth:1,borderBottomColor:colors.g200,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, optionText:{fontSize:16,color:colors.g800}, optionSelected:{fontWeight:'600',color:colors.primary700}, radio:{width:24,height:24,borderRadius:12,borderWidth:2,borderColor:colors.g300,alignItems:'center',justifyContent:'center'}, radioOn:{borderColor:colors.primary500}, radioDot:{width:12,height:12,borderRadius:6,backgroundColor:colors.primary500},
   complete:{flex:1,backgroundColor:colors.white,padding:16,justifyContent:'space-between'}, completeBody:{flex:1,alignItems:'center',justifyContent:'center',paddingHorizontal:12}, completeTitle:{fontSize:28,fontWeight:'700',color:colors.black,marginTop:16}, completeText:{fontSize:16,lineHeight:24,color:colors.g500,textAlign:'center',marginTop:10},
 });

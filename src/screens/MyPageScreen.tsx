@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AppHeader, BottomNavigation } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
 import { colors, radius } from '../theme';
+import { ApiError, SellerProfile, sellerApi } from '../api';
 import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import ChevronRight from '../../icon/chevron_right.svg';
@@ -19,6 +20,7 @@ type Business = { shop: string; number1: string; number2: string; number3: strin
 
 const initialBusiness: Business = { shop: '', number1: '', number2: '', number3: '', address: '', bank: '', account: '' };
 const sampleBusiness: Business = { shop: '춘자네 흑돼지 협재점', number1: '120', number2: '23', number3: '45678', address: '제주시 한림읍 한림로 341', bank: '제주은행', account: '123-04-0567890' };
+const profileToBusiness = (profile: SellerProfile): Business => { const numbers=profile.businessNumber.split('-'); return {shop:profile.businessName,number1:numbers[0]??'',number2:numbers[1]??'',number3:numbers[2]??'',address:profile.address??'',bank:profile.bankName??'',account:profile.accountNumber??''}; };
 const addresses = [
   ['63011', '제주특별자치도 제주시 한림읍 한림로 341', '제주특별자치도 제주시 한림읍 협재리 2446-2'],
   ['63024', '제주특별자치도 제주시 한림읍 귀덕5길 3', '제주특별자치도 제주시 귀덕리 1249-1'],
@@ -68,8 +70,11 @@ export function SellerMyPageScreen({ onBack, onProducts, onBuyerMode, onLogout, 
   const [page, setPage] = useState<'main' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [business, setBusiness] = useState<Business>(sampleBusiness);
+  const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  useEffect(() => { sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
   if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
-  if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={value => { setBusiness(value); setPage('business'); }} />;
+  if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={async value => { try { const profile=await sellerApi.updateProfile({address:value.address,latitude:sellerProfile?.latitude??null,longitude:sellerProfile?.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness(profileToBusiness(profile)); setPage('business'); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />;
   if (page === 'mode') return <SellerModePage onBack={() => setPage('main')} onBuyerMode={onBuyerMode} />;
   if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
   if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw ?? (async () => {})} />;
@@ -80,7 +85,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onBuyerMode, onLogout, 
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>로컬이</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
+  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>로컬이</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
     <SellerMyNavigation onHome={onBack} onProducts={onProducts}/>
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); setPage('withdrawDone'); } }} />
@@ -190,6 +195,7 @@ function ConfirmDialog({ type, onClose, onConfirm }: { type: 'logout' | 'withdra
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white }, header: { height: 56, borderBottomWidth: 1, borderBottomColor: colors.g200, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, headerTitle: { fontSize: 16, fontWeight: '600', color: colors.black }, headerSide: { width: 24 },
+  apiError: { marginHorizontal:16,marginTop:8,fontSize:12,color:colors.danger },
   profileRow: { height: 92, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.g200, flexDirection: 'row', alignItems: 'center', gap: 12 }, avatar: { overflow: 'hidden', backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' }, nameRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }, name: { fontSize: 16, fontWeight: '600' }, kakao: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.kakao, alignItems: 'center', justifyContent: 'center' }, listRow: { height: 70, borderBottomWidth: 1, borderBottomColor: colors.g200, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, rowText: { fontSize: 16, fontWeight: '600' },
   profileAvatar: { position: 'absolute', top: 100, alignSelf: 'center' }, editBadge: { position: 'absolute', right: 0, bottom: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: colors.primary500, borderWidth: 2, borderColor: colors.white, alignItems: 'center', justifyContent: 'center' }, editBadgeText: { color: colors.white, fontSize: 19, lineHeight: 22, fontWeight: '600' }, profileForm: { position: 'absolute', top: 297, left: 16, right: 16, gap: 8 }, nicknameHelp: { flexDirection: 'row', justifyContent: 'space-between' }, nicknameGuide: { fontSize: 12, color: colors.g500 }, nicknameCount: { fontSize: 12, color: colors.g400 }, invalidInput: { borderColor: colors.danger }, invalidText: { color: colors.danger }, profileSave: { position: 'absolute', left: 16, right: 16, bottom: 34 },
   favorites: { padding: 16, paddingBottom: 32, gap: 12 }, favoriteCount: { alignSelf: 'flex-end', fontSize: 12, color: colors.g500 }, favoriteCard: { padding: 16, borderWidth: 1, borderColor: colors.g200, borderRadius: radius.lg, gap: 9, backgroundColor: colors.white }, favoriteHead: { paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.g200, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, discount: { fontSize: 16, fontWeight: '600', color: colors.info }, favoriteTitle: { fontSize: 18, fontWeight: '600', color: colors.black }, favoriteMeta: { flexDirection: 'row', alignItems: 'center', gap: 10 }, favoriteShop: { fontSize: 14, fontWeight: '600', color: colors.g800 }, favoriteLocation: { fontSize: 12, color: colors.g600 }, favoritePriceRow: { marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, originalPrice: { fontSize: 14, color: colors.g600, textDecorationLine: 'line-through' }, salePrice: { fontSize: 20, fontWeight: '600', color: colors.danger }, remaining: { fontSize: 12, color: colors.g600, textAlign: 'right' }, favoriteEmpty: { paddingTop: 150, alignItems: 'center', gap: 10 }, favoriteEmptyTitle: { marginTop: 6, fontSize: 16, fontWeight: '600' }, favoriteEmptyBody: { fontSize: 13, color: colors.g500 },
