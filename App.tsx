@@ -1,10 +1,10 @@
 import React,{useCallback,useEffect,useState} from 'react';
-import { ActivityIndicator,Platform,SafeAreaView,StyleSheet,View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { SplashScreen } from './src/screens/SplashScreen'; import { OnboardingScreen } from './src/screens/OnboardingScreen'; import { LoginScreen } from './src/screens/LoginScreen'; import { SignupScreen } from './src/screens/SignupScreen'; import { CompleteScreen } from './src/screens/CompleteScreen'; import { ComponentGalleryScreen } from './src/screens/ComponentGalleryScreen'; import { BuyerHomeScreen } from './src/screens/BuyerHomeScreen';
 import type { PurchasePayload } from './src/screens/BuyerHomeScreen';
-import { colors,screen } from './src/theme'; import { LoginUser,useKakaoLogin,withdrawAccount } from './src/auth/kakao';
+import { colors } from './src/theme'; import { LoginUser,useKakaoLogin,withdrawAccount } from './src/auth/kakao'; import { DeviceFrame } from './src/components/DeviceFrame';
 
 type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'complete'|'home'|'gallery';
 export default function App(){const[route,setRoute]=useState<Route>('loading');const[name,setName]=useState('로컬이');const[type]=useState<'buyer'|'seller'>('buyer');
@@ -18,6 +18,5 @@ export default function App(){const[route,setRoute]=useState<Route>('loading');c
   const withdraw=async()=>{await withdrawAccount();await AsyncStorage.multiRemove(['localtime:access-token','localtime:user','localtime:member','localtime:onboarding-complete']);setName('로컬이');setRoute('splash')};
   const purchase=async(payload:PurchasePayload)=>{await AsyncStorage.setItem('localtime:last-purchase',JSON.stringify({...payload,requestedAt:new Date().toISOString()}))};
   const content=route==='loading'?<ActivityIndicator color={colors.primary500}/>:route==='splash'?<SplashScreen onDone={afterSplash}/>:route==='onboarding'?<OnboardingScreen onDone={finishOnboarding}/>:route==='login'?<LoginScreen onLogin={kakao.login} loading={kakao.loading} error={kakao.error} disabled={!kakao.ready}/>:route==='signup'?<SignupScreen onBack={()=>setRoute('login')} onComplete={signup}/>:route==='complete'?<CompleteScreen name={name} userType={type} onStart={()=>setRoute('home')}/>:route==='gallery'?<ComponentGalleryScreen onClose={()=>setRoute('home')}/>:<BuyerHomeScreen onLogout={logout} onWithdraw={withdraw} onPurchase={purchase}/>;
-  return <SafeAreaView style={s.safe}><StatusBar style="dark"/><View style={s.device}>{content}</View></SafeAreaView>;
+  return <><StatusBar style="dark"/><DeviceFrame>{content}</DeviceFrame></>;
 }
-const s=StyleSheet.create({safe:{flex:1,backgroundColor:Platform.OS==='web'?'#efefed':colors.white,alignItems:'center'},device:{flex:1,width:'100%',maxWidth:screen.maxWidth,backgroundColor:colors.white,overflow:'hidden',...(Platform.OS==='web'?{boxShadow:'0 0 40px rgba(17,17,17,.10)'} as object:{})}});

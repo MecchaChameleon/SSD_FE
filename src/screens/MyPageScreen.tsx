@@ -7,8 +7,12 @@ import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import ChevronRight from '../../icon/chevron_right.svg';
 import HeartIcon from '../../icon/heart.svg';
+import UserIcon from '../../icon/user.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 import KakaoLogo from '../../icon/kakao_logo.svg';
+import HomeIcon from '../../icon/home.svg';
+import ShoppingIcon from '../../icon/shopping-bag.svg';
+import TrelloIcon from '../../icon/trello.svg';
 
 type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessForm' | 'businessDone' | 'notifications' | 'modeDone' | 'withdrawDone';
 type Business = { shop: string; number1: string; number2: string; number3: string; address: string; bank: string; account: string };
@@ -46,7 +50,6 @@ export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { o
 
   const rows: Array<[string, () => void, boolean]> = [
     ['찜한 상품/자원 관리', () => setPage('favorites'), true],
-    ['사업자 정보', () => openBusiness('main'), true],
     ['앱 모드 전환', () => setPage('mode'), true],
     ['알림 설정', () => setPage('notifications'), true],
     ['로그아웃', () => setDialog('logout'), false],
@@ -60,6 +63,21 @@ export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { o
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); setPage('withdrawDone'); } }} />
   </View>;
 }
+
+export function SellerMyPageScreen({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMode: () => void }) {
+  const [page, setPage] = useState<'main' | 'business' | 'businessForm'>('main');
+  const [business, setBusiness] = useState<Business>(sampleBusiness);
+  if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
+  if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={value => { setBusiness(value); setPage('business'); }} />;
+  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>로컬이</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
+    <Pressable style={s.listRow} onPress={() => setPage('business')}><Text style={s.rowText}>사업자 정보</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
+    <Pressable style={s.listRow} onPress={onBuyerMode}><Text style={s.rowText}>구매자 모드로 전환</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
+    <Pressable style={s.listRow}><Text style={s.rowText}>알림 설정</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
+    <SellerMyNavigation onHome={onBack}/>
+  </View>;
+}
+
+function SellerMyNavigation({ onHome }: { onHome: () => void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; return <Pressable key={label} onPress={index === 0 ? onHome : undefined} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable><Text style={s.headerTitle}>{title}</Text><View style={s.headerSide} /></View>; }
 function LocaltimeCharacter({ size }: { size: number }) { return <View style={{ width: size, height: size, zIndex: 1 }}><Character width={size} height={size} /></View>; }
@@ -152,4 +170,5 @@ const s = StyleSheet.create({
   completeArt: { position: 'absolute', top: 199, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' }, glow: { position: 'absolute', width: 190, height: 190, borderRadius: 95, backgroundColor: '#eef8ff' }, completeCopy: { position: 'absolute', top: 350, left: 16, right: 16, alignItems: 'center', gap: 6 }, completeTitle: { fontSize: 18, fontWeight: '600', textAlign: 'center' }, completeBody: { fontSize: 14, lineHeight: 18, color: colors.g500, textAlign: 'center' }, completeButton: { position: 'absolute', top: 501, left: 16, right: 16 }, modeDoneLabel: { position: 'absolute', top: 76, alignSelf: 'center', fontSize: 16, fontWeight: '600' }, modeDoneArt: { position: 'absolute', top: 177, alignSelf: 'center' }, modeDoneCopy: { position: 'absolute', top: 335, left: 16, right: 16, alignItems: 'center', gap: 8 }, modeDoneButton: { position: 'absolute', top: 505, left: 16, right: 16 },
   notice: { margin: 16, padding: 14, borderRadius: radius.md, backgroundColor: '#eaf2ff' }, noticeText: { color: colors.info, fontSize: 12, fontWeight: '600' }, notifications: { paddingHorizontal: 16 }, notifyRow: { height: 62, borderBottomWidth: 1, borderBottomColor: colors.g200, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dialogOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,.25)', alignItems: 'center', justifyContent: 'center', padding: 16 }, dialog: { width: '100%', maxWidth: 370, backgroundColor: colors.white, borderRadius: radius.lg, padding: 20, gap: 12 }, dialogTitle: { fontSize: 18, fontWeight: '600' }, dialogBody: { fontSize: 12, lineHeight: 17, color: colors.g600 }, dialogNotice: { marginTop: 8, fontSize: 10, color: colors.info }, dialogButtons: { flexDirection: 'row', gap: 8, marginTop: 8 }, dialogButton: { flex: 1, height: 56, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' }, orange: { backgroundColor: colors.primary500 }, gray: { backgroundColor: colors.g300 },
+  sellerNav:{position:'absolute',left:0,right:0,bottom:0,height:66,borderTopWidth:1,borderTopColor:colors.g200,backgroundColor:colors.white,paddingHorizontal:12,flexDirection:'row'},sellerNavItem:{flex:1,paddingVertical:8,alignItems:'center',gap:8},sellerNavLabel:{fontSize:12,fontWeight:'600'},
 });
