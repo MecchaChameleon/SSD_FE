@@ -3,7 +3,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { AppHeader, BottomNavigation } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
 import { colors, radius } from '../theme';
-import { ApiError, SellerProfile, sellerApi } from '../api';
+import { ApiError, SellerProfile, authApi, buyerApi, notificationApi, sellerApi } from '../api';
+import { mockAddresses, mockBanks, mockBusiness, mockFavoriteProducts } from '../mocks/data';
 import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import ChevronRight from '../../icon/chevron_right.svg';
@@ -19,18 +20,11 @@ type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessFo
 type Business = { shop: string; number1: string; number2: string; number3: string; address: string; bank: string; account: string };
 
 const initialBusiness: Business = { shop: '', number1: '', number2: '', number3: '', address: '', bank: '', account: '' };
-const sampleBusiness: Business = { shop: '춘자네 흑돼지 협재점', number1: '120', number2: '23', number3: '45678', address: '제주시 한림읍 한림로 341', bank: '제주은행', account: '123-04-0567890' };
+const sampleBusiness: Business = mockBusiness;
 const profileToBusiness = (profile: SellerProfile): Business => { const numbers=profile.businessNumber.split('-'); return {shop:profile.businessName,number1:numbers[0]??'',number2:numbers[1]??'',number3:numbers[2]??'',address:profile.address??'',bank:profile.bankName??'',account:profile.accountNumber??''}; };
-const addresses = [
-  ['63011', '제주특별자치도 제주시 한림읍 한림로 341', '제주특별자치도 제주시 한림읍 협재리 2446-2'],
-  ['63024', '제주특별자치도 제주시 한림읍 귀덕5길 3', '제주특별자치도 제주시 귀덕리 1249-1'],
-  ['63024', '제주특별자치도 제주시 한림읍 귀덕동길 3', '제주특별자치도 제주시 귀덕리 1249-1'],
-];
-const banks = ['NH농협', 'KB국민', '카카오뱅크', '신한은행', '우리은행', '하나은행', '새마을금고', '토스뱅크', 'IBK기업'];
-const favoriteProducts = [
-  { id: 1, title: '제주 흑돼지 모둠 프리미엄 세트', discount: '62.5%', shop: '춘자네 흑돼지 협재점', location: '제주시 한림읍 · 850m', original: '20,000원', price: '7,500원', remaining: '잔여수량 2개' },
-  { id: 2, title: '바다 전망 커플룸 당일 숙박권', discount: '20%', shop: '푸른바다 게스트하우스', location: '제주시 애월읍 · 2.4km', original: '90,000원', price: '72,000원', remaining: '잔여수량 1개' },
-];
+const addresses = mockAddresses;
+const banks = mockBanks;
+const favoriteProducts = mockFavoriteProducts;
 
 export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
   const [page, setPage] = useState<Page>('main');
@@ -38,15 +32,16 @@ export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { o
   const [name, setName] = useState('로컬이');
   const [business, setBusiness] = useState<Business | null>(null);
   const [formReturn, setFormReturn] = useState<'main' | 'mode'>('main');
+  useEffect(()=>{authApi.me().then(me=>setName(me.nickname)).catch(()=>undefined);sellerApi.profile().then(profile=>setBusiness(profileToBusiness(profile))).catch(()=>undefined)},[]);
 
   const openBusiness = (from: 'main' | 'mode') => { setFormReturn(from); setPage(business ? 'business' : 'businessForm'); };
-  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={nextName => { setName(nextName); setPage('main'); }} />;
+  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName});setName(nextName);setPage('main'); }} />;
   if (page === 'favorites') return <FavoritesPage onBack={() => setPage('main')} />;
   if (page === 'mode') return <ModePage certified={!!business} onRegister={() => openBusiness('mode')} onComplete={() => setPage('modeDone')} onBack={() => setPage('main')} />;
-  if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => setPage(formReturn)} onSave={value => { setBusiness(value); setPage(business ? 'business' : 'businessDone'); }} />;
+  if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => setPage(formReturn)} onSave={async value => { if(!business)await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:name,businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:null,longitude:null,bankName:value.bank,accountNumber:value.account,accountHolder:name});setBusiness(value);setPage(business ? 'business' : 'businessDone'); }} />;
   if (page === 'businessDone') return <Completion title="사업자 정보 등록 완료!" body="이제 판매자 모드로 전환하여 상품/자원을 등록할 수 있어요." button="홈 화면으로 이동" onPress={() => setPage(formReturn)} />;
   if (page === 'business' && business) return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
-  if (page === 'notifications') return <SellerNotificationPage onBack={() => setPage('main')} />;
+  if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
   if (page === 'modeDone') return <ModeCompletion onDone={onSellerMode} />;
   if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw} />;
 
@@ -66,7 +61,7 @@ export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { o
   </View>;
 }
 
-export function SellerMyPageScreen({ onBack, onProducts, onBuyerMode, onLogout, onWithdraw }: { onBack: () => void; onProducts?: () => void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void> }) {
+export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLogout, onWithdraw }: { onBack: () => void; onProducts?: () => void; onAi?:()=>void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void> }) {
   const [page, setPage] = useState<'main' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [business, setBusiness] = useState<Business>(sampleBusiness);
@@ -87,12 +82,12 @@ export function SellerMyPageScreen({ onBack, onProducts, onBuyerMode, onLogout, 
   ];
   return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>로컬이</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
-    <SellerMyNavigation onHome={onBack} onProducts={onProducts}/>
+    <SellerMyNavigation onHome={onBack} onProducts={onProducts} onAi={onAi}/>
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); setPage('withdrawDone'); } }} />
   </View>;
 }
 
-function SellerMyNavigation({ onHome, onProducts }: { onHome: () => void; onProducts?: () => void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; const onPress = index === 0 ? onHome : index === 1 ? onProducts : undefined; return <Pressable key={label} onPress={onPress} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }
+function SellerMyNavigation({ onHome, onProducts, onAi }: { onHome: () => void; onProducts?: () => void; onAi?:()=>void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; const onPress = index === 0 ? onHome : index === 1 ? onProducts : index===2?onAi:undefined; return <Pressable key={label} onPress={onPress} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }
 
 function SellerModePage({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMode: () => void }) {
   const [buyer, setBuyer] = useState(false);
@@ -111,7 +106,9 @@ function SellerNotificationPage({ onBack }: { onBack: () => void }) {
     ['구매자 모드 알림', ['마감 임박 알림', '예약 승인 알림']],
   ] as const;
   const [values, setValues] = useState<Record<string, boolean>>(() => Object.fromEntries(groups.flatMap(([, items]) => items.map(item => [item, true]))));
-  return <View style={s.root}><Header title="알림 설정" onBack={onBack}/><View style={s.notice}><Text style={s.noticeText}>ⓘ  중요한 정보를 놓칠 수 있으므로 알림을 꼭 켜주세요.</Text></View><ScrollView contentContainerStyle={s.notifications}>{groups.map(([title, items]) => <View key={title} style={s.notifyGroup}><Text style={s.notifyGroupTitle}>{title}</Text>{items.map(item => <View key={item} style={s.notifyRow}><Text style={s.notifyText}>{item}</Text><Toggle value={!!values[item]} onChange={value => setValues(old => ({...old, [item]: value}))}/></View>)}</View>)}</ScrollView></View>;
+  useEffect(()=>{notificationApi.settings().then(value=>setValues({'공지사항 및 이벤트 알림':value.commonEvent,'예약 요청 및 취소 알림':value.sellerReservation,'AI 실시간 가격 제안 알림':value.sellerAiPrice,'정산 및 대금 입금 알림':value.sellerSettlement,'마감 임박 알림':value.buyerDeadline,'예약 승인 알림':value.buyerReservationApproved})).catch(()=>undefined)},[]);
+  const change=(item:string,value:boolean)=>setValues(old=>{const next={...old,[item]:value};void notificationApi.updateSettings({commonEvent:!!next['공지사항 및 이벤트 알림'],sellerReservation:!!next['예약 요청 및 취소 알림'],sellerAiPrice:!!next['AI 실시간 가격 제안 알림'],sellerSettlement:!!next['정산 및 대금 입금 알림'],buyerDeadline:!!next['마감 임박 알림'],buyerReservationApproved:!!next['예약 승인 알림']}).catch(()=>undefined);return next});
+  return <View style={s.root}><Header title="알림 설정" onBack={onBack}/><View style={s.notice}><Text style={s.noticeText}>ⓘ  중요한 정보를 놓칠 수 있으므로 알림을 꼭 켜주세요.</Text></View><ScrollView contentContainerStyle={s.notifications}>{groups.map(([title, items]) => <View key={title} style={s.notifyGroup}><Text style={s.notifyGroupTitle}>{title}</Text>{items.map(item => <View key={item} style={s.notifyRow}><Text style={s.notifyText}>{item}</Text><Toggle value={!!values[item]} onChange={value => change(item,value)}/></View>)}</View>)}</ScrollView></View>;
 }
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable><Text style={s.headerTitle}>{title}</Text><View style={s.headerSide} /></View>; }
@@ -134,10 +131,11 @@ function ProfilePage({ name, onBack, onSave }: { name: string; onBack: () => voi
 
 function FavoritesPage({ onBack }: { onBack: () => void }) {
   const [items, setItems] = useState(favoriteProducts);
+  useEffect(()=>{buyerApi.wishlist({size:50}).then(page=>setItems(page.content.map(item=>({id:item.id,title:item.name,discount:`${item.discountRate??0}%`,shop:item.businessName??'',location:item.address??'',original:`${item.price.toLocaleString()}원`,price:`${item.currentPrice.toLocaleString()}원`,remaining:`잔여수량 ${item.qty}개`})))).catch(()=>setItems(mockFavoriteProducts))},[]);
   return <View style={s.root}><Header title="찜한 상품/자원 관리" onBack={onBack} /><ScrollView contentContainerStyle={s.favorites}>
     <Text style={s.favoriteCount}>총 {items.length}개</Text>
     {items.length ? items.map(item => <View key={item.id} style={s.favoriteCard}>
-      <View style={s.favoriteHead}><Pressable accessibilityRole="button" accessibilityLabel={`${item.title} 찜 해제`} onPress={() => setItems(current => current.filter(product => product.id !== item.id))}><HeartIcon width={24} height={24} color={colors.primary500} fill={colors.primary500} /></Pressable><Text style={s.discount}>{item.discount}</Text></View>
+      <View style={s.favoriteHead}><Pressable accessibilityRole="button" accessibilityLabel={`${item.title} 찜 해제`} onPress={() => {setItems(current => current.filter(product => product.id !== item.id));void buyerApi.removeWishlist(item.id).catch(()=>undefined)}}><HeartIcon width={24} height={24} color={colors.primary500} fill={colors.primary500} /></Pressable><Text style={s.discount}>{item.discount}</Text></View>
       <Text style={s.favoriteTitle}>{item.title}</Text>
       <View style={s.favoriteMeta}><Text style={s.favoriteShop}>{item.shop}</Text><Text style={s.favoriteLocation}>{item.location}</Text></View>
       <View style={s.favoritePriceRow}><Text style={s.originalPrice}>{item.original}</Text><Text style={s.salePrice}>{item.price}</Text></View>
@@ -189,7 +187,7 @@ function BusinessInfo({ value, onBack, onEdit }: { value: Business; onBack: () =
 function Completion({ title, body, button, onPress }: { title: string; body: string; button: string; onPress: () => void | Promise<void> }) { return <View style={s.root}><View style={s.completeArt}><LocaltimeCharacter size={112} /></View><View style={s.completeCopy}><Text style={s.completeTitle}>{title}</Text><Text style={s.completeBody}>{body}</Text></View><View style={s.completeButton}><ActionButton onPress={onPress}>{button}</ActionButton></View></View>; }
 function ModeCompletion({ onDone }: { onDone: () => void }) { return <View style={s.root}><Text style={s.modeDoneLabel}>판매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>로컬타임님, 환영합니다!</Text><Text style={s.completeBody}>매장의 마감 상품 및 자원을 등록하고,{`\n`}AI 가격 제안으로 매출을 극대화해 보세요.</Text></View><View style={s.modeDoneButton}><ActionButton onPress={onDone}>시작하기</ActionButton></View></View>; }
 
-function NotificationPage({ onBack }: { onBack: () => void }) { const items = ['공지사항 및 이벤트 알림', '예약 요청 및 취소 알림', 'AI 실시간 가격 제안 알림', '정산 및 대금 입금 알림', '마감 임박 알림', '예약 승인 알림']; const [values, setValues] = useState<Record<string, boolean>>({}); return <View style={s.root}><Header title="알림 설정" onBack={onBack} /><View style={s.notice}><Text style={s.noticeText}>중요한 정보를 놓치지 않도록 알림을 꼭 켜주세요.</Text></View><ScrollView contentContainerStyle={s.notifications}>{items.map(item => <View key={item} style={s.notifyRow}><Text>{item}</Text><Toggle value={!!values[item]} onChange={v => setValues(old => ({ ...old, [item]: v }))} /></View>)}</ScrollView></View>; }
+function NotificationPage({ onBack }: { onBack: () => void }) { return <SellerNotificationPage onBack={onBack}/>; }
 
 function ConfirmDialog({ type, onClose, onConfirm }: { type: 'logout' | 'withdraw' | null; onClose: () => void; onConfirm: () => void | Promise<void> }) { return <Modal transparent visible={!!type} animationType="fade" onRequestClose={onClose}><View style={s.dialogOverlay}><View style={s.dialog}><Text style={s.dialogTitle}>{type === 'logout' ? '로그아웃 하시겠습니까?' : '회원 탈퇴 하시겠습니까?'}</Text><Text style={s.dialogBody}>{type === 'logout' ? '로그아웃 후에는 실시간 예약 요청 및 푸시 알림이 발송되지 않습니다.' : '등록된 매장 정보, 상품 등록 및 구매 이력, AI 매출 리포트 데이터가 즉시 삭제되며 복구되지 않습니다.'}</Text>{type === 'withdraw' && <Text style={s.dialogNotice}>ⓘ 현재 진행 중인 예약 요청 및 정산이 있다면 처리 완료 후 탈퇴가 가능합니다.</Text>}<View style={s.dialogButtons}><Pressable onPress={onConfirm} style={[s.dialogButton, s.orange]}><Text style={s.whiteText}>{type === 'logout' ? '로그아웃' : '탈퇴하기'}</Text></Pressable><Pressable onPress={onClose} style={[s.dialogButton, s.gray]}><Text style={s.whiteText}>취소</Text></Pressable></View></View></View></Modal>; }
 

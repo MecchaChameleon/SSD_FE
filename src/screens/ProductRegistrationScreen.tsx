@@ -6,6 +6,7 @@ import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
+import { mockLocations } from '../mocks/data';
 
 type Category = '음식점' | '숙박' | '체험' | '렌탈/모빌리티';
 type Sheet = 'category' | 'type' | 'start' | 'end' | 'location' | null;
@@ -17,7 +18,7 @@ const categoryTypes: Record<Category, string[]> = {
   '렌탈/모빌리티': ['이동/관광 잔여 상품'],
 };
 const times = ['오전 9:00', '오전 10:00', '오전 11:00', '오후 12:00', '오후 1:00', '오후 2:00', '오후 3:00', '오후 4:00', '오후 5:00', '오후 6:00', '오후 7:00', '오후 8:00', '오후 9:00', '오후 10:00', '오후 11:00'];
-const locations = ['동문시장 한라봉집', '제주시 중앙로 12', '서귀포 바다점'];
+const locations = mockLocations;
 const businessTypes = ['RESTAURANT', 'LODGING', 'EXPERIENCE', 'RENTAL_MOBILITY'] as const;
 const productCategories = [
   ['SAME_DAY_INVENTORY', 'EMPTY_TIME_RESOURCE'],

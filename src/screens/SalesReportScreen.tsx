@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius } from '../theme';
 import CalendarIcon from '../../icon/calendar.svg';
@@ -6,22 +6,21 @@ import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import ChevronRight from '../../icon/chevron_right.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
+import { sellerApi } from '../api'; import { mockSales } from '../mocks/data';
 
 type Sale = { id: number; name: string; detail: string; quantity: number; revenue: number };
-const sales: Sale[] = [
-  { id: 1, name: '제주 갈치회 세트', detail: '당일 재고 · 마감 21:00', quantity: 4, revenue: 106000 },
-  { id: 2, name: '게스트하우스 당일 공실', detail: '당일 공실 · 마감 21:00', quantity: 1, revenue: 57900 },
-];
 const money = (value: number) => `${value.toLocaleString()}원`;
 
 export function SalesReportScreen({ onBack }: { onBack: () => void }) {
+  const [salesData,setSalesData]=useState<Sale[]>(mockSales);
   const [calendar, setCalendar] = useState(false);
   const [start, setStart] = useState<number | null>(10);
   const [end, setEnd] = useState<number | null>(null);
   const [range, setRange] = useState<{ start: number; end: number } | null>(null);
   const [sortDesc, setSortDesc] = useState(true);
-  const shown = useMemo(() => sortDesc ? [...sales].sort((a, b) => b.revenue - a.revenue) : [...sales].sort((a, b) => a.revenue - b.revenue), [sortDesc]);
-  const total = sales.reduce((sum, item) => sum + item.revenue, 0);
+  useEffect(()=>{const today=new Date().toISOString().slice(0,10);sellerApi.salesReport({startDate:today,endDate:today}).then(report=>setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})))).catch(()=>setSalesData(mockSales))},[]);
+  const shown = useMemo(() => sortDesc ? [...salesData].sort((a, b) => b.revenue - a.revenue) : [...salesData].sort((a, b) => a.revenue - b.revenue), [salesData,sortDesc]);
+  const total = salesData.reduce((sum, item) => sum + item.revenue, 0);
   return <View style={s.root}>
     <Header onBack={onBack} />
     <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>

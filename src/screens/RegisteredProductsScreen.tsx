@@ -3,17 +3,14 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { ActionButton } from '../components/ui';
 import { colors, radius } from '../theme';
 import { Product as ApiProduct, sellerApi } from '../api';
+import { mockRegisteredProducts } from '../mocks/data';
 import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import MoreIcon from '../../icon/more_vertical.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 
 type Product = { id:number; name:string; category:string; type:string; quantity:string; regular:string; minimum:string; start:string; end:string; location:string; status:string; reservations:number };
-const seed: Product[] = [
-  {id:1,name:'흑돼지 도시락',category:'음식점',type:'당일 재고',quantity:'7',regular:'20,000',minimum:'13,000',start:'오후 5:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매중',reservations:2},
-  {id:2,name:'게스트하우스 당일 공실',category:'숙박',type:'당일 공실',quantity:'1',regular:'70,000',minimum:'50,000',start:'오후 3:00',end:'오후 11:00',location:'푸른바다 게스트하우스',status:'판매중',reservations:1},
-  {id:3,name:'제주 갈치회 세트',category:'음식점',type:'당일 재고',quantity:'4',regular:'35,000',minimum:'25,000',start:'오후 3:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매종료',reservations:0},
-];
+const seed: Product[] = mockRegisteredProducts;
 
 const businessLabel = {RESTAURANT:'음식점',LODGING:'숙박',EXPERIENCE:'체험',RENTAL_MOBILITY:'렌탈/모빌리티'} as const;
 const categoryLabel = {SAME_DAY_INVENTORY:'당일 재고',EMPTY_TIME_RESOURCE:'빈 시간대 자원',SAME_DAY_ROOM:'당일 공실',TOUR_REMAINDER:'이동/관광 잔여 상품'} as const;
