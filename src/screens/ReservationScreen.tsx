@@ -8,11 +8,11 @@ import ChevronLeft from '../../icon/chevron_left.svg';
 import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 
-export function ReservationScreen({product,onClose,onComplete}:{product:Product;onClose:()=>void;onComplete:()=>void}){
+export function ReservationScreen({product,onClose,onComplete}:{product:Product;onClose:()=>void;onComplete:(quantity:number)=>void}){
   const [quantity,setQuantity]=useState(''); const [time,setTime]=useState(''); const [picker,setPicker]=useState(false); const [done,setDone]=useState(false);
   const [period,setPeriod]=useState<'오전'|'오후'>('오후'); const [hour,setHour]=useState(9); const [minute,setMinute]=useState(0);
   const valid=Number(quantity)>0&&!!time;
-  if(done)return <View style={s.root}><View style={s.completeArt}><Character width={112} height={112}/></View><View style={s.completeCopy}><Text style={s.completeTitle}>예약 요청 완료!</Text><Text style={s.completeBody}>판매자는 요청된 예약을 승인 또는 거절할 수 있어요.</Text></View><Pressable style={s.completeButton} onPress={onComplete}><Text style={s.buttonText}>완료</Text></Pressable></View>;
+  if(done)return <View style={s.root}><View style={s.completeArt}><Character width={112} height={112}/></View><View style={s.completeCopy}><Text style={s.completeTitle}>예약 요청 완료!</Text><Text style={s.completeBody}>판매자는 요청된 예약을 승인 또는 거절할 수 있어요.</Text></View><Pressable style={s.completeButton} onPress={()=>onComplete(Number(quantity))}><Text style={s.buttonText}>완료</Text></Pressable></View>;
   return <View style={s.root}>
     <View style={s.header}><Pressable onPress={onClose} hitSlop={10}><ChevronLeft width={24} height={24} color={colors.black}/></Pressable><Text style={s.headerTitle}>예약하기</Text><Pressable onPress={onClose} hitSlop={10}><CloseIcon width={24} height={24} color={colors.black}/></Pressable></View>
     <View style={s.section}><Text style={s.sectionTitle}>상품 정보</Text><ReservationProduct product={product}/></View>
