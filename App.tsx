@@ -3,6 +3,7 @@ import { ActivityIndicator,Platform,SafeAreaView,StyleSheet,View } from 'react-n
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { SplashScreen } from './src/screens/SplashScreen'; import { OnboardingScreen } from './src/screens/OnboardingScreen'; import { LoginScreen } from './src/screens/LoginScreen'; import { SignupScreen } from './src/screens/SignupScreen'; import { CompleteScreen } from './src/screens/CompleteScreen'; import { ComponentGalleryScreen } from './src/screens/ComponentGalleryScreen'; import { BuyerHomeScreen } from './src/screens/BuyerHomeScreen';
+import type { PurchasePayload } from './src/screens/BuyerHomeScreen';
 import { colors,screen } from './src/theme'; import { LoginUser,useKakaoLogin,withdrawAccount } from './src/auth/kakao';
 
 type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'complete'|'home'|'gallery';
@@ -15,7 +16,8 @@ export default function App(){const[route,setRoute]=useState<Route>('loading');c
   const signup=async(n:string)=>{setName(n);await AsyncStorage.setItem('localtime:member','true');setRoute('complete')};
   const logout=async()=>{await AsyncStorage.multiRemove(['localtime:access-token','localtime:user','localtime:member','localtime:onboarding-complete']);setName('로컬이');setRoute('splash')};
   const withdraw=async()=>{await withdrawAccount();await AsyncStorage.multiRemove(['localtime:access-token','localtime:user','localtime:member','localtime:onboarding-complete']);setName('로컬이');setRoute('splash')};
-  const content=route==='loading'?<ActivityIndicator color={colors.primary500}/>:route==='splash'?<SplashScreen onDone={afterSplash}/>:route==='onboarding'?<OnboardingScreen onDone={finishOnboarding}/>:route==='login'?<LoginScreen onLogin={kakao.login} loading={kakao.loading} error={kakao.error} disabled={!kakao.ready}/>:route==='signup'?<SignupScreen onBack={()=>setRoute('login')} onComplete={signup}/>:route==='complete'?<CompleteScreen name={name} userType={type} onStart={()=>setRoute('home')}/>:route==='gallery'?<ComponentGalleryScreen onClose={()=>setRoute('home')}/>:<BuyerHomeScreen onLogout={logout} onWithdraw={withdraw}/>;
+  const purchase=async(payload:PurchasePayload)=>{await AsyncStorage.setItem('localtime:last-purchase',JSON.stringify({...payload,requestedAt:new Date().toISOString()}))};
+  const content=route==='loading'?<ActivityIndicator color={colors.primary500}/>:route==='splash'?<SplashScreen onDone={afterSplash}/>:route==='onboarding'?<OnboardingScreen onDone={finishOnboarding}/>:route==='login'?<LoginScreen onLogin={kakao.login} loading={kakao.loading} error={kakao.error} disabled={!kakao.ready}/>:route==='signup'?<SignupScreen onBack={()=>setRoute('login')} onComplete={signup}/>:route==='complete'?<CompleteScreen name={name} userType={type} onStart={()=>setRoute('home')}/>:route==='gallery'?<ComponentGalleryScreen onClose={()=>setRoute('home')}/>:<BuyerHomeScreen onLogout={logout} onWithdraw={withdraw} onPurchase={purchase}/>;
   return <SafeAreaView style={s.safe}><StatusBar style="dark"/><View style={s.device}>{content}</View></SafeAreaView>;
 }
 const s=StyleSheet.create({safe:{flex:1,backgroundColor:Platform.OS==='web'?'#efefed':colors.white,alignItems:'center'},device:{flex:1,width:'100%',maxWidth:screen.maxWidth,backgroundColor:colors.white,overflow:'hidden',...(Platform.OS==='web'?{boxShadow:'0 0 40px rgba(17,17,17,.10)'} as object:{})}});
