@@ -10,6 +10,25 @@ npm run ios       # macOS에서 iOS
 npm run typecheck
 ```
 
+Windows PowerShell에서 실행 정책 오류로 `npm.ps1`이 차단되는 경우에는 아래처럼
+`npm.cmd`를 사용합니다.
+
+```powershell
+npm.cmd install
+npm.cmd run dev:web
+```
+
+웹 개발 서버는 `http://localhost:8081`에서 열립니다. `--dev-client`는 Android/iOS
+개발 빌드용 옵션이므로 웹 미리보기에는 사용하지 않습니다. 캐시를 초기화하며 모바일
+개발 서버를 실행하려면 `npm.cmd run dev -- --dev-client --clear`를 사용합니다.
+
+환경 변수는 프로젝트 루트의 `.env`에 설정합니다.
+
+```dotenv
+EXPO_PUBLIC_KAKAO_REST_API_KEY=카카오_REST_API_키
+EXPO_PUBLIC_API_URL=백엔드_API_URL
+```
+
 ## 화면 흐름
 
 스플래시 → 온보딩 3단계 → 카카오 로그인 → 신규 회원가입 → 가입 완료 → 홈
