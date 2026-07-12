@@ -2,13 +2,14 @@ import React from 'react';
 import { Modal,Pressable,StyleSheet,Text,View } from 'react-native';
 import { colors,radius } from '../theme';
 import { Card,Tag } from './ui'; import { NotificationCenter } from './notifications';
+import { DeviceFrame } from './DeviceFrame';
 import BellIcon from '../../icon/bell.svg'; import HeartIcon from '../../icon/heart.svg'; import HomeIcon from '../../icon/home.svg'; import MapPinIcon from '../../icon/map_pin.svg'; import ReservationIcon from '../../icon/reservation.svg'; import LoaderIcon from '../../icon/loader.svg'; import UserIcon from '../../icon/user.svg';
 import BrandLogo from '../../icon/로컬타임_로고1 1.svg';
 
 export type Product={id:number;title:string;discount:string;shop:string;location:string;detail:string;insight:string;original:string;price:string;remaining:string;urgent?:boolean};
 export type ReservationStatus='waiting'|'confirmed'|'rejected';
 
-export function AppHeader({role='buyer'}:{role?:'buyer'|'seller'}){const[open,setOpen]=React.useState(false);return <><View style={s.header}><View style={s.logo}><BrandLogo width="100%" height="100%" viewBox="140 190 1220 320"/></View><Pressable accessibilityRole="button" accessibilityLabel="알림" hitSlop={10} onPress={()=>setOpen(true)}><BellIcon width={25} height={25} color={colors.black}/><View style={{position:'absolute',right:-1,top:-1,width:7,height:7,borderRadius:4,backgroundColor:colors.danger,borderWidth:1,borderColor:colors.white}}/></Pressable></View><Modal visible={open} animationType="slide" onRequestClose={()=>setOpen(false)}><NotificationCenter role={role} onBack={()=>setOpen(false)}/></Modal></>}
+export function AppHeader({role='buyer'}:{role?:'buyer'|'seller'}){const[open,setOpen]=React.useState(false);return <><View style={s.header}><View style={s.logo}><BrandLogo width="100%" height="100%" viewBox="140 190 1220 320"/></View><Pressable accessibilityRole="button" accessibilityLabel="알림" hitSlop={10} onPress={()=>setOpen(true)}><BellIcon width={25} height={25} color={colors.black}/><View style={{position:'absolute',right:-1,top:-1,width:7,height:7,borderRadius:4,backgroundColor:colors.danger,borderWidth:1,borderColor:colors.white}}/></Pressable></View><Modal visible={open} animationType="fade" onRequestClose={()=>setOpen(false)}><DeviceFrame><NotificationCenter role={role} onBack={()=>setOpen(false)}/></DeviceFrame></Modal></>}
 
 export function ProductCard({product,liked,onLike,onBuy,onReserve,status,onCancel,onDelete,onReason}:{product:Product;liked:boolean;onLike:()=>void;onBuy:()=>void;onReserve:()=>void;status?:ReservationStatus;onCancel?:()=>void;onDelete?:()=>void;onReason?:()=>void}){
  const state=status?{waiting:['대기중',colors.primary500,'rgba(243,171,36,.15)'],confirmed:['확정',colors.success,'rgba(102,219,90,.15)'],rejected:['거절',colors.danger,'rgba(235,64,49,.15)']}[status]:null;

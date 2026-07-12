@@ -44,7 +44,7 @@ export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { o
   if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => setPage(formReturn)} onSave={value => { setBusiness(value); setPage(business ? 'business' : 'businessDone'); }} />;
   if (page === 'businessDone') return <Completion title="사업자 정보 등록 완료!" body="이제 판매자 모드로 전환하여 상품/자원을 등록할 수 있어요." button="홈 화면으로 이동" onPress={() => setPage(formReturn)} />;
   if (page === 'business' && business) return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
-  if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
+  if (page === 'notifications') return <SellerNotificationPage onBack={() => setPage('main')} />;
   if (page === 'modeDone') return <ModeCompletion onDone={onSellerMode} />;
   if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw} />;
 
@@ -64,20 +64,50 @@ export function MyPageScreen({ onHome, onSellerMode, onLogout, onWithdraw }: { o
   </View>;
 }
 
-export function SellerMyPageScreen({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMode: () => void }) {
-  const [page, setPage] = useState<'main' | 'business' | 'businessForm'>('main');
+export function SellerMyPageScreen({ onBack, onProducts, onBuyerMode, onLogout, onWithdraw }: { onBack: () => void; onProducts?: () => void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void> }) {
+  const [page, setPage] = useState<'main' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
+  const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [business, setBusiness] = useState<Business>(sampleBusiness);
   if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
   if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={value => { setBusiness(value); setPage('business'); }} />;
+  if (page === 'mode') return <SellerModePage onBack={() => setPage('main')} onBuyerMode={onBuyerMode} />;
+  if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
+  if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw ?? (async () => {})} />;
+  const rows: Array<[string, () => void, boolean]> = [
+    ['사업자 정보', () => setPage('business'), true],
+    ['앱 모드 전환', () => setPage('mode'), true],
+    ['알림 설정', () => setPage('notifications'), true],
+    ['로그아웃', () => setDialog('logout'), false],
+    ['회원 탈퇴', () => setDialog('withdraw'), false],
+  ];
   return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>로컬이</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
-    <Pressable style={s.listRow} onPress={() => setPage('business')}><Text style={s.rowText}>사업자 정보</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
-    <Pressable style={s.listRow} onPress={onBuyerMode}><Text style={s.rowText}>구매자 모드로 전환</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
-    <Pressable style={s.listRow}><Text style={s.rowText}>알림 설정</Text><ChevronRight width={24} height={24} color={colors.black}/></Pressable>
-    <SellerMyNavigation onHome={onBack}/>
+    {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
+    <SellerMyNavigation onHome={onBack} onProducts={onProducts}/>
+    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); setPage('withdrawDone'); } }} />
   </View>;
 }
 
-function SellerMyNavigation({ onHome }: { onHome: () => void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; return <Pressable key={label} onPress={index === 0 ? onHome : undefined} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }
+function SellerMyNavigation({ onHome, onProducts }: { onHome: () => void; onProducts?: () => void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; const onPress = index === 0 ? onHome : index === 1 ? onProducts : undefined; return <Pressable key={label} onPress={onPress} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }
+
+function SellerModePage({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMode: () => void }) {
+  const [buyer, setBuyer] = useState(false);
+  return <View style={s.root}><Header title="앱 모드 전환" onBack={onBack}/>
+    <View style={s.modeSection}><Text style={s.sectionTitle}>현재 서비스 모드 상태</Text><Text style={s.sectionBody}>현재 <Text style={s.highlight}>판매자 모드</Text>로 매장을 관리하고 있습니다.{`\n`}구매자 모드로 전환하면 주변의 마감 상품과 자원을 둘러보고 예약할 수 있어요.</Text>
+      <View style={s.modeTabs}><Pressable onPress={() => setBuyer(true)} style={[s.modeTab, buyer && s.modeTabOn]}><Text>구매자 모드</Text></Pressable><Pressable onPress={() => setBuyer(false)} style={[s.modeTab, !buyer && s.modeTabOn]}><Text>판매자 모드</Text></Pressable></View>
+    </View>
+    <View style={s.bottomActions}><ActionButton disabled={!buyer} onPress={onBuyerMode}>변경하기</ActionButton></View>
+  </View>;
+}
+
+function SellerNotificationPage({ onBack }: { onBack: () => void }) {
+  const groups = [
+    ['서비스 공통 알림', ['공지사항 및 이벤트 알림']],
+    ['판매자 모드 알림', ['예약 요청 및 취소 알림', 'AI 실시간 가격 제안 알림', '정산 및 대금 입금 알림']],
+    ['구매자 모드 알림', ['마감 임박 알림', '예약 승인 알림']],
+  ] as const;
+  const [values, setValues] = useState<Record<string, boolean>>(() => Object.fromEntries(groups.flatMap(([, items]) => items.map(item => [item, true]))));
+  return <View style={s.root}><Header title="알림 설정" onBack={onBack}/><View style={s.notice}><Text style={s.noticeText}>ⓘ  중요한 정보를 놓칠 수 있으므로 알림을 꼭 켜주세요.</Text></View><ScrollView contentContainerStyle={s.notifications}>{groups.map(([title, items]) => <View key={title} style={s.notifyGroup}><Text style={s.notifyGroupTitle}>{title}</Text>{items.map(item => <View key={item} style={s.notifyRow}><Text style={s.notifyText}>{item}</Text><Toggle value={!!values[item]} onChange={value => setValues(old => ({...old, [item]: value}))}/></View>)}</View>)}</ScrollView></View>;
+}
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable><Text style={s.headerTitle}>{title}</Text><View style={s.headerSide} /></View>; }
 function LocaltimeCharacter({ size }: { size: number }) { return <View style={{ width: size, height: size, zIndex: 1 }}><Character width={size} height={size} /></View>; }
@@ -168,7 +198,7 @@ const s = StyleSheet.create({
   sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,.25)', justifyContent: 'flex-end' }, sheet: { maxHeight: '55%', minHeight: 400, backgroundColor: colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingTop: 12 }, handle: { width: 60, height: 4, borderRadius: 2, backgroundColor: colors.g200, alignSelf: 'center', marginBottom: 14 }, sheetTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 }, addressItem: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: colors.g200, gap: 4 }, zip: { color: colors.info, fontWeight: '600' }, road: { fontSize: 14, fontWeight: '500' }, lot: { fontSize: 12, color: colors.g400 }, bankGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 }, bankItem: { width: '30.8%', height: 90, borderWidth: 1, borderColor: colors.g200, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 7 }, bankLogo: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }, bankLetter: { color: colors.white, fontWeight: '800' }, bankName: { fontSize: 13 },
   infoRows: { margin: 16 }, infoRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center' }, infoLabel: { width: 128, fontSize: 14, color: colors.g600 }, infoValue: { flex: 1, fontSize: 14, fontWeight: '500' }, businessEdit: { position: 'absolute', left: 16, right: 16, bottom: 34, gap: 10 }, helper: { fontSize: 10, color: colors.g400 },
   completeArt: { position: 'absolute', top: 199, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' }, glow: { position: 'absolute', width: 190, height: 190, borderRadius: 95, backgroundColor: '#eef8ff' }, completeCopy: { position: 'absolute', top: 350, left: 16, right: 16, alignItems: 'center', gap: 6 }, completeTitle: { fontSize: 18, fontWeight: '600', textAlign: 'center' }, completeBody: { fontSize: 14, lineHeight: 18, color: colors.g500, textAlign: 'center' }, completeButton: { position: 'absolute', top: 501, left: 16, right: 16 }, modeDoneLabel: { position: 'absolute', top: 76, alignSelf: 'center', fontSize: 16, fontWeight: '600' }, modeDoneArt: { position: 'absolute', top: 177, alignSelf: 'center' }, modeDoneCopy: { position: 'absolute', top: 335, left: 16, right: 16, alignItems: 'center', gap: 8 }, modeDoneButton: { position: 'absolute', top: 505, left: 16, right: 16 },
-  notice: { margin: 16, padding: 14, borderRadius: radius.md, backgroundColor: '#eaf2ff' }, noticeText: { color: colors.info, fontSize: 12, fontWeight: '600' }, notifications: { paddingHorizontal: 16 }, notifyRow: { height: 62, borderBottomWidth: 1, borderBottomColor: colors.g200, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  notice: { margin: 16, padding: 14, borderRadius: radius.md, backgroundColor: '#eaf2ff' }, noticeText: { color: colors.info, fontSize: 12, fontWeight: '600' }, notifications: { paddingHorizontal: 16, paddingBottom: 24 }, notifyGroup: { marginBottom: 18 }, notifyGroupTitle: { fontSize: 16, fontWeight: '600', color: colors.black, marginBottom: 4 }, notifyRow: { height: 62, borderBottomWidth: 1, borderBottomColor: colors.g200, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, notifyText: { flex: 1, paddingRight: 12, fontSize: 14, color: colors.g800 },
   dialogOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,.25)', alignItems: 'center', justifyContent: 'center', padding: 16 }, dialog: { width: '100%', maxWidth: 370, backgroundColor: colors.white, borderRadius: radius.lg, padding: 20, gap: 12 }, dialogTitle: { fontSize: 18, fontWeight: '600' }, dialogBody: { fontSize: 12, lineHeight: 17, color: colors.g600 }, dialogNotice: { marginTop: 8, fontSize: 10, color: colors.info }, dialogButtons: { flexDirection: 'row', gap: 8, marginTop: 8 }, dialogButton: { flex: 1, height: 56, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' }, orange: { backgroundColor: colors.primary500 }, gray: { backgroundColor: colors.g300 },
   sellerNav:{position:'absolute',left:0,right:0,bottom:0,height:66,borderTopWidth:1,borderTopColor:colors.g200,backgroundColor:colors.white,paddingHorizontal:12,flexDirection:'row'},sellerNavItem:{flex:1,paddingVertical:8,alignItems:'center',gap:8},sellerNavLabel:{fontSize:12,fontWeight:'600'},
 });
