@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -34,6 +34,7 @@ export type LoginUser = {
 export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const processedCodeRef = useRef<string | null>(null);
   const redirectUri = AuthSession.makeRedirectUri({
     scheme: 'jejulocaltime',
     path: 'oauth/kakao',
@@ -58,8 +59,14 @@ export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
 
     void (async () => {
       try {
+        const authorizationCode = response.params.code;
+        if (!authorizationCode || processedCodeRef.current === authorizationCode) return;
+        processedCodeRef.current = authorizationCode;
+        if (typeof window !== 'undefined') {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
         const token = await AuthSession.exchangeCodeAsync(
-          { clientId: kakaoClientId, code: response.params.code, redirectUri },
+          { clientId: kakaoClientId, code: authorizationCode, redirectUri },
           discovery,
         );
         const backendResponse = await fetch(`${apiUrl}/api/auth/kakao`, {
@@ -77,7 +84,10 @@ export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
         ]);
         onSuccess(user);
       } catch (e) {
-        setError(e instanceof Error ? e.message : '로그인 중 오류가 발생했습니다.');
+        const message = e instanceof Error ? e.message : '';
+        setError(message.includes('429') || message.includes('KOE237')
+          ? '카카오 로그인 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'
+          : message || '로그인 중 오류가 발생했습니다.');
       } finally {
         setLoading(false);
       }
