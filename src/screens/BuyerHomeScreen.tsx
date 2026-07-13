@@ -89,6 +89,8 @@ const apiProductToCard = (p: ApiProduct): Product => {
       deadlineAt > Date.now() && deadlineAt - Date.now() <= 60 * 60 * 1000,
     deadlineAt,
     distanceMeters: p.distanceMeters,
+    lat: p.lat,
+    lng: p.lng,
     discountRate,
   };
 };
@@ -138,6 +140,8 @@ export function BuyerHomeScreen({
   const [aiInfo, setAiInfo] = useState(false);
   const [quantity, setQuantity] = useState(2);
   const [now, setNow] = useState(Date.now());
+  const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
+  useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(interval);
@@ -158,13 +162,13 @@ export function BuyerHomeScreen({
       .catch(() => undefined);
   }, [tab, sellerMode, category]);
   const shown = useMemo(() => {
-    let list = productItems.map((item) => ({
-      ...item,
+    let list = productItems.map((item) => {const distance=userLocation&&item.lat!=null&&item.lng!=null?Math.round(6371000*2*Math.asin(Math.sqrt(Math.sin((item.lat-userLocation.lat)*Math.PI/360)**2+Math.cos(userLocation.lat*Math.PI/180)*Math.cos(item.lat*Math.PI/180)*Math.sin((item.lng-userLocation.lng)*Math.PI/360)**2))):item.distanceMeters;return ({
+      ...item,distanceMeters:distance,location:distance!=null?`${item.location} · ${distance<1000?`${distance}m`:`${(distance/1000).toFixed(1)}km`}`:item.location,
       urgent:
         !!item.deadlineAt &&
         item.deadlineAt > now &&
         item.deadlineAt - now <= 60 * 60 * 1000,
-    })).filter(
+    })}).filter(
       (p) =>
         !query.trim() ||
         `${p.title} ${p.shop} ${p.location}`.includes(query.trim()),
@@ -194,7 +198,7 @@ export function BuyerHomeScreen({
         (a, b) => (b.discountRate ?? 0) - (a.discountRate ?? 0),
       );
     return list;
-  }, [productItems, query, sort, now]);
+  }, [productItems, query, sort, now,userLocation]);
   const submitSearch = () => {
     const value = query.trim();
     if (value)

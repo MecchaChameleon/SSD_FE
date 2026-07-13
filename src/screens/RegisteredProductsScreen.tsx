@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -530,10 +530,15 @@ function Select({ value, onPress }: { value: string; onPress?: () => void }) {
 }
 function parseTime(value: string) {
   const match = value.match(/(오전|오후)\s*(\d+):(\d+)/);
+  if (!match) {
+    const now = new Date();
+    now.setMinutes(Math.round(now.getMinutes() / 5) * 5, 0, 0);
+    return { period: now.getHours() < 12 ? "오전" : "오후", hour: String(now.getHours() % 12 || 12), minute: String(now.getMinutes()).padStart(2, "0") };
+  }
   return {
-    period: match?.[1] ?? "오전",
-    hour: match?.[2] ?? "9",
-    minute: String((Math.round(Number(match?.[3] ?? 0) / 5) * 5) % 60).padStart(
+    period: match[1],
+    hour: match[2],
+    minute: String(Math.min(55, Math.round(Number(match[3]) / 5) * 5)).padStart(
       2,
       "0",
     ),
@@ -618,6 +623,7 @@ function Wheel({
   onSelect: (value: string) => void;
 }) {
   const itemHeight = 44;
+  const ref = useRef<ScrollView>(null);
   const index = Math.max(0, values.indexOf(selected));
   const finish = (event: any) => {
     const next = Math.max(
@@ -628,9 +634,11 @@ function Wheel({
       ),
     );
     onSelect(values[next]);
+    ref.current?.scrollTo({ y: next * itemHeight, animated: true });
   };
   return (
     <ScrollView
+      ref={ref}
       key={values.join("-")}
       style={s.wheel}
       contentContainerStyle={s.wheelContent}
@@ -640,8 +648,7 @@ function Wheel({
       disableIntervalMomentum
       decelerationRate="fast"
       contentOffset={{ x: 0, y: index * itemHeight }}
-      scrollEventThrottle={16}
-      onScroll={finish}
+      onScrollEndDrag={finish}
       onMomentumScrollEnd={finish}
     >
       {values.map((item) => (
@@ -792,9 +799,9 @@ const s = StyleSheet.create({
   reserveText: { fontSize: 12, fontWeight: "600", color: colors.white },
   menu: {
     position: "absolute",
-    right: 20,
-    top: 22,
-    width: 120,
+    right: 4,
+    top: 28,
+    width: 92,
     borderWidth: 1,
     borderColor: colors.g200,
     borderRadius: 8,
@@ -803,7 +810,7 @@ const s = StyleSheet.create({
     elevation: 8,
   },
   menuItem: {
-    height: 44,
+    height: 34,
     alignItems: "center",
     justifyContent: "center",
     borderBottomWidth: 1,

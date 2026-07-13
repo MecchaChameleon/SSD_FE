@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -38,7 +38,7 @@ export function ReservationScreen({
   const valid = Number(quantity) > 0 && !!time;
   const openPicker = () => {
     const now = new Date();
-    const rounded = Math.ceil(now.getMinutes() / 5) * 5;
+    const rounded = Math.round(now.getMinutes() / 5) * 5;
     now.setMinutes(rounded, 0, 0);
     const nextHour = now.getHours();
     setPeriod(nextHour < 12 ? "오전" : "오후");
@@ -188,8 +188,10 @@ export function ReservationScreen({
 function WheelColumn({values,value,onChange}:{values:string[];value:string;onChange:(value:string)=>void}) {
   const rowHeight=44;
   const index=Math.max(0,values.indexOf(value));
+  const ref=useRef<ScrollView>(null);
+  const finish=(event:any)=>{const next=Math.max(0,Math.min(values.length-1,Math.round(event.nativeEvent.contentOffset.y/rowHeight)));ref.current?.scrollTo({y:next*rowHeight,animated:true});onChange(values[next])};
   return (
-    <ScrollView key={`${values.length}-${index}`} style={s.column} contentContainerStyle={s.wheelContent} showsVerticalScrollIndicator={false} snapToInterval={rowHeight} decelerationRate="fast" contentOffset={{x:0,y:index*rowHeight}} onMomentumScrollEnd={event=>{const next=Math.max(0,Math.min(values.length-1,Math.round(event.nativeEvent.contentOffset.y/rowHeight)));onChange(values[next])}}>
+    <ScrollView ref={ref} key={values.join('-')} style={s.column} contentContainerStyle={s.wheelContent} showsVerticalScrollIndicator={false} snapToInterval={rowHeight} snapToAlignment="start" disableIntervalMomentum decelerationRate="fast" contentOffset={{x:0,y:index*rowHeight}} onScrollEndDrag={finish} onMomentumScrollEnd={finish}>
       {values.map(item=><View key={item} style={s.wheelRow}><Text style={item===value?s.selected:s.muted}>{item}</Text></View>)}
     </ScrollView>
   );
