@@ -32,6 +32,13 @@ type SellerPage =
   "dashboard" | "reservations" | "sales" | "products" | "ai" | "mypage";
 type ReservationState = "request" | "confirmed" | "noshow";
 const AppHeader = () => <BaseAppHeader role="seller" />;
+const dateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+const displayDate = (value: string | null) => value ? value.replace(/-/g, ".") : "YYYY.MM.DD";
 type Reservation = {
   id: number;
   title: string;
@@ -88,12 +95,22 @@ export function SellerHomeScreen({
     periodRevenue: 0,
     registeredProductCount: 0,
   });
-  const today = new Date().toISOString().slice(0, 10);
-  const [rangeOpen,setRangeOpen]=useState(false);
-  const [startDate,setStartDate]=useState(today);
-  const [endDate,setEndDate]=useState(today);
+  const today = dateKey(new Date());
+  const [rangeOpen, setRangeOpen] = useState(false);
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState<string | null>(null);
   const refresh = useCallback(() => {
-    void sellerApi.dashboard(today).then(setDashboard).catch(() => undefined);
+    void sellerApi
+      .dashboard(today)
+      .then(async (value) => {
+        if (!endDate) {
+          setDashboard({ ...value, periodRevenue: 0 });
+          return;
+        }
+        const report = await sellerApi.salesReport({ startDate, endDate });
+        setDashboard({ ...value, periodRevenue: report.totalRevenue });
+      })
+      .catch(() => undefined);
     void sellerApi
       .reservations({ size: 50 })
       .then((result) =>
@@ -104,7 +121,7 @@ export function SellerHomeScreen({
         ),
       )
       .catch(() => undefined);
-  }, [today]);
+  }, [today, startDate, endDate]);
   useEffect(() => {
     refresh();
     if (page !== "dashboard" && page !== "reservations") return;
@@ -170,9 +187,11 @@ export function SellerHomeScreen({
         <Text style={s.dashboardBody}>
           당일 판매 결과, 예약 현황, 매출 집계를 조회할 수 있어요.
         </Text>
-        <Pressable style={s.date} onPress={()=>setRangeOpen(true)}>
+        <Pressable style={s.date} onPress={() => setRangeOpen(true)}>
           <CalendarIcon width={24} height={24} color={colors.g400} />
-          <Text style={s.dateText}>{startDate.replace(/-/g, ".")} - {endDate.replace(/-/g, ".")}</Text>
+          <Text style={s.dateText}>{displayDate(startDate)}</Text>
+          <Text style={s.dateDash}>-</Text>
+          <Text style={[s.dateText, !endDate && s.datePlaceholder]}>{displayDate(endDate)}</Text>
           <ChevronDown width={24} height={24} color={colors.g400} />
         </Pressable>
         <Pressable
@@ -226,8 +245,8 @@ export function SellerHomeScreen({
         <Metric
           label="당일 매출 집계 · 리포트"
           value={`${dashboard.dailyRevenue.toLocaleString()}원`}
-          startDate={startDate}
-          endDate={endDate}
+          startDate={today}
+          endDate={today}
           arrow
         />
         <Metric
@@ -240,7 +259,19 @@ export function SellerHomeScreen({
           arrow
         />
       </ScrollView>
-      <Modal transparent visible={rangeOpen} animationType="fade" onRequestClose={()=>setRangeOpen(false)}><View style={s.overlay}><View style={s.reject}><Text style={s.rejectTitle}>조회 기간 선택</Text><TextInput style={s.reasonInput} value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD"/><TextInput style={s.reasonInput} value={endDate} onChangeText={setEndDate} placeholder="YYYY-MM-DD"/><Pressable style={s.rejectButton} onPress={()=>setRangeOpen(false)}><Text style={s.buttonText}>조회하기</Text></Pressable></View></View></Modal>
+      <DateRangeSheet
+        visible={rangeOpen}
+        initialStart={startDate}
+        initialEnd={endDate}
+        onClose={() => setRangeOpen(false)}
+        onApply={async (start, end) => {
+          const report = await sellerApi.salesReport({ startDate: start, endDate: end });
+          setStartDate(start);
+          setEndDate(end);
+          setDashboard((value) => ({ ...value, periodRevenue: report.totalRevenue }));
+          setRangeOpen(false);
+        }}
+      />
       <SellerNavigation
         active="home"
         onHome={() => setPage("dashboard")}
@@ -249,6 +280,114 @@ export function SellerHomeScreen({
         onMypage={() => setPage("mypage")}
       />
     </View>
+  );
+}
+
+function DateRangeSheet({
+  visible,
+  initialStart,
+  initialEnd,
+  onClose,
+  onApply,
+}: {
+  visible: boolean;
+  initialStart: string;
+  initialEnd: string | null;
+  onClose: () => void;
+  onApply: (start: string, end: string) => Promise<void>;
+}) {
+  const [start, setStart] = useState(initialStart);
+  const [end, setEnd] = useState<string | null>(initialEnd);
+  const [month, setMonth] = useState(() => {
+    const value = new Date(`${initialStart}T00:00:00`);
+    return new Date(value.getFullYear(), value.getMonth(), 1);
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setStart(initialStart);
+    setEnd(initialEnd);
+    const value = new Date(`${initialStart}T00:00:00`);
+    setMonth(new Date(value.getFullYear(), value.getMonth(), 1));
+  }, [visible, initialStart, initialEnd]);
+
+  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
+  const lastDate = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const previousLastDate = new Date(month.getFullYear(), month.getMonth(), 0).getDate();
+  const cells = Array.from({ length: 42 }, (_, index) => {
+    const day = index - firstDay + 1;
+    if (day < 1) return { day: previousLastDate + day, current: false };
+    if (day > lastDate) return { day: day - lastDate, current: false };
+    return { day, current: true };
+  });
+  const choose = (value: string) => {
+    if (!start || end || value < start) {
+      setStart(value);
+      setEnd(null);
+    } else {
+      setEnd(value);
+    }
+  };
+  const apply = async () => {
+    if (!end || loading) return;
+    setLoading(true);
+    try {
+      await onApply(start, end);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+      <Pressable style={s.calendarOverlay} onPress={onClose}>
+        <Pressable style={s.calendarSheet} onPress={() => undefined}>
+          <View style={s.calendarHandle} />
+          <View style={s.calendarRange}>
+            <CalendarIcon width={24} height={24} color={colors.g400} />
+            <Text style={s.calendarRangeText}>{displayDate(start)}</Text>
+            <Text style={s.dateDash}>-</Text>
+            <Text style={[s.calendarRangeText, !end && s.datePlaceholder]}>{displayDate(end)}</Text>
+            <ChevronDown width={24} height={24} color={colors.g400} />
+          </View>
+          <View style={s.calendarMonthRow}>
+            <Pressable hitSlop={12} onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>
+              <ChevronLeft width={24} height={24} color={colors.black} />
+            </Pressable>
+            <Text style={s.calendarMonth}>{month.getFullYear()}년 {month.getMonth() + 1}월</Text>
+            <Pressable hitSlop={12} onPress={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>
+              <ChevronRight width={24} height={24} color={colors.black} />
+            </Pressable>
+          </View>
+          <View style={s.calendarWeek}>
+            {["일", "월", "화", "수", "목", "금", "토"].map((day) => <Text key={day} style={s.calendarWeekText}>{day}</Text>)}
+          </View>
+          <View style={s.calendarDays}>
+            {cells.map((cell, index) => {
+              const value = cell.current ? dateKey(new Date(month.getFullYear(), month.getMonth(), cell.day)) : "";
+              const selected = cell.current && (value === start || value === end);
+              const between = cell.current && !!end && value > start && value < end;
+              const startsRange = value === start && !!end;
+              const endsRange = value === end;
+              return (
+                <Pressable key={`${cell.day}-${index}`} disabled={!cell.current} onPress={() => choose(value)} style={s.calendarDay}>
+                  {between ? <View style={s.calendarRangeFill} /> : null}
+                  {startsRange ? <View style={s.calendarRangeStart} /> : null}
+                  {endsRange ? <View style={s.calendarRangeEnd} /> : null}
+                  <View style={[s.calendarDayCircle, selected && s.calendarDaySelected]}>
+                    <Text style={[s.calendarDayText, !cell.current && s.calendarOutside, selected && s.calendarDaySelectedText]}>{cell.day}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Pressable disabled={!end || loading} onPress={apply} style={[s.calendarApply, (!end || loading) && s.calendarApplyDisabled]}>
+            <Text style={[s.calendarApplyText, (!end || loading) && s.calendarApplyTextDisabled]}>{loading ? "조회 중..." : "조회하기"}</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -591,7 +730,9 @@ const s = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  dateText: { flex: 1, fontSize: 16 },
+  dateText: { flex: 1, fontSize: 16, color: colors.black },
+  dateDash: { fontSize: 16, color: colors.g400 },
+  datePlaceholder: { color: colors.g400 },
   dashboardCard: {
     marginTop: 16,
     padding: 12,
@@ -758,4 +899,69 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  calendarOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(17,17,17,.25)",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  calendarSheet: {
+    width: "100%",
+    maxWidth: 402,
+    height: 588,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  calendarHandle: {
+    width: 60,
+    height: 4,
+    marginBottom: 40,
+    alignSelf: "center",
+    borderRadius: 2,
+    backgroundColor: colors.g200,
+  },
+  calendarRange: {
+    height: 52,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: colors.g200,
+    borderRadius: 26,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  calendarRangeText: { flex: 1, fontSize: 16, color: colors.black },
+  calendarMonthRow: {
+    height: 72,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  calendarMonth: { fontSize: 16, fontWeight: "600", color: colors.black },
+  calendarWeek: {
+    height: 36,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.g300,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  calendarWeekText: { width: "14.285%", fontSize: 12, color: colors.g300, textAlign: "center" },
+  calendarDays: { flexDirection: "row", flexWrap: "wrap" },
+  calendarDay: { width: "14.285%", height: 44, alignItems: "center", justifyContent: "center", position: "relative" },
+  calendarRangeFill: { position: "absolute", left: 0, right: 0, top: 8, bottom: 8, backgroundColor: "#ffdc9b" },
+  calendarRangeStart: { position: "absolute", left: "50%", right: 0, top: 8, bottom: 8, backgroundColor: "#ffdc9b" },
+  calendarRangeEnd: { position: "absolute", left: 0, right: "50%", top: 8, bottom: 8, backgroundColor: "#ffdc9b" },
+  calendarDayCircle: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", zIndex: 1 },
+  calendarDaySelected: { backgroundColor: colors.primary500 },
+  calendarDayText: { fontSize: 14, color: colors.g800 },
+  calendarOutside: { color: colors.g300 },
+  calendarDaySelectedText: { color: colors.white, fontWeight: "600" },
+  calendarApply: { height: 56, marginTop: 20, borderRadius: radius.md, backgroundColor: colors.primary500, alignItems: "center", justifyContent: "center" },
+  calendarApplyDisabled: { backgroundColor: colors.g200 },
+  calendarApplyText: { fontSize: 16, fontWeight: "600", color: colors.white },
+  calendarApplyTextDisabled: { color: colors.g400 },
 });
