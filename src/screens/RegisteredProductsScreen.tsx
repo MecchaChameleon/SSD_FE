@@ -395,7 +395,7 @@ function EditProduct({
     if (!changed || !valid || saving) return;
     setSaving(true);
     try {
-      await onSave(value);
+      await onSave(Number(value.quantity) <= 0 ? { ...value, status: "판매중지" } : value);
     } finally {
       setSaving(false);
     }

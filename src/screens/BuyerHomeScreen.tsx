@@ -233,7 +233,7 @@ export function BuyerHomeScreen({
               remaining: `잔여수량 ${Math.max(0, money(item.remaining) - quantity)}개`,
             }
           : item,
-      ),
+      ).filter(item=>money(item.remaining)>0),
     );
     setPurchase(null);
     setPaymentComplete(true);
