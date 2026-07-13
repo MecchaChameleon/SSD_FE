@@ -491,32 +491,34 @@ function PurchaseModal({
       <View style={s.overlay}>
         <View style={s.dialog}>
           <Text style={s.dialogTitle}>상품을 구매하시겠습니까?</Text>
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>결제금액</Text>
-            <Text style={s.total}>
-              {(money(product.price) * quantity).toLocaleString()}원
-            </Text>
-          </View>
-          <View style={s.summary}>
-            <Summary label="상품명" value={product.title} />
-            <Summary label="정가" value={product.original} />
-            <Summary label="할인가" value={product.price} />
-            <View style={s.summaryRow}>
-              <Text style={s.summaryLabel}>구매 수량</Text>
-              <View style={s.stepper}>
-                <Pressable
-                  onPress={() => onQuantity(Math.max(1, quantity - 1))}
-                  style={s.step}
-                >
-                  <Text>−</Text>
-                </Pressable>
-                <Text style={s.quantity}>{quantity}개</Text>
-                <Pressable
-                  onPress={() => onQuantity(quantity + 1)}
-                  style={s.step}
-                >
-                  <Text>＋</Text>
-                </Pressable>
+          <View style={s.purchaseContents}>
+            <View style={s.totalRow}>
+              <Text style={s.totalLabel}>결제금액</Text>
+              <Text style={s.total}>
+                {(money(product.price) * quantity).toLocaleString()}원
+              </Text>
+            </View>
+            <View style={s.summary}>
+              <Summary label="상품명" value={product.title} />
+              <Summary label="정가" value={product.original} />
+              <Summary label="할인가" value={product.price} />
+              <View style={s.summaryRow}>
+                <Text style={s.summaryLabel}>구매 수량</Text>
+                <View style={s.stepper}>
+                  <Pressable
+                    onPress={() => onQuantity(Math.max(1, quantity - 1))}
+                    style={s.step}
+                  >
+                    <Text>−</Text>
+                  </Pressable>
+                  <Text style={s.quantity}>{quantity}개</Text>
+                  <Pressable
+                    onPress={() => onQuantity(quantity + 1)}
+                    style={s.step}
+                  >
+                    <Text>＋</Text>
+                  </Pressable>
+                </View>
               </View>
             </View>
           </View>
@@ -674,19 +676,35 @@ const s = StyleSheet.create({
     maxWidth: 370,
     borderRadius: radius.lg,
     backgroundColor: colors.white,
-    padding: 20,
-    gap: 20,
+    paddingTop: 40,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 24,
   },
   dialogTitle: {
-    textAlign: "center",
+    width: "100%",
     fontSize: 18,
     fontWeight: "600",
     color: colors.black,
   },
-  totalRow: { alignItems: "center", gap: 6 },
-  totalLabel: { fontSize: 14, color: colors.g600 },
-  total: { fontSize: 24, fontWeight: "700", color: colors.black },
-  summary: { borderTopWidth: 1, borderTopColor: colors.g200, paddingTop: 10 },
+  purchaseContents: {
+    width: "100%",
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.g200,
+  },
+  totalRow: {
+    height: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  totalLabel: { width: 128, fontSize: 14, fontWeight: "500", color: colors.black },
+  total: { flex: 1, textAlign: "right", fontSize: 20, fontWeight: "600", color: colors.black },
+  summary: {
+    borderTopWidth: 1,
+    borderColor: colors.g200,
+  },
   summaryRow: {
     height: 36,
     flexDirection: "row",
@@ -694,7 +712,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12,
   },
-  summaryLabel: { width: 80, fontSize: 14, color: colors.g600 },
+  summaryLabel: { width: 128, fontSize: 14, color: colors.g600 },
   summaryValue: {
     flex: 1,
     textAlign: "right",
