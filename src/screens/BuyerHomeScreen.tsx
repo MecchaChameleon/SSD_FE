@@ -25,6 +25,7 @@ import CloseIcon from "../../icon/x.svg";
 import { ReservationScreen } from "./ReservationScreen";
 import { MyPageScreen } from "./MyPageScreen";
 import { SellerHomeScreen } from "./SellerHomeScreen";
+import { BuyerMapScreen } from "./BuyerMapScreen";
 import {
   ReservationHistoryScreen,
   ReservationItem,
@@ -127,7 +128,7 @@ export function BuyerHomeScreen({
   const [reserve, setReserve] = useState<Product | null>(null);
   const [status, setStatus] = useState<ReservationStatus | undefined>();
   const [reservations, setReservations] = useState<ReservationItem[]>([]);
-  const [tab, setTab] = useState<"home" | "reservations" | "mypage">("home");
+  const [tab, setTab] = useState<"home" | "map" | "reservations" | "mypage">("home");
   const [sellerMode, setSellerMode] = useState(false);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
@@ -297,6 +298,23 @@ export function BuyerHomeScreen({
         onBuy={(p) => {
           setQuantity(1);
           setPurchase(p);
+          setTab("home");
+        }}
+      />
+    );
+  if (tab === "map")
+    return (
+      <BuyerMapScreen
+        onHome={() => setTab("home")}
+        onReservations={() => setTab("reservations")}
+        onMyPage={() => setTab("mypage")}
+        onBuy={(item) => {
+          setQuantity(1);
+          setPurchase(apiProductToCard(item));
+          setTab("home");
+        }}
+        onReserve={(item) => {
+          setReserve(apiProductToCard(item));
           setTab("home");
         }}
       />

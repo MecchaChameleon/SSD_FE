@@ -39,3 +39,12 @@ EXPO_PUBLIC_API_URL=백엔드_API_URL
 - 홈 화면의 `컴포넌트 미리보기`를 누르면 React Native 기본 컴포넌트 갤러리를 볼 수 있습니다.
 
 `components/preview.html`은 Figma 컴포넌트 비교용 정적 자료입니다. 실제 온보딩과 로그인 화면은 `src/screens/`의 React Native 코드만 사용합니다.
+# 카카오 지도 설정
+
+구매자 지도 화면은 카카오맵 JavaScript SDK를 사용합니다. Kakao Developers에서 앱의 JavaScript 키를 확인하고 `.env`에 등록하세요.
+
+```env
+EXPO_PUBLIC_KAKAO_JAVASCRIPT_KEY=카카오_JavaScript_키
+```
+
+Kakao Developers의 플랫폼 > Web에 로컬 개발 주소(예: `http://localhost:8081`)와 배포 도메인을 등록해야 지도가 로드됩니다. REST API 키와 JavaScript 키는 서로 다른 키입니다.
