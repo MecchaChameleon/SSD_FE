@@ -150,9 +150,15 @@ export function BuyerHomeScreen({
   }, []);
   useEffect(() => {
     if (sellerMode) return;
+    const businessType=businessTypeByCategory[category];
     buyerApi
-      .products({ size: 50, businessType: businessTypeByCategory[category] })
-      .then((page) => setProductItems(page.content.map(apiProductToCard)))
+      .products({ size: 50, businessType })
+      .then(async page => {
+        if(page.content.length||!businessType)return page.content;
+        const all=await buyerApi.products({size:50});
+        return all.content.filter(product=>product.businessType===businessType);
+      })
+      .then(items => setProductItems(items.map(apiProductToCard)))
       .catch(() => setProductItems([]));
     buyerApi
       .wishlist({ size: 50 })

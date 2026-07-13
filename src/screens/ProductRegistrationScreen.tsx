@@ -18,13 +18,12 @@ const categoryTypes: Record<Category, string[]> = {
   '렌탈/모빌리티': ['이동/관광 잔여 상품'],
 };
 const times = ['오전 9:00', '오전 10:00', '오전 11:00', '오후 12:00', '오후 1:00', '오후 2:00', '오후 3:00', '오후 4:00', '오후 5:00', '오후 6:00', '오후 7:00', '오후 8:00', '오후 9:00', '오후 10:00', '오후 11:00'];
-const businessTypes = ['RESTAURANT', 'LODGING', 'EXPERIENCE', 'RENTAL_MOBILITY'] as const;
-const productCategories = [
-  ['SAME_DAY_INVENTORY', 'EMPTY_TIME_RESOURCE'],
-  ['SAME_DAY_ROOM'],
-  ['EMPTY_TIME_RESOURCE'],
-  ['TOUR_REMAINDER'],
-] as const;
+const productTypeConfig = {
+  음식점: { businessType: 'RESTAURANT', types: { '당일 재고': 'SAME_DAY_INVENTORY', '빈 시간대 자원': 'EMPTY_TIME_RESOURCE' } },
+  숙박: { businessType: 'LODGING', types: { '당일 공실': 'SAME_DAY_ROOM' } },
+  체험: { businessType: 'EXPERIENCE', types: { '빈 시간대 자원': 'EMPTY_TIME_RESOURCE' } },
+  '렌탈/모빌리티': { businessType: 'RENTAL_MOBILITY', types: { '이동/관광 잔여 상품': 'TOUR_REMAINDER' } },
+} as const;
 
 function timeToIso(value: string) {
   const date = new Date();
@@ -69,15 +68,15 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
     setPriceError(invalidPriceRange ? '최소 판매가는 정가/원가보다 높을 수 없습니다.' : null);
     setTimeError(invalidTimeRange ? '판매 시작 시각은 판매 마감 시각보다 빨라야 합니다.' : null);
     if (!valid || !category) return;
-    const categoryIndex = Object.keys(categoryTypes).indexOf(category);
-    const typeIndex = categoryTypes[category].indexOf(type);
-    if (categoryIndex < 0 || typeIndex < 0) return;
+    const config = productTypeConfig[category];
+    const productCategory = config.types[type as keyof typeof config.types];
+    if (!productCategory) return;
     setSaving(true);
     try {
       await sellerApi.createProduct({
         name: name.trim(),
-        businessType: businessTypes[categoryIndex],
-        category: productCategories[categoryIndex][typeIndex],
+        businessType: config.businessType,
+        category: productCategory,
         qty: Number(quantity),
         price: Number(regular),
         minPrice: Number(minimum),
