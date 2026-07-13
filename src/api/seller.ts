@@ -4,6 +4,7 @@ import type { Page, Product, ProductInput, ProductStatus, Reservation, Reservati
 export type SellerProfileInput = {businessName:string;businessNumber:string;address:string;latitude:number|null;longitude:number|null;bankName:string;accountNumber:string;accountHolder:string};
 export type Dashboard = {date:string;reservationCounts:{requested:number;approved:number;noShow:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
 export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[]};
+export type SalesHistoryItem = {reservationId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
 
 let latestDashboard: Dashboard | null = null;
 
@@ -30,7 +31,7 @@ export const sellerApi = {
   reservations: (query:{status?:ReservationStatus;date?:string;page?:number;size?:number}={}) => apiRequest<Page<Reservation>>('/api/seller/reservations',{query}),
   approveReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/approve`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.requested=Math.max(0,latestDashboard.reservationCounts.requested-1);latestDashboard.reservationCounts.approved+=1}return value},
   rejectReservation: async (id:number,body:{reasonCode:'SOLD_OUT'|'CAPACITY_FULL'|'EARLY_CLOSE'|'OTHER';reason:string}) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/reject`,{method:'PATCH',body});if(latestDashboard)latestDashboard.reservationCounts.requested=Math.max(0,latestDashboard.reservationCounts.requested-1);return value},
-  completeReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/complete`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);latestDashboard.dailyRevenue+=value.totalAmount;latestDashboard.periodRevenue+=value.totalAmount}return value},
+  completeReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/complete`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);if(value.paymentStatus==='PAID'){latestDashboard.dailyRevenue+=value.totalAmount;latestDashboard.periodRevenue+=value.totalAmount}}return value},
   noShowReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/no-show`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);latestDashboard.reservationCounts.noShow+=1}return value},
   dashboard: async (date:string) => {
     const value=await apiRequest<Dashboard>('/api/seller/dashboard',{query:{date}});
@@ -38,4 +39,5 @@ export const sellerApi = {
     return value;
   },
   salesReport: (query:{startDate:string;endDate:string;sort?:'REVENUE_DESC'|'REVENUE_ASC'}) => apiRequest<SalesReport>('/api/seller/sales/report',{query}),
+  salesHistory: (query:{startDate:string;endDate:string;page?:number;size?:number}) => apiRequest<Page<SalesHistoryItem>>('/api/seller/sales/history',{query}),
 };

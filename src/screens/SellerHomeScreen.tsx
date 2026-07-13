@@ -12,6 +12,7 @@ import { AppHeader as BaseAppHeader } from "../components/home";
 import { DeviceFrame } from "../components/DeviceFrame";
 import { colors, radius } from "../theme";
 import { SalesReportScreen } from "./SalesReportScreen";
+import { SalesHistoryScreen } from "./SalesHistoryScreen";
 import { RegisteredProductsScreen } from "./RegisteredProductsScreen";
 import { ProductRegistrationScreen } from "./ProductRegistrationScreen";
 import { SellerMyPageScreen } from "./MyPageScreen";
@@ -136,6 +137,15 @@ export function SellerHomeScreen({
         onBack={() => setPage("dashboard")}
       />
     );
+  if (page === "sales")
+    return (
+      <SalesHistoryScreen
+        startDate={startDate}
+        endDate={endDate ?? startDate}
+        totalRevenue={dashboard.periodRevenue}
+        onBack={() => setPage("dashboard")}
+      />
+    );
   if (page === "products")
     return (
       <View style={s.root}>
@@ -252,6 +262,8 @@ export function SellerHomeScreen({
         <Metric
           label="기간 매출 집계"
           value={`${dashboard.periodRevenue.toLocaleString()}원`}
+          arrow
+          onPress={() => endDate ? setPage("sales") : setRangeOpen(true)}
         />
         <Metric
           label="등록 상품/자원 수"
@@ -610,12 +622,14 @@ function Metric({
   arrow,
   startDate,
   endDate,
+  onPress,
 }: {
   label: string;
   value: string;
   arrow?: boolean;
   startDate?:string;
   endDate?:string;
+  onPress?: () => void;
 }) {
   const [report, setReport] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -624,8 +638,8 @@ function Metric({
   return (
     <>
       <Pressable
-        disabled={!isDailySales && !isRegistered}
-        onPress={() => (isDailySales ? setReport(true) : setRegistered(true))}
+        disabled={!onPress && !isDailySales && !isRegistered}
+        onPress={() => onPress ? onPress() : (isDailySales ? setReport(true) : setRegistered(true))}
         style={s.metric}
       >
         <View>
