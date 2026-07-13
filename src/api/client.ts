@@ -53,3 +53,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 export const setAccessToken = (token: string) => AsyncStorage.setItem(ACCESS_TOKEN_KEY, token);
 export const clearAccessToken = () => AsyncStorage.removeItem(ACCESS_TOKEN_KEY);
 
+// Wake a suspended API while splash/onboarding is visible.
+export async function warmUpApi(): Promise<void> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try { await fetch(`${baseUrl}/actuator/health`, { signal: controller.signal }); }
+  catch { /* Best effort only. */ }
+  finally { clearTimeout(timeout); }
+}
+

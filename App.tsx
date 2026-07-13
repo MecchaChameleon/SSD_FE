@@ -5,9 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { SplashScreen } from './src/screens/SplashScreen'; import { OnboardingScreen } from './src/screens/OnboardingScreen'; import { LoginScreen } from './src/screens/LoginScreen'; import { SignupScreen } from './src/screens/SignupScreen'; import { CompleteScreen } from './src/screens/CompleteScreen'; import { ComponentGalleryScreen } from './src/screens/ComponentGalleryScreen'; import { BuyerHomeScreen } from './src/screens/BuyerHomeScreen';
 import type { PurchasePayload } from './src/screens/BuyerHomeScreen';
 import { colors } from './src/theme'; import { LoginUser,useKakaoLogin,withdrawAccount } from './src/auth/kakao'; import { DeviceFrame } from './src/components/DeviceFrame';
-import { authApi } from './src/api';
+import { authApi } from './src/api'; import { warmUpApi } from './src/api/client';
 
 type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'complete'|'home'|'gallery';
+void warmUpApi();
 export default function App(){const[route,setRoute]=useState<Route>('loading');const[name,setName]=useState('로컬이');const[type]=useState<'buyer'|'seller'>('buyer');
   useEffect(()=>{AsyncStorage.getItem('localtime:onboarding-complete').then(v=>setRoute(v==='true'?'login':'splash')).catch(()=>setRoute('splash'))},[]);
   const afterSplash=useCallback(()=>setRoute('onboarding'),[]);

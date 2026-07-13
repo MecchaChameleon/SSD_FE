@@ -34,7 +34,7 @@ function timeToIso(value: string) {
   return date.toISOString();
 }
 
-export function ProductRegistrationScreen({ onBack }: { onBack: () => void }) {
+export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () => void; onCreated?: () => void }) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<Category | null>(null);
   const [type, setType] = useState('');
@@ -80,7 +80,7 @@ export function ProductRegistrationScreen({ onBack }: { onBack: () => void }) {
     } finally { setSaving(false); }
   };
 
-  if (complete) return <Completion onDone={onBack} />;
+  if (complete) return <Completion onDone={() => { onCreated?.(); onBack(); }} />;
 
   return <View style={s.root}>
     <Header onBack={onBack} />

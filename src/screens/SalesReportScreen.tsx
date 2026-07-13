@@ -6,19 +6,19 @@ import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import ChevronRight from '../../icon/chevron_right.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
-import { sellerApi } from '../api'; import { mockSales } from '../mocks/data';
+import { sellerApi } from '../api';
 
 type Sale = { id: number; name: string; detail: string; quantity: number; revenue: number };
 const money = (value: number) => `${value.toLocaleString()}원`;
 
 export function SalesReportScreen({ onBack }: { onBack: () => void }) {
-  const [salesData,setSalesData]=useState<Sale[]>(mockSales);
+  const [salesData,setSalesData]=useState<Sale[]>([]);
   const [calendar, setCalendar] = useState(false);
   const [start, setStart] = useState<number | null>(10);
   const [end, setEnd] = useState<number | null>(null);
   const [range, setRange] = useState<{ start: number; end: number } | null>(null);
   const [sortDesc, setSortDesc] = useState(true);
-  useEffect(()=>{const today=new Date().toISOString().slice(0,10);sellerApi.salesReport({startDate:today,endDate:today}).then(report=>setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})))).catch(()=>setSalesData(mockSales))},[]);
+  useEffect(()=>{const today=new Date().toISOString().slice(0,10);sellerApi.salesReport({startDate:today,endDate:today}).then(report=>setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})))).catch(()=>setSalesData([]))},[]);
   const shown = useMemo(() => sortDesc ? [...salesData].sort((a, b) => b.revenue - a.revenue) : [...salesData].sort((a, b) => a.revenue - b.revenue), [salesData,sortDesc]);
   const total = salesData.reduce((sum, item) => sum + item.revenue, 0);
   return <View style={s.root}>

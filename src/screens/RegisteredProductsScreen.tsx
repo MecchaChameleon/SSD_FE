@@ -3,14 +3,12 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { ActionButton } from '../components/ui';
 import { colors, radius } from '../theme';
 import { Product as ApiProduct, sellerApi } from '../api';
-import { mockRegisteredProducts } from '../mocks/data';
 import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import MoreIcon from '../../icon/more_vertical.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 
 type Product = { id:number; name:string; category:string; type:string; quantity:string; regular:string; minimum:string; start:string; end:string; location:string; status:string; reservations:number };
-const seed: Product[] = mockRegisteredProducts;
 
 const businessLabel = {RESTAURANT:'음식점',LODGING:'숙박',EXPERIENCE:'체험',RENTAL_MOBILITY:'렌탈/모빌리티'} as const;
 const categoryLabel = {SAME_DAY_INVENTORY:'당일 재고',EMPTY_TIME_RESOURCE:'빈 시간대 자원',SAME_DAY_ROOM:'당일 공실',TOUR_REMAINDER:'이동/관광 잔여 상품'} as const;
@@ -19,7 +17,7 @@ const categoryByLabel = {'당일 재고':'SAME_DAY_INVENTORY','빈 시간대 자
 const toViewProduct=(item:ApiProduct):Product=>({id:item.id,name:item.name,category:businessLabel[item.businessType],type:categoryLabel[item.category],quantity:String(item.qty),regular:String(item.price),minimum:String(item.minPrice),start:item.openTime?new Date(item.openTime).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'}):'',end:new Date(item.deadline).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'}),location:item.address??'',status:item.status==='ACTIVE'?'판매중':item.status==='PAUSED'?'판매중지':'판매종료',reservations:0});
 
 export function RegisteredProductsScreen({onBack}:{onBack:()=>void}){
-  const[items,setItems]=useState(seed); const[menu,setMenu]=useState<number|null>(null); const[editing,setEditing]=useState<Product|null>(null); const[deleting,setDeleting]=useState<Product|null>(null); const[sortDesc,setSortDesc]=useState(true);
+  const[items,setItems]=useState<Product[]>([]); const[menu,setMenu]=useState<number|null>(null); const[editing,setEditing]=useState<Product|null>(null); const[deleting,setDeleting]=useState<Product|null>(null); const[sortDesc,setSortDesc]=useState(true);
   useEffect(()=>{sellerApi.products().then(page=>setItems(page.content.map(toViewProduct))).catch(()=>undefined)},[]);
   const shown=useMemo(()=>sortDesc?[...items]:[...items].reverse(),[items,sortDesc]);
   if(editing)return <EditProduct product={editing} onBack={()=>setEditing(null)} onSave={async next=>{await sellerApi.updateProduct(next.id,{name:next.name,businessType:businessTypeByLabel[next.category as keyof typeof businessTypeByLabel],category:categoryByLabel[next.type as keyof typeof categoryByLabel],qty:Number(next.quantity),price:Number(next.regular.replace(/,/g,'')),minPrice:Number(next.minimum.replace(/,/g,'')),address:next.location});setItems(list=>list.map(item=>item.id===next.id?next:item));setEditing(null)}}/>;

@@ -5,13 +5,19 @@ export type SellerProfileInput = {address:string;latitude:number|null;longitude:
 export type Dashboard = {date:string;reservationCounts:{requested:number;approved:number;noShow:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
 export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[]};
 
+let latestDashboard: Dashboard | null = null;
+
 export const sellerApi = {
   apply: (body:{businessName:string;businessNumber:string;representativeName:string;businessDocumentUrl?:string|null}) => apiRequest<SellerApplication>('/api/seller/application', {method:'POST', body}),
   myApplication: () => apiRequest<SellerApplication>('/api/seller/application/me'),
   createProfile: (body:SellerProfileInput) => apiRequest<SellerProfile>('/api/seller/profile', {method:'POST', body}),
   profile: () => apiRequest<SellerProfile>('/api/seller/profile'),
   updateProfile: (body:Partial<SellerProfileInput>) => apiRequest<SellerProfile>('/api/seller/profile', {method:'PUT', body}),
-  createProduct: (body:ProductInput) => apiRequest<Product>('/api/seller/products', {method:'POST', body}),
+  createProduct: async (body:ProductInput) => {
+    const product=await apiRequest<Product>('/api/seller/products', {method:'POST', body});
+    if(latestDashboard) latestDashboard.registeredProductCount += 1;
+    return product;
+  },
   products: (query:{status?:ProductStatus;page?:number}={}) => apiRequest<Page<Product>>('/api/seller/products', {query}),
   product: (id:number) => apiRequest<Product>(`/api/seller/products/${id}`),
   updateProduct: (id:number, body:Partial<ProductInput>) => apiRequest<Product>(`/api/seller/products/${id}`, {method:'PUT', body}),
@@ -26,6 +32,10 @@ export const sellerApi = {
   rejectReservation: (id:number,body:{reasonCode:'SOLD_OUT'|'CAPACITY_FULL'|'EARLY_CLOSE'|'OTHER';reason:string}) => apiRequest<Reservation>(`/api/seller/reservations/${id}/reject`,{method:'PATCH',body}),
   completeReservation: (id:number) => apiRequest<Reservation>(`/api/seller/reservations/${id}/complete`,{method:'PATCH'}),
   noShowReservation: (id:number) => apiRequest<Reservation>(`/api/seller/reservations/${id}/no-show`,{method:'PATCH'}),
-  dashboard: (date:string) => apiRequest<Dashboard>('/api/seller/dashboard',{query:{date}}),
+  dashboard: async (date:string) => {
+    const value=await apiRequest<Dashboard>('/api/seller/dashboard',{query:{date}});
+    latestDashboard=value;
+    return value;
+  },
   salesReport: (query:{startDate:string;endDate:string;sort?:'REVENUE_DESC'|'REVENUE_ASC'}) => apiRequest<SalesReport>('/api/seller/sales/report',{query}),
 };
