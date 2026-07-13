@@ -373,7 +373,6 @@ export function BuyerHomeScreen({
             {query || "검색"}
           </Text>
         </Pressable>
-        <Text style={s.heading}>로컬타임이 찾은 오늘 마감 특가 상품</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

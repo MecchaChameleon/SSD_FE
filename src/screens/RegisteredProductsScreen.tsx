@@ -159,7 +159,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
   return (
     <View style={s.root}>
       <Header title="등록 상품/자원 수" onBack={onBack} />
-      <ScrollView contentContainerStyle={s.list}>
+      <ScrollView contentContainerStyle={s.list} showsVerticalScrollIndicator={false}>
         {items.length ? (
           <>
             <Pressable style={s.sort} onPress={() => setSortDesc((v) => !v)}>
@@ -391,7 +391,7 @@ function EditProduct({
   return (
     <View style={s.root}>
       <Header title="등록 상품/자원 수정" onBack={onBack} />
-      <ScrollView contentContainerStyle={s.form}>
+      <ScrollView contentContainerStyle={s.form} showsVerticalScrollIndicator={false}>
         <Field label="상품/자원 이름">
           <TextInput
             style={s.input}

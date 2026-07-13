@@ -94,7 +94,7 @@ export function SellerHomeScreen({
     try {
       const [value, payments, report] = await Promise.all([
         sellerApi.dashboard(today),
-        sellerApi.payments({ size: 50 }),
+        sellerApi.payments({ date: today, size: 50 }),
         endDate
           ? sellerApi.salesReport({ startDate, endDate })
           : Promise.resolve(null),
@@ -165,7 +165,7 @@ export function SellerHomeScreen({
   return (
     <View style={s.root}>
       <AppHeader />
-      <ScrollView contentContainerStyle={s.dashboard}>
+      <ScrollView contentContainerStyle={s.dashboard} showsVerticalScrollIndicator={false}>
         <Text style={s.dashboardTitle}>판매 · 결제 현황 대시보드</Text>
         <Text style={s.dashboardBody}>
           당일 판매 결과, 결제 현황, 매출 집계를 조회할 수 있어요.
@@ -412,7 +412,7 @@ function PaymentStatus({
         <Text style={s.headerTitle}>결제 상태 현황</Text>
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView contentContainerStyle={s.statusContent}>
+      <ScrollView contentContainerStyle={s.statusContent} showsVerticalScrollIndicator={false}>
         {groups.map(([state, title, empty, color]) => {
           const list = items.filter((x) => x.state === state);
           return (

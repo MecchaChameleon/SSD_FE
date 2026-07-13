@@ -24,7 +24,7 @@ export function PurchaseHistoryScreen({ items, onHome, onMap, onMyPage, onDelete
   const [refunded, setRefunded] = useState<PurchaseItem | null>(null);
   return <View style={s.root}>
     <AppHeader />
-    <ScrollView contentContainerStyle={s.content}>
+    <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
       <Text style={s.title}>나의 결제 내역</Text>
       <Text style={s.description}>판매자 수락 전에는 결제 확인 대기 상태이며, 거절 시 자동 환불됩니다.</Text>
       {items.length === 0 ? <View style={s.empty}><Text style={s.emptyTitle}>결제 내역이 없어요.</Text><Text style={s.emptyBody}>내 주변 할인 상품을 확인하고 구매해 보세요!</Text></View> : items.map(item =>
