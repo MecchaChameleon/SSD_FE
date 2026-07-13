@@ -3,7 +3,7 @@ import type { Page, Product, ProductInput, ProductStatus, Reservation, Reservati
 
 export type SellerProfileInput = {businessName:string;businessNumber:string;address:string;latitude:number|null;longitude:number|null;bankName:string;accountNumber:string;accountHolder:string};
 export type Dashboard = {date:string;reservationCounts:{requested:number;approved:number;noShow:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
-export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[]};
+export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[]};
 
 let latestDashboard: Dashboard | null = null;
 

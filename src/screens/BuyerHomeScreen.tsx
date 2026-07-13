@@ -26,6 +26,7 @@ import { ReservationScreen } from "./ReservationScreen";
 import { MyPageScreen } from "./MyPageScreen";
 import { SellerHomeScreen } from "./SellerHomeScreen";
 import { BuyerMapScreen } from "./BuyerMapScreen";
+import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
 import {
   ReservationHistoryScreen,
   ReservationItem,
@@ -94,7 +95,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     discountRate,
   };
 };
-const reservationStatus = (status:string):ReservationStatus => status==='REQUESTED'?'waiting':status==='APPROVED'?'confirmed':status==='REJECTED'?'rejected':status==='COMPLETED'?'completed':status==='CANCELED'?'canceled':'noshow';
+const reservationStatus = (status:string,paymentStatus?:string):ReservationStatus => paymentStatus==='PAID'?'paid':status==='REQUESTED'?'waiting':status==='APPROVED'?'confirmed':status==='REJECTED'?'rejected':status==='COMPLETED'?'completed':status==='CANCELED'?'canceled':'noshow';
 const apiReservationToItem = (item: any): ReservationItem => ({
   id: item.id,
   product: {
@@ -109,7 +110,7 @@ const apiReservationToItem = (item: any): ReservationItem => ({
     price: `${item.unitPrice.toLocaleString()}원`,
     remaining: "",
   },
-  status: reservationStatus(item.status),
+  status: reservationStatus(item.status,item.paymentStatus),
   quantity: item.quantity,
   reservedAt: item.requestedAt,
 });
@@ -127,6 +128,7 @@ export function BuyerHomeScreen({
   const [productItems, setProductItems] = useState<Product[]>([]);
   const [liked, setLiked] = useState<number[]>([]);
   const [purchase, setPurchase] = useState<Product | null>(null);
+  const [paymentComplete, setPaymentComplete] = useState(false);
   const [reserve, setReserve] = useState<Product | null>(null);
   const [status, setStatus] = useState<ReservationStatus | undefined>();
   const [reservations, setReservations] = useState<ReservationItem[]>([]);
@@ -228,6 +230,7 @@ export function BuyerHomeScreen({
       ),
     );
     setPurchase(null);
+    setPaymentComplete(true);
     void buyerApi
       .products({ size: 50, businessType: businessTypeByCategory[category] })
       .then((page) => setProductItems(page.content.map(apiProductToCard)));
@@ -264,6 +267,7 @@ export function BuyerHomeScreen({
       }
     />
   ));
+  if(paymentComplete) return <PaymentCompleteScreen onReservations={()=>{setPaymentComplete(false);setTab('reservations');void buyerApi.reservations({size:50}).then(page=>setReservations(page.content.map(apiReservationToItem)))}} onHome={()=>{setPaymentComplete(false);setTab('home')}}/>;
   if (sellerMode)
     return (
       <SellerHomeScreen

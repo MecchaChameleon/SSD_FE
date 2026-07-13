@@ -18,10 +18,11 @@ export function SalesReportScreen({ onBack,startDate,endDate }: { onBack: () => 
   const [end, setEnd] = useState<number | null>(null);
   const [range, setRange] = useState<{ start: number; end: number } | null>(null);
   const [sortDesc, setSortDesc] = useState(true);
-  useEffect(()=>{const refresh=()=>{const today=new Date().toISOString().slice(0,10);return sellerApi.salesReport({startDate:startDate??today,endDate:endDate??today}).then(report=>setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})))).catch(()=>setSalesData([]))};void refresh();const interval=setInterval(refresh,5_000);return()=>clearInterval(interval)},[startDate,endDate]);
+  const [settlementBase,setSettlementBase]=useState(0);
+  useEffect(()=>{const refresh=()=>{const today=new Date().toISOString().slice(0,10);return sellerApi.salesReport({startDate:startDate??today,endDate:endDate??today}).then(report=>{setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})));setSettlementBase(report.settlementRevenue)}).catch(()=>{setSalesData([]);setSettlementBase(0)})};void refresh();const interval=setInterval(refresh,5_000);return()=>clearInterval(interval)},[startDate,endDate]);
   const shown = useMemo(() => sortDesc ? [...salesData].sort((a, b) => b.revenue - a.revenue) : [...salesData].sort((a, b) => a.revenue - b.revenue), [salesData,sortDesc]);
   const total = salesData.reduce((sum, item) => sum + item.revenue, 0);
-  const platformFee=Math.round(total*.03),paymentFee=Math.round(total*.02),settlement=total-platformFee-paymentFee;
+  const platformFee=Math.round(settlementBase*.03),paymentFee=Math.round(settlementBase*.02),settlement=settlementBase-platformFee-paymentFee;
   return <View style={s.root}>
     <Header onBack={onBack} />
     <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
