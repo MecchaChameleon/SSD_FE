@@ -757,7 +757,7 @@ const s = StyleSheet.create({
   },
   countText: { fontSize: 14, fontWeight: "600" },
   bar: {
-    height: 40,
+    height: 27,
     borderRadius: 8,
     overflow: "hidden",
     flexDirection: "row",
