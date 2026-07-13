@@ -21,17 +21,17 @@ export const sellerApi = {
   products: (query:{status?:ProductStatus;page?:number}={}) => apiRequest<Page<Product>>('/api/seller/products', {query}),
   product: (id:number) => apiRequest<Product>(`/api/seller/products/${id}`),
   updateProduct: (id:number, body:Partial<ProductInput>) => apiRequest<Product>(`/api/seller/products/${id}`, {method:'PUT', body}),
-  deleteProduct: (id:number) => apiRequest<void>(`/api/seller/products/${id}`, {method:'DELETE'}),
+  deleteProduct: async (id:number) => {await apiRequest<void>(`/api/seller/products/${id}`, {method:'DELETE'});if(latestDashboard)latestDashboard.registeredProductCount=Math.max(0,latestDashboard.registeredProductCount-1)},
   updateProductStatus: (id:number,status:ProductStatus) => apiRequest<Product>(`/api/seller/products/${id}/status`, {method:'PATCH',body:{status}}),
   uploadProductImages: (id:number, images:{uri:string;name:string;type:string}[]) => { const form=new FormData(); images.forEach(image=>form.append('images',image as unknown as Blob)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'POST',body:form}); },
   price: (id:number) => apiRequest<{currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[]}>(`/api/seller/products/${id}/price`),
   strategy: (id:number) => apiRequest<{message:string}>(`/api/seller/products/${id}/strategy`),
   applyPrice: (id:number,body:{price:number;recommendationId?:number}) => apiRequest<Product>(`/api/seller/products/${id}/price/apply`,{method:'POST',body}),
   reservations: (query:{status?:ReservationStatus;date?:string;page?:number;size?:number}={}) => apiRequest<Page<Reservation>>('/api/seller/reservations',{query}),
-  approveReservation: (id:number) => apiRequest<Reservation>(`/api/seller/reservations/${id}/approve`,{method:'PATCH'}),
-  rejectReservation: (id:number,body:{reasonCode:'SOLD_OUT'|'CAPACITY_FULL'|'EARLY_CLOSE'|'OTHER';reason:string}) => apiRequest<Reservation>(`/api/seller/reservations/${id}/reject`,{method:'PATCH',body}),
-  completeReservation: (id:number) => apiRequest<Reservation>(`/api/seller/reservations/${id}/complete`,{method:'PATCH'}),
-  noShowReservation: (id:number) => apiRequest<Reservation>(`/api/seller/reservations/${id}/no-show`,{method:'PATCH'}),
+  approveReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/approve`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.requested=Math.max(0,latestDashboard.reservationCounts.requested-1);latestDashboard.reservationCounts.approved+=1}return value},
+  rejectReservation: async (id:number,body:{reasonCode:'SOLD_OUT'|'CAPACITY_FULL'|'EARLY_CLOSE'|'OTHER';reason:string}) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/reject`,{method:'PATCH',body});if(latestDashboard)latestDashboard.reservationCounts.requested=Math.max(0,latestDashboard.reservationCounts.requested-1);return value},
+  completeReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/complete`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);latestDashboard.dailyRevenue+=value.totalAmount;latestDashboard.periodRevenue+=value.totalAmount}return value},
+  noShowReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/no-show`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);latestDashboard.reservationCounts.noShow+=1}return value},
   dashboard: async (date:string) => {
     const value=await apiRequest<Dashboard>('/api/seller/dashboard',{query:{date}});
     latestDashboard=value;
