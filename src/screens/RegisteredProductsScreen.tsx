@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { ActionButton } from "../components/ui";
 import { colors, radius } from "../theme";
-import { Product as ApiProduct, sellerApi } from "../api";
+import { ApiError, Product as ApiProduct, sellerApi } from "../api";
 import ChevronDown from "../../icon/chevron_down.svg";
 import ChevronLeft from "../../icon/chevron_left.svg";
 import MoreIcon from "../../icon/more_vertical.svg";
@@ -147,12 +147,8 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
             openTime: withTime(next.startIso, next.start),
             deadline: withTime(next.endIso, next.end),
             address: next.location,
+            status: statusByLabel[next.status as keyof typeof statusByLabel],
           });
-          if (next.status !== editing.status)
-            await sellerApi.updateProductStatus(
-              next.id,
-              statusByLabel[next.status as keyof typeof statusByLabel],
-            );
           setItems((list) =>
             list.map((item) => (item.id === next.id ? next : item)),
           );
@@ -366,6 +362,7 @@ function EditProduct({
     product.location ? [product.location] : [],
   );
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   useEffect(() => {
     sellerApi
       .profile()
@@ -395,8 +392,11 @@ function EditProduct({
   const save = async () => {
     if (!changed || !valid || saving) return;
     setSaving(true);
+    setSaveError(null);
     try {
       await onSave(Number(value.quantity) <= 0 ? { ...value, status: "판매중지" } : value);
+    } catch (error) {
+      setSaveError(error instanceof ApiError ? error.message : "상품 정보를 저장하지 못했습니다.");
     } finally {
       setSaving(false);
     }
@@ -454,6 +454,7 @@ function EditProduct({
         <Field label="판매 상태">
           <Select value={value.status} onPress={() => setSheet("status")} />
         </Field>
+        {saveError ? <Text style={s.saveError}>{saveError}</Text> : null}
         <View style={s.formButtons}>
           <Pressable style={[s.formButton, s.cancel]} onPress={onBack}>
             <Text style={s.buttonText}>취소</Text>
@@ -932,6 +933,7 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   disabled: { backgroundColor: colors.g200 },
+  saveError:{fontSize:12,lineHeight:18,color:colors.danger,textAlign:"center"},
   pickerOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,.25)",
