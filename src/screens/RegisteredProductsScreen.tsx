@@ -57,6 +57,12 @@ const categoryByLabel = {
   "당일 공실": "SAME_DAY_ROOM",
   "이동/관광 잔여 상품": "TOUR_REMAINDER",
 } as const;
+const typeOptionsByBusiness = {
+  음식점: ["당일 재고", "빈 시간대 자원"],
+  숙박: ["당일 공실", "빈 시간대 자원"],
+  체험: ["빈 시간대 자원"],
+  "렌탈/모빌리티": ["이동/관광 잔여 상품", "빈 시간대 자원"],
+} as const;
 const timeLabel = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleTimeString("ko-KR", {
@@ -353,7 +359,7 @@ function EditProduct({
 }) {
   const [value, setValue] = useState(product);
   const [sheet, setSheet] = useState<
-    "start" | "end" | "location" | "status" | null
+    "category" | "type" | "start" | "end" | "location" | "status" | null
   >(null);
   const [locations, setLocations] = useState<string[]>(
     product.location ? [product.location] : [],
@@ -375,6 +381,8 @@ function EditProduct({
   const changed = JSON.stringify(value) !== JSON.stringify(product);
   const valid = !!(
     value.name.trim() &&
+    value.category &&
+    value.type &&
     value.quantity &&
     value.regular &&
     value.minimum &&
@@ -404,8 +412,8 @@ function EditProduct({
           />
         </Field>
         <Field label="상품/자원 카테고리 및 유형">
-          <Select value={value.category} />
-          <Select value={value.type} />
+          <Select value={value.category} onPress={() => setSheet("category")} />
+          <Select value={value.type} onPress={() => setSheet("type")} />
         </Field>
         <Field label="등록 수량">
           <TextInput
@@ -469,6 +477,29 @@ function EditProduct({
         onApply={(time) => {
           if (sheet === "start") set("start", time);
           if (sheet === "end") set("end", time);
+          setSheet(null);
+        }}
+      />
+      <OptionSheet
+        visible={sheet === "category"}
+        title="카테고리 선택"
+        options={Object.keys(typeOptionsByBusiness)}
+        selected={value.category}
+        onClose={() => setSheet(null)}
+        onSelect={(category) => {
+          const options=typeOptionsByBusiness[category as keyof typeof typeOptionsByBusiness];
+          setValue(current=>({...current,category,type:options.includes(current.type as never)?current.type:options[0]}));
+          setSheet(null);
+        }}
+      />
+      <OptionSheet
+        visible={sheet === "type"}
+        title="유형 선택"
+        options={[...typeOptionsByBusiness[value.category as keyof typeof typeOptionsByBusiness]]}
+        selected={value.type}
+        onClose={() => setSheet(null)}
+        onSelect={(type) => {
+          set("type", type);
           setSheet(null);
         }}
       />
