@@ -6,6 +6,7 @@ import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
+import { TimeWheel } from './RegisteredProductsScreen';
 
 type Category = '음식점' | '숙박' | '체험' | '렌탈/모빌리티';
 type Sheet = 'category' | 'type' | 'start' | 'end' | 'location' | null;
@@ -26,11 +27,14 @@ const productCategories = [
 ] as const;
 
 function timeToIso(value: string) {
-  const index = times.indexOf(value);
   const date = new Date();
-  date.setHours(index < 0 ? 0 : 9 + index, 0, 0, 0);
+  const match = value.match(/(오전|오후)\s*(\d+):(\d+)/);
+  let hour = Number(match?.[2] ?? 0) % 12;
+  if (match?.[1] === '오후') hour += 12;
+  date.setHours(hour, Number(match?.[3] ?? 0), 0, 0);
   return date.toISOString();
 }
+function timeMinutes(value:string){const match=value.match(/(오전|오후)\s*(\d+):(\d+)/);if(!match)return-1;let hour=Number(match[2])%12;if(match[1]==='오후')hour+=12;return hour*60+Number(match[3]);}
 
 export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () => void; onCreated?: () => void }) {
   const [name, setName] = useState('');
@@ -54,7 +58,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
 
   const requiredFieldsValid = !!(name.trim() && category && type && quantity && regular && minimum && start && end && location);
   const invalidPriceRange = !!(regular && minimum && Number(minimum) > Number(regular));
-  const invalidTimeRange = !!(start && end && times.indexOf(start) >= times.indexOf(end));
+  const invalidTimeRange = !!(start && end && timeMinutes(start) >= timeMinutes(end));
   const valid = requiredFieldsValid && !invalidPriceRange && !invalidTimeRange;
   const types = useMemo(() => category ? categoryTypes[category] : [], [category]);
   const digits = (value: string, setter: (value: string) => void) => setter(value.replace(/\D/g, ''));
@@ -127,7 +131,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
       {requestError ? <Text style={s.requestError}>{requestError}</Text> : null}
     </ScrollView>
     <ChoiceSheet
-      kind={sheet}
+      kind={sheet === 'start' || sheet === 'end' ? null : sheet}
       options={sheet === 'category' ? Object.keys(categoryTypes) : sheet === 'type' ? types : sheet === 'location' ? locations : times}
       selected={sheet === 'category' ? category ?? '' : sheet === 'type' ? type : sheet === 'location' ? location : sheet === 'start' ? start : end}
       onClose={() => setSheet(null)}
@@ -140,6 +144,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
         setSheet(null);
       }}
     />
+    <TimeWheel visible={sheet === 'start' || sheet === 'end'} value={sheet === 'start' ? start : end} title={sheet === 'start' ? '판매 시작 시각' : '판매 마감 시각'} onClose={() => setSheet(null)} onApply={value => { if (sheet === 'start') { setStart(value); setTimeError(null); } if (sheet === 'end') { setEnd(value); setTimeError(null); } setSheet(null); }}/>
   </View>;
 }
 
@@ -164,7 +169,7 @@ function ChoiceSheet({ kind, options, selected, onClose, onSelect }: { kind: She
   </Pressable></Pressable></Modal>;
 }
 function Completion({ onDone }: { onDone: () => void }) {
-  return <View style={s.complete}><View style={s.completeBody}><Character width={184} height={184} /><Text style={s.completeTitle}>상품 등록 완료!</Text><Text style={s.completeText}>AI 추천가를 확인하고, 매장 운영의 효율성을 극대화해보세요.</Text></View><Pressable style={s.submit} onPress={onDone}><Text style={s.submitText}>판매자 홈으로 가기</Text></Pressable></View>;
+  return <View style={s.complete}><View style={s.completeBody}><Character width={184} height={184} /><Text style={s.completeTitle}>상품 등록 완료!</Text><Text style={s.completeText}>AI 추천가를 확인하고, 매장 운영의 효율성을 극대화해보세요.</Text></View><Pressable style={[s.submit,s.completeAction]} onPress={onDone}><Text style={s.submitText}>판매자 홈으로 가기</Text></Pressable></View>;
 }
 
 const s = StyleSheet.create({
@@ -173,5 +178,5 @@ const s = StyleSheet.create({
   select:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:colors.white}, selectDisabled:{backgroundColor:colors.g100,borderColor:colors.g200}, selectText:{flex:1,fontSize:16,color:colors.black}, placeholder:{color:colors.g400}, money:{flexDirection:'row',alignItems:'center',gap:10}, moneyInput:{flex:1}, won:{fontSize:16,color:colors.black,paddingHorizontal:8}, timeRow:{flexDirection:'row',gap:12}, timeCell:{flex:1}, timeRangeError:{fontSize:12,color:colors.danger,marginTop:-16},
   submit:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:8}, submitDisabled:{backgroundColor:colors.g200}, submitText:{fontSize:16,fontWeight:'600',color:colors.white}, submitTextDisabled:{color:colors.g400}, requestError:{fontSize:12,lineHeight:18,color:colors.danger,textAlign:'center'},
   overlay:{flex:1,backgroundColor:'rgba(17,17,17,.28)',justifyContent:'flex-end',alignItems:'center'}, sheet:{width:'100%',maxWidth:402,maxHeight:'72%',backgroundColor:colors.white,borderTopLeftRadius:24,borderTopRightRadius:24,padding:20,paddingBottom:28}, sheetHead:{flexDirection:'row',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}, sheetTitle:{fontSize:18,fontWeight:'600',color:colors.black}, sheetHint:{fontSize:12,color:colors.g500,marginTop:5}, options:{maxHeight:450}, option:{minHeight:54,borderBottomWidth:1,borderBottomColor:colors.g200,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, optionText:{fontSize:16,color:colors.g800}, optionSelected:{fontWeight:'600',color:colors.primary700}, radio:{width:24,height:24,borderRadius:12,borderWidth:2,borderColor:colors.g300,alignItems:'center',justifyContent:'center'}, radioOn:{borderColor:colors.primary500}, radioDot:{width:12,height:12,borderRadius:6,backgroundColor:colors.primary500},
-  complete:{flex:1,backgroundColor:colors.white,padding:16,justifyContent:'space-between'}, completeBody:{flex:1,alignItems:'center',justifyContent:'center',paddingHorizontal:12}, completeTitle:{fontSize:28,fontWeight:'700',color:colors.black,marginTop:16}, completeText:{fontSize:16,lineHeight:24,color:colors.g500,textAlign:'center',marginTop:10},
+  complete:{flex:1,backgroundColor:colors.white,padding:16,justifyContent:'space-between'}, completeAction:{marginBottom:70}, completeBody:{flex:1,alignItems:'center',justifyContent:'center',paddingHorizontal:12}, completeTitle:{fontSize:28,fontWeight:'700',color:colors.black,marginTop:16}, completeText:{fontSize:16,lineHeight:24,color:colors.g500,textAlign:'center',marginTop:10},
 });

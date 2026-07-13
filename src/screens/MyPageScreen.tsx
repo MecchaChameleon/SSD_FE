@@ -26,7 +26,7 @@ const addresses = mockAddresses;
 const banks = mockBanks;
 const favoriteProducts = mockFavoriteProducts;
 
-export function MyPageScreen({ onHome, onReservations, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onReservations: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
+export function MyPageScreen({ onHome, onMap, onReservations, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onMap: () => void; onReservations: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
   const [page, setPage] = useState<Page>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [name, setName] = useState('로컬이');
@@ -56,7 +56,7 @@ export function MyPageScreen({ onHome, onReservations, onSellerMode, onLogout, o
     <AppHeader />
     <Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black} /> : null}</Pressable>)}
-    <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'reservations' ? onReservations() : undefined} />
+    <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'reservations' ? onReservations() : undefined} />
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); setPage('withdrawDone'); } }} />
   </View>;
 }

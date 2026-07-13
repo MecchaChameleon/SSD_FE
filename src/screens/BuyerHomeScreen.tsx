@@ -272,6 +272,7 @@ export function BuyerHomeScreen({
     return (
       <MyPageScreen
         onHome={() => setTab("home")}
+        onMap={() => setTab("map")}
         onReservations={() => setTab("reservations")}
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
@@ -283,6 +284,7 @@ export function BuyerHomeScreen({
       <ReservationHistoryScreen
         items={reservations}
         onHome={() => setTab("home")}
+        onMap={() => setTab("map")}
         onMyPage={() => setTab("mypage")}
         onCancel={(id) => {
           void buyerApi
