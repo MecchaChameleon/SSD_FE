@@ -71,7 +71,8 @@ const timeLabel = (iso: string | null) =>
       })
     : "";
 const withTime = (iso: string | null, label: string) => {
-  const base = iso ? new Date(iso) : new Date();
+  const saved = iso ? new Date(iso) : null;
+  const base = saved && saved.getTime() > Date.now() ? saved : new Date();
   const match = label.match(/(오전|오후)\s*(\d+):(\d+)/);
   if (!match) return base.toISOString();
   let hour = Number(match[2]) % 12;

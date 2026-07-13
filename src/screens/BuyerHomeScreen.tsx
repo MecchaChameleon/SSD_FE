@@ -151,7 +151,7 @@ export function BuyerHomeScreen({
   useEffect(() => {
     if (sellerMode) return;
     const businessType=businessTypeByCategory[category];
-    buyerApi
+    const refreshProducts=()=>buyerApi
       .products({ size: 50, businessType })
       .then(async page => {
         if(page.content.length||!businessType)return page.content;
@@ -160,6 +160,8 @@ export function BuyerHomeScreen({
       })
       .then(items => setProductItems(items.map(apiProductToCard)))
       .catch(() => setProductItems([]));
+    void refreshProducts();
+    const productInterval=setInterval(refreshProducts,5_000);
     buyerApi
       .wishlist({ size: 50 })
       .then((page) => setLiked(page.content.map((item) => item.id)))
@@ -168,6 +170,7 @@ export function BuyerHomeScreen({
       .reservations({ size: 50 })
       .then((page) => setReservations(page.content.map(apiReservationToItem)))
       .catch(() => undefined);
+    return()=>clearInterval(productInterval);
   }, [tab, sellerMode, category]);
   const shown = useMemo(() => {
     let list = productItems.map((item) => {const distance=userLocation&&item.lat!=null&&item.lng!=null?Math.round(6371000*2*Math.asin(Math.sqrt(Math.sin((item.lat-userLocation.lat)*Math.PI/360)**2+Math.cos(userLocation.lat*Math.PI/180)*Math.cos(item.lat*Math.PI/180)*Math.sin((item.lng-userLocation.lng)*Math.PI/360)**2))):item.distanceMeters;return ({
