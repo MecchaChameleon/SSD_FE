@@ -87,6 +87,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     discountRate,
   };
 };
+const reservationStatus = (status:string):ReservationStatus => status==='REQUESTED'?'waiting':status==='APPROVED'?'confirmed':status==='REJECTED'?'rejected':status==='COMPLETED'?'completed':status==='CANCELED'?'canceled':'noshow';
 const apiReservationToItem = (item: any): ReservationItem => ({
   id: item.id,
   product: {
@@ -101,12 +102,7 @@ const apiReservationToItem = (item: any): ReservationItem => ({
     price: `${item.unitPrice.toLocaleString()}원`,
     remaining: "",
   },
-  status:
-    item.status === "REQUESTED"
-      ? "waiting"
-      : item.status === "APPROVED"
-        ? "confirmed"
-        : "rejected",
+  status: reservationStatus(item.status),
   quantity: item.quantity,
   reservedAt: item.requestedAt,
 });

@@ -89,6 +89,9 @@ export function SellerHomeScreen({
     registeredProductCount: 0,
   });
   const today = new Date().toISOString().slice(0, 10);
+  const [rangeOpen,setRangeOpen]=useState(false);
+  const [startDate,setStartDate]=useState(today);
+  const [endDate,setEndDate]=useState(today);
   const refresh = useCallback(() => {
     void sellerApi.dashboard(today).then(setDashboard).catch(() => undefined);
     void sellerApi
@@ -167,9 +170,9 @@ export function SellerHomeScreen({
         <Text style={s.dashboardBody}>
           당일 판매 결과, 예약 현황, 매출 집계를 조회할 수 있어요.
         </Text>
-        <Pressable style={s.date}>
+        <Pressable style={s.date} onPress={()=>setRangeOpen(true)}>
           <CalendarIcon width={24} height={24} color={colors.g400} />
-          <Text style={s.dateText}>{today.replace(/-/g, ".")}</Text>
+          <Text style={s.dateText}>{startDate.replace(/-/g, ".")} - {endDate.replace(/-/g, ".")}</Text>
           <ChevronDown width={24} height={24} color={colors.g400} />
         </Pressable>
         <Pressable
@@ -223,6 +226,8 @@ export function SellerHomeScreen({
         <Metric
           label="당일 매출 집계 · 리포트"
           value={`${dashboard.dailyRevenue.toLocaleString()}원`}
+          startDate={startDate}
+          endDate={endDate}
           arrow
         />
         <Metric
@@ -235,6 +240,7 @@ export function SellerHomeScreen({
           arrow
         />
       </ScrollView>
+      <Modal transparent visible={rangeOpen} animationType="fade" onRequestClose={()=>setRangeOpen(false)}><View style={s.overlay}><View style={s.reject}><Text style={s.rejectTitle}>조회 기간 선택</Text><TextInput style={s.reasonInput} value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD"/><TextInput style={s.reasonInput} value={endDate} onChangeText={setEndDate} placeholder="YYYY-MM-DD"/><Pressable style={s.rejectButton} onPress={()=>setRangeOpen(false)}><Text style={s.buttonText}>조회하기</Text></Pressable></View></View></Modal>
       <SellerNavigation
         active="home"
         onHome={() => setPage("dashboard")}
@@ -464,10 +470,14 @@ function Metric({
   label,
   value,
   arrow,
+  startDate,
+  endDate,
 }: {
   label: string;
   value: string;
   arrow?: boolean;
+  startDate?:string;
+  endDate?:string;
 }) {
   const [report, setReport] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -494,7 +504,7 @@ function Metric({
         onRequestClose={() => setReport(false)}
       >
         <DeviceFrame>
-          <SalesReportScreen onBack={() => setReport(false)} />
+          <SalesReportScreen startDate={startDate} endDate={endDate} onBack={() => setReport(false)} />
         </DeviceFrame>
       </Modal>
       <Modal

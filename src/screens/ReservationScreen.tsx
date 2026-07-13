@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -164,29 +165,9 @@ export function ReservationScreen({
           <View style={s.sheet}>
             <View style={s.handle} />
             <View style={s.wheel}>
-              <ChoiceColumn
-                previous={period === "오전" ? "오후" : "오전"}
-                value={period}
-                next={period === "오전" ? "오후" : "오전"}
-                onPrevious={() =>
-                  setPeriod(period === "오전" ? "오후" : "오전")
-                }
-                onNext={() => setPeriod(period === "오전" ? "오후" : "오전")}
-              />
-              <ChoiceColumn
-                previous={String(hour === 1 ? 12 : hour - 1)}
-                value={String(hour)}
-                next={String(hour === 12 ? 1 : hour + 1)}
-                onPrevious={() => setHour(hour === 1 ? 12 : hour - 1)}
-                onNext={() => setHour(hour === 12 ? 1 : hour + 1)}
-              />
-              <ChoiceColumn
-                previous={String((minute + 55) % 60).padStart(2, "0")}
-                value={String(minute).padStart(2, "0")}
-                next={String((minute + 5) % 60).padStart(2, "0")}
-                onPrevious={() => setMinute((minute + 55) % 60)}
-                onNext={() => setMinute((minute + 5) % 60)}
-              />
+              <WheelColumn values={["오전","오후"]} value={period} onChange={value=>setPeriod(value as "오전"|"오후")}/>
+              <WheelColumn values={Array.from({length:12},(_,index)=>String(index+1))} value={String(hour)} onChange={value=>setHour(Number(value))}/>
+              <WheelColumn values={Array.from({length:12},(_,index)=>String(index*5).padStart(2,"0"))} value={String(minute).padStart(2,"0")} onChange={value=>setMinute(Number(value))}/>
             </View>
             <Pressable
               style={s.sheetButton}
@@ -204,29 +185,13 @@ export function ReservationScreen({
   );
 }
 
-function ChoiceColumn({
-  previous,
-  value,
-  next,
-  onPrevious,
-  onNext,
-}: {
-  previous: string;
-  value: string;
-  next: string;
-  onPrevious: () => void;
-  onNext: () => void;
-}) {
+function WheelColumn({values,value,onChange}:{values:string[];value:string;onChange:(value:string)=>void}) {
+  const rowHeight=44;
+  const index=Math.max(0,values.indexOf(value));
   return (
-    <View style={s.column}>
-      <Pressable onPress={onPrevious} hitSlop={8}>
-        <Text style={s.muted}>{previous}</Text>
-      </Pressable>
-      <Text style={s.selected}>{value}</Text>
-      <Pressable onPress={onNext} hitSlop={8}>
-        <Text style={s.muted}>{next}</Text>
-      </Pressable>
-    </View>
+    <ScrollView key={`${values.length}-${index}`} style={s.column} contentContainerStyle={s.wheelContent} showsVerticalScrollIndicator={false} snapToInterval={rowHeight} decelerationRate="fast" contentOffset={{x:0,y:index*rowHeight}} onMomentumScrollEnd={event=>{const next=Math.max(0,Math.min(values.length-1,Math.round(event.nativeEvent.contentOffset.y/rowHeight)));onChange(values[next])}}>
+      {values.map(item=><View key={item} style={s.wheelRow}><Text style={item===value?s.selected:s.muted}>{item}</Text></View>)}
+    </ScrollView>
   );
 }
 function ReservationProduct({ product }: { product: Product }) {
@@ -440,7 +405,9 @@ const s = StyleSheet.create({
     gap: 42,
   },
   period: { gap: 12, alignItems: "center" },
-  column: { gap: 12, alignItems: "center" },
+  column: { height:132, width:72 },
+  wheelContent:{paddingVertical:44},
+  wheelRow:{height:44,alignItems:"center",justifyContent:"center"},
   muted: { fontSize: 18, color: colors.g400 },
   selected: { fontSize: 24, fontWeight: "600", color: colors.g800 },
   sheetButton: {
