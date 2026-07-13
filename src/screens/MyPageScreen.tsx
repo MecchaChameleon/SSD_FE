@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AppHeader, BottomNavigation } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
@@ -25,17 +26,20 @@ const profileToBusiness = (profile: SellerProfile): Business => { const numbers=
 const addresses = mockAddresses;
 const banks = mockBanks;
 const favoriteProducts = mockFavoriteProducts;
+const USER_CACHE_KEY='localtime:user';
+async function cachedNickname(){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);return raw?JSON.parse(raw).nickname??'':''}catch{return''}}
+async function cacheNickname(nickname:string){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);if(raw)await AsyncStorage.setItem(USER_CACHE_KEY,JSON.stringify({...JSON.parse(raw),nickname}))}catch{}}
 
 export function MyPageScreen({ onHome, onMap, onReservations, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onMap: () => void; onReservations: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
   const [page, setPage] = useState<Page>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
-  const [name, setName] = useState('로컬이');
+  const [name, setName] = useState('');
   const [business, setBusiness] = useState<Business | null>(null);
   const [formReturn, setFormReturn] = useState<'main' | 'mode'>('main');
-  useEffect(()=>{authApi.me().then(me=>setName(me.nickname)).catch(()=>undefined);sellerApi.profile().then(profile=>setBusiness(profileToBusiness(profile))).catch(()=>undefined)},[]);
+  useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);void cacheNickname(me.nickname)}).catch(()=>undefined);sellerApi.profile().then(profile=>setBusiness(profileToBusiness(profile))).catch(()=>undefined)},[]);
 
   const openBusiness = (from: 'main' | 'mode') => { setFormReturn(from); setPage(business ? 'business' : 'businessForm'); };
-  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName});setName(nextName);setPage('main'); }} />;
+  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setPage('main'); }} />;
   if (page === 'favorites') return <FavoritesPage onBack={() => setPage('main')} />;
   if (page === 'mode') return <ModePage certified={!!business} onRegister={() => openBusiness('mode')} onComplete={() => setPage('modeDone')} onBack={() => setPage('main')} />;
   if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => setPage(formReturn)} onSave={async value => { if(!business)await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:name,businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:null,longitude:null,bankName:value.bank,accountNumber:value.account,accountHolder:name});setBusiness(value);setPage(business ? 'business' : 'businessDone'); }} />;
@@ -68,8 +72,8 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [name, setName] = useState('');
-  useEffect(() => { authApi.me().then(me => setName(me.nickname)).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
-  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName}); setName(nextName); setPage('main'); }} />;
+  useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
+  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName}); await cacheNickname(nextName); setName(nextName); setPage('main'); }} />;
   if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
   if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,address:value.address,latitude:sellerProfile?.latitude??null,longitude:sellerProfile?.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness(profileToBusiness(profile)); setPage('business'); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />;
   if (page === 'mode') return <SellerModePage onBack={() => setPage('main')} onBuyerMode={onBuyerMode} />;
