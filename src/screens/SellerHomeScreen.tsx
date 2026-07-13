@@ -90,32 +90,28 @@ export function SellerHomeScreen({
   const [rangeOpen, setRangeOpen] = useState(false);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState<string | null>(null);
-  const refresh = useCallback(() => {
-    void sellerApi
-      .dashboard(today)
-      .then(async (value) => {
-        if (!endDate) {
-          setDashboard({ ...value, periodRevenue: 0 });
-          return;
-        }
-        const report = await sellerApi.salesReport({ startDate, endDate });
-        setDashboard({ ...value, periodRevenue: report.totalRevenue });
-      })
-      .catch(() => undefined);
-    void sellerApi
-      .payments({ size: 50 })
-      .then((result) =>
-        setItems(
-          result.content
-            .map(toPayment),
-        ),
-      )
-      .catch(() => undefined);
+  const refresh = useCallback(async () => {
+    try {
+      const [value, payments, report] = await Promise.all([
+        sellerApi.dashboard(today),
+        sellerApi.payments({ size: 50 }),
+        endDate
+          ? sellerApi.salesReport({ startDate, endDate })
+          : Promise.resolve(null),
+      ]);
+      setDashboard({
+        ...value,
+        periodRevenue: report?.totalRevenue ?? value.dailyRevenue,
+      });
+      setItems(payments.content.map(toPayment));
+    } catch {
+      // 다음 주기 또는 사용자 액션 후 다시 조회한다.
+    }
   }, [today, startDate, endDate]);
   useEffect(() => {
-    refresh();
+    void refresh();
     if (page !== "dashboard" && page !== "payments") return;
-    const interval = setInterval(refresh, 5_000);
+    const interval = setInterval(() => void refresh(), 5_000);
     return () => clearInterval(interval);
   }, [page, refresh]);
   if (page === "payments")
@@ -124,6 +120,7 @@ export function SellerHomeScreen({
         items={items}
         setItems={setItems}
         onBack={() => setPage("dashboard")}
+        onChanged={refresh}
       />
     );
   if (page === "products")
@@ -387,10 +384,12 @@ function PaymentStatus({
   items,
   setItems,
   onBack,
+  onChanged,
 }: {
   items: Payment[];
   setItems: React.Dispatch<React.SetStateAction<Payment[]>>;
   onBack: () => void;
+  onChanged: () => Promise<void>;
 }) {
   const [reject, setReject] = useState<number | null>(null);
   const groups: [PaymentState, string, string, string][] = [
@@ -402,6 +401,7 @@ function PaymentStatus({
     await sellerApi.acceptPayment(id);
     const state: PaymentState = "accepted";
     setItems((v) => v.map((x) => (x.id === id ? { ...x, state } : x)));
+    await onChanged();
   };
   return (
     <View style={s.root}>
@@ -440,14 +440,15 @@ function PaymentStatus({
       <RejectModal
         visible={reject !== null}
         onClose={() => setReject(null)}
-        onConfirm={(reason) => {
+        onConfirm={async (reason) => {
           if (reject !== null) {
-            void sellerApi
-              .rejectPayment(reject, {
-                reasonCode: "OTHER",
-                reason,
-              })
-              .then(() => setItems((v) => v.map((x) => x.id === reject ? { ...x, state: "refunded" } : x)));
+            const paymentId = reject;
+            await sellerApi.rejectPayment(paymentId, {
+              reasonCode: "OTHER",
+              reason,
+            });
+            setItems((v) => v.map((x) => x.id === paymentId ? { ...x, state: "refunded" } : x));
+            await onChanged();
           }
           setReject(null);
         }}
@@ -504,7 +505,7 @@ function RejectModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onConfirm: (reason: string) => void;
+  onConfirm: (reason: string) => void | Promise<void>;
 }) {
   const [reason, setReason] = useState("당일 재고 소진");
   const [custom, setCustom] = useState("");
@@ -857,9 +858,13 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(17,17,17,.25)",
     justifyContent: "center",
-    padding: 16,
+    alignItems: "center",
+    paddingHorizontal: 32,
+    paddingVertical: 16,
   },
   reject: {
+    width: "100%",
+    maxWidth: 360,
     borderRadius: radius.lg,
     backgroundColor: colors.white,
     padding: 20,

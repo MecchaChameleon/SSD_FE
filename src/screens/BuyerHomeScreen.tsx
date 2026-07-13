@@ -107,6 +107,8 @@ const apiPurchaseToItem = (item: ApiPurchase): PurchaseItem => ({
   },
   status: paymentStatus(item.status),
   quantity: item.quantity,
+  unitPrice: item.unitPrice,
+  totalAmount: item.totalAmount,
   purchasedAt: item.requestedAt,
   rejectReason: item.rejectReason,
 });
