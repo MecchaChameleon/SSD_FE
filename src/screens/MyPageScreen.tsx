@@ -62,14 +62,16 @@ export function MyPageScreen({ onHome, onMap, onReservations, onSellerMode, onLo
 }
 
 export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLogout, onWithdraw }: { onBack: () => void; onProducts?: () => void; onAi?:()=>void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void> }) {
-  const [page, setPage] = useState<'main' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
+  const [page, setPage] = useState<'main' | 'profile' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [business, setBusiness] = useState<Business>(sampleBusiness);
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
-  useEffect(() => { sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
+  const [name, setName] = useState('');
+  useEffect(() => { authApi.me().then(me => setName(me.nickname)).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
+  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName}); setName(nextName); setPage('main'); }} />;
   if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
-  if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={async value => { try { const profile=await sellerApi.updateProfile({address:value.address,latitude:sellerProfile?.latitude??null,longitude:sellerProfile?.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness(profileToBusiness(profile)); setPage('business'); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />;
+  if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,address:value.address,latitude:sellerProfile?.latitude??null,longitude:sellerProfile?.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness(profileToBusiness(profile)); setPage('business'); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />;
   if (page === 'mode') return <SellerModePage onBack={() => setPage('main')} onBuyerMode={onBuyerMode} />;
   if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
   if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw ?? (async () => {})} />;
@@ -80,7 +82,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>로컬이</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
+  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
     <SellerMyNavigation onHome={onBack} onProducts={onProducts} onAi={onAi}/>
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); setPage('withdrawDone'); } }} />
@@ -185,7 +187,7 @@ function SelectionSheet({ type, query, onClose, onAddress, onBank }: { type: 'ad
 function BusinessInfo({ value, onBack, onEdit }: { value: Business; onBack: () => void; onEdit: () => void }) { const rows = [['상호명', value.shop], ['사업자등록번호', `${value.number1}-${value.number2}-${value.number3}`], ['매장 주소', value.address], ['은행명', value.bank], ['정산 계좌번호', value.account]]; return <View style={s.root}><Header title="사업자 정보" onBack={onBack} /><View style={s.infoRows}>{rows.map(([label, text]) => <View key={label} style={s.infoRow}><Text style={s.infoLabel}>{label}</Text><Text style={s.infoValue}>{text}</Text></View>)}</View><View style={s.businessEdit}><Text style={s.helper}>ⓘ 마감 상품/자원을 등록하려면 최초 1회 사업자 정보 등록이 필요합니다.</Text><ActionButton dark onPress={onEdit}>수정하기</ActionButton></View></View>; }
 
 function Completion({ title, body, button, onPress }: { title: string; body: string; button: string; onPress: () => void | Promise<void> }) { return <View style={s.root}><View style={s.completeArt}><LocaltimeCharacter size={112} /></View><View style={s.completeCopy}><Text style={s.completeTitle}>{title}</Text><Text style={s.completeBody}>{body}</Text></View><View style={s.completeButton}><ActionButton onPress={onPress}>{button}</ActionButton></View></View>; }
-function ModeCompletion({ onDone }: { onDone: () => void }) { return <View style={s.root}><Text style={s.modeDoneLabel}>판매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>로컬타임님, 환영합니다!</Text><Text style={s.completeBody}>매장의 마감 상품 및 자원을 등록하고,{`\n`}AI 가격 제안으로 매출을 극대화해 보세요.</Text></View><View style={s.modeDoneButton}><ActionButton onPress={onDone}>시작하기</ActionButton></View></View>; }
+function ModeCompletion({ onDone }: { onDone: () => void }) { const [name,setName]=useState(''); useEffect(()=>{authApi.me().then(me=>setName(me.nickname)).catch(()=>undefined)},[]); return <View style={s.root}><Text style={s.modeDoneLabel}>판매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>{name}님, 환영합니다!</Text><Text style={s.completeBody}>매장의 마감 상품 및 자원을 등록하고,{`\n`}AI 가격 제안으로 매출을 극대화해 보세요.</Text></View><View style={s.modeDoneButton}><ActionButton onPress={onDone}>시작하기</ActionButton></View></View>; }
 
 function NotificationPage({ onBack }: { onBack: () => void }) { return <SellerNotificationPage onBack={onBack}/>; }
 

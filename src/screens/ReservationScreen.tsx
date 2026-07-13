@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   Pressable,
@@ -16,6 +16,7 @@ import ChevronLeft from "../../icon/chevron_left.svg";
 import CloseIcon from "../../icon/x.svg";
 import Character from "../../icon/로컬타임_캐릭터 1.svg";
 import { ApiError, buyerApi } from "../api";
+import { TimeWheel } from "./RegisteredProductsScreen";
 
 export function ReservationScreen({
   product,
@@ -151,51 +152,11 @@ export function ReservationScreen({
           {saving ? "요청 중..." : "예약 요청하기"}
         </Text>
       </Pressable>
-      <Modal
-        transparent
-        visible={picker}
-        animationType="slide"
-        onRequestClose={() => setPicker(false)}
-      >
-        <View style={s.dim}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setPicker(false)}
-          />
-          <View style={s.sheet}>
-            <View style={s.handle} />
-            <View style={s.wheel}>
-              <WheelColumn values={["오전","오후"]} value={period} onChange={value=>setPeriod(value as "오전"|"오후")}/>
-              <WheelColumn values={Array.from({length:12},(_,index)=>String(index+1))} value={String(hour)} onChange={value=>setHour(Number(value))}/>
-              <WheelColumn values={Array.from({length:12},(_,index)=>String(index*5).padStart(2,"0"))} value={String(minute).padStart(2,"0")} onChange={value=>setMinute(Number(value))}/>
-            </View>
-            <Pressable
-              style={s.sheetButton}
-              onPress={() => {
-                setTime(`${period} ${hour}:${String(minute).padStart(2, "0")}`);
-                setPicker(false);
-              }}
-            >
-              <Text style={s.buttonText}>확인</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <TimeWheel visible={picker} value={time || `${period} ${hour}:${String(minute).padStart(2, "0")}`} title="방문 시각" onClose={() => setPicker(false)} onApply={value => { const match=value.match(/(오전|오후)\s*(\d+):(\d+)/); if(match){setPeriod(match[1] as "오전"|"오후");setHour(Number(match[2]));setMinute(Number(match[3]));} setTime(value);setPicker(false); }}/>
     </View>
   );
 }
 
-function WheelColumn({values,value,onChange}:{values:string[];value:string;onChange:(value:string)=>void}) {
-  const rowHeight=44;
-  const index=Math.max(0,values.indexOf(value));
-  const ref=useRef<ScrollView>(null);
-  const finish=(event:any)=>{const next=Math.max(0,Math.min(values.length-1,Math.round(event.nativeEvent.contentOffset.y/rowHeight)));ref.current?.scrollTo({y:next*rowHeight,animated:true});onChange(values[next])};
-  return (
-    <ScrollView ref={ref} key={values.join('-')} style={s.column} contentContainerStyle={s.wheelContent} showsVerticalScrollIndicator={false} snapToInterval={rowHeight} snapToAlignment="start" disableIntervalMomentum decelerationRate="fast" contentOffset={{x:0,y:index*rowHeight}} onScrollEndDrag={finish} onMomentumScrollEnd={finish}>
-      {values.map(item=><View key={item} style={s.wheelRow}><Text style={item===value?s.selected:s.muted}>{item}</Text></View>)}
-    </ScrollView>
-  );
-}
 function ReservationProduct({ product }: { product: Product }) {
   return (
     <View style={[s.product, { height: 190 }]}>
