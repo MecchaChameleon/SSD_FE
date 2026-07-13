@@ -30,7 +30,7 @@ import UserIcon from "../../icon/user.svg";
 import CloseIcon from "../../icon/x.svg";
 
 type SellerPage =
-  "dashboard" | "reservations" | "sales" | "products" | "ai" | "mypage";
+  "dashboard" | "reservations" | "products" | "ai" | "mypage";
 type ReservationState = "request" | "confirmed" | "noshow";
 const AppHeader = () => <BaseAppHeader role="seller" />;
 const dateKey = (date: Date) => {
@@ -134,15 +134,6 @@ export function SellerHomeScreen({
       <ReservationStatus
         items={items}
         setItems={setItems}
-        onBack={() => setPage("dashboard")}
-      />
-    );
-  if (page === "sales")
-    return (
-      <SalesHistoryScreen
-        startDate={startDate}
-        endDate={endDate ?? startDate}
-        totalRevenue={dashboard.periodRevenue}
         onBack={() => setPage("dashboard")}
       />
     );
@@ -260,10 +251,14 @@ export function SellerHomeScreen({
           arrow
         />
         <Metric
-          label="기간 매출 집계"
+          label="기간 매출 집계 · 판매 내역"
           value={`${dashboard.periodRevenue.toLocaleString()}원`}
+          startDate={startDate}
+          endDate={endDate ?? undefined}
+          totalRevenue={dashboard.periodRevenue}
+          history
           arrow
-          onPress={() => endDate ? setPage("sales") : setRangeOpen(true)}
+          onPress={() => setRangeOpen(true)}
         />
         <Metric
           label="등록 상품/자원 수"
@@ -622,6 +617,8 @@ function Metric({
   arrow,
   startDate,
   endDate,
+  totalRevenue,
+  history,
   onPress,
 }: {
   label: string;
@@ -629,17 +626,27 @@ function Metric({
   arrow?: boolean;
   startDate?:string;
   endDate?:string;
+  totalRevenue?: number;
+  history?: boolean;
   onPress?: () => void;
 }) {
   const [report, setReport] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const isDailySales = label.includes("당일 매출");
   const isRegistered = label.includes("등록 상품");
   return (
     <>
       <Pressable
-        disabled={!onPress && !isDailySales && !isRegistered}
-        onPress={() => onPress ? onPress() : (isDailySales ? setReport(true) : setRegistered(true))}
+        disabled={!history && !onPress && !isDailySales && !isRegistered}
+        onPress={() => {
+          if (history) {
+            if (!startDate || !endDate) onPress?.();
+            else setHistoryOpen(true);
+          } else if (onPress) onPress();
+          else if (isDailySales) setReport(true);
+          else setRegistered(true);
+        }}
         style={s.metric}
       >
         <View>
@@ -666,6 +673,22 @@ function Metric({
       >
         <DeviceFrame>
           <RegisteredProductsScreen onBack={() => setRegistered(false)} />
+        </DeviceFrame>
+      </Modal>
+      <Modal
+        visible={historyOpen}
+        animationType="slide"
+        onRequestClose={() => setHistoryOpen(false)}
+      >
+        <DeviceFrame>
+          {startDate && endDate ? (
+            <SalesHistoryScreen
+              startDate={startDate}
+              endDate={endDate}
+              totalRevenue={totalRevenue ?? 0}
+              onBack={() => setHistoryOpen(false)}
+            />
+          ) : null}
         </DeviceFrame>
       </Modal>
     </>
