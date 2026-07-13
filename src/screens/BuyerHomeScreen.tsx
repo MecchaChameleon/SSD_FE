@@ -29,7 +29,7 @@ import {
   ReservationHistoryScreen,
   ReservationItem,
 } from "./ReservationHistoryScreen";
-import { buyerApi, Product as ApiProduct } from "../api";
+import { buyerApi, BusinessType, Product as ApiProduct } from "../api";
 
 export type PurchasePayload = {
   productId: number;
@@ -45,10 +45,14 @@ const categories = [
   "숙박",
   "체험",
   "렌탈 / 모빌리티",
-  "당일 재고",
-  "당일 공실",
-  "빈 시간대 자원",
-];
+] as const;
+type BuyerCategory = (typeof categories)[number];
+const businessTypeByCategory: Partial<Record<BuyerCategory, BusinessType>> = {
+  음식점: "RESTAURANT",
+  숙박: "LODGING",
+  체험: "EXPERIENCE",
+  "렌탈 / 모빌리티": "RENTAL_MOBILITY",
+};
 const sorts = [
   "AI 추천순",
   "가까운 거리순",
@@ -116,7 +120,7 @@ export function BuyerHomeScreen({
   onWithdraw: () => Promise<void>;
   onPurchase?: (payload: PurchasePayload) => void | Promise<void>;
 }) {
-  const [category, setCategory] = useState("전체");
+  const [category, setCategory] = useState<BuyerCategory>("전체");
   const [productItems, setProductItems] = useState<Product[]>([]);
   const [liked, setLiked] = useState<number[]>([]);
   const [purchase, setPurchase] = useState<Product | null>(null);
@@ -140,7 +144,7 @@ export function BuyerHomeScreen({
   useEffect(() => {
     if (sellerMode) return;
     buyerApi
-      .products({ size: 50 })
+      .products({ size: 50, businessType: businessTypeByCategory[category] })
       .then((page) => setProductItems(page.content.map(apiProductToCard)))
       .catch(() => setProductItems([]));
     buyerApi
@@ -151,7 +155,7 @@ export function BuyerHomeScreen({
       .reservations({ size: 50 })
       .then((page) => setReservations(page.content.map(apiReservationToItem)))
       .catch(() => undefined);
-  }, [tab, sellerMode]);
+  }, [tab, sellerMode, category]);
   const shown = useMemo(() => {
     let list = productItems.map((item) => ({
       ...item,
@@ -220,7 +224,7 @@ export function BuyerHomeScreen({
     );
     setPurchase(null);
     void buyerApi
-      .products({ size: 50 })
+      .products({ size: 50, businessType: businessTypeByCategory[category] })
       .then((page) => setProductItems(page.content.map(apiProductToCard)));
   };
   const toggleLike = async (id: number) => {
