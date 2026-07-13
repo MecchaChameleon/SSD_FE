@@ -561,12 +561,14 @@ export function TimeWheel({
   const [period, setPeriod] = useState(initial.period);
   const [hour, setHour] = useState(initial.hour);
   const [minute, setMinute] = useState(initial.minute);
+  const [interacted, setInteracted] = useState({period:false,hour:false,minute:false});
   useEffect(() => {
     if (visible) {
       const next = parseTime(value);
       setPeriod(next.period);
       setHour(next.hour);
       setMinute(next.minute);
+      setInteracted({period:false,hour:false,minute:false});
     }
   }, [visible, value]);
   return (
@@ -577,7 +579,7 @@ export function TimeWheel({
       onRequestClose={onClose}
     >
       <Pressable style={s.pickerOverlay} onPress={onClose}>
-        <Pressable style={s.pickerSheet} onPress={() => undefined}>
+        <Pressable style={s.pickerSheet} onPress={event => event.stopPropagation()}>
           <View style={s.pickerHandle} />
           <Text style={s.pickerTitle}>{title}</Text>
           <View style={s.wheels}>
@@ -586,11 +588,15 @@ export function TimeWheel({
               values={["오전", "오후"]}
               selected={period}
               onSelect={setPeriod}
+              emphasize={interacted.period}
+              onInteract={()=>setInteracted(value=>({...value,period:true}))}
             />
             <Wheel
               values={Array.from({ length: 12 }, (_, i) => String(i + 1))}
               selected={hour}
               onSelect={setHour}
+              emphasize={interacted.hour}
+              onInteract={()=>setInteracted(value=>({...value,hour:true}))}
             />
             <Text style={s.timeUnit}>시</Text>
             <Wheel
@@ -599,12 +605,14 @@ export function TimeWheel({
               )}
               selected={minute}
               onSelect={setMinute}
+              emphasize={interacted.minute}
+              onInteract={()=>setInteracted(value=>({...value,minute:true}))}
             />
             <Text style={s.timeUnit}>분</Text>
           </View>
           <Pressable
             style={s.pickerApply}
-            onPress={() => onApply(`${period} ${hour}:${minute}`)}
+            onPress={event => {event.stopPropagation();onApply(`${period} ${hour}:${minute}`);}}
           >
             <Text style={s.buttonText}>선택 완료</Text>
           </Pressable>
@@ -617,10 +625,14 @@ function Wheel({
   values,
   selected,
   onSelect,
+  emphasize,
+  onInteract,
 }: {
   values: string[];
   selected: string;
   onSelect: (value: string) => void;
+  emphasize: boolean;
+  onInteract: () => void;
 }) {
   const itemHeight = 44;
   const ref = useRef<ScrollView>(null);
@@ -643,17 +655,20 @@ function Wheel({
       style={s.wheel}
       contentContainerStyle={s.wheelContent}
       showsVerticalScrollIndicator={false}
-      snapToInterval={itemHeight}
+      snapToOffsets={values.map((_,itemIndex)=>itemIndex*itemHeight)}
       snapToAlignment="start"
       disableIntervalMomentum
       decelerationRate="fast"
       contentOffset={{ x: 0, y: index * itemHeight }}
+      scrollEventThrottle={16}
+      onScrollBeginDrag={onInteract}
+      onScroll={event=>{const next=Math.max(0,Math.min(values.length-1,Math.round(event.nativeEvent.contentOffset.y/itemHeight)));if(values[next]!==selected)onSelect(values[next]);}}
       onScrollEndDrag={finish}
       onMomentumScrollEnd={finish}
     >
       {values.map((item) => (
         <View key={item} style={s.wheelItem}>
-          <Text style={[s.wheelText, item === selected && s.wheelSelected]}>
+          <Text style={[s.wheelText, emphasize && item === selected && s.wheelSelected]}>
             {item}
           </Text>
         </View>

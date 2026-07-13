@@ -13,6 +13,20 @@ declare global { interface Window { kakao: any; } }
 
 const categoryLabel:Record<Product['category'],string>={SAME_DAY_INVENTORY:'당일 재고',EMPTY_TIME_RESOURCE:'빈 시간대 자원',SAME_DAY_ROOM:'당일 공실',TOUR_REMAINDER:'이동/관광 잔여 상품'};
 const jsKey=process.env.EXPO_PUBLIC_KAKAO_JAVASCRIPT_KEY;
+const addressCoordinateCache=new Map<string,{latitude:number;longitude:number}|null>();
+const pendingGeocodes=new Map<string,Promise<{latitude:number;longitude:number}|null>>();
+
+function geocodeAddress(kakao:any,geocoder:any,address:string){
+  if(addressCoordinateCache.has(address))return Promise.resolve(addressCoordinateCache.get(address)??null);
+  const pending=pendingGeocodes.get(address);if(pending)return pending;
+  const request=new Promise<{latitude:number;longitude:number}|null>(resolve=>{
+    geocoder.addressSearch(address,(result:any[],status:string)=>{
+      const coordinate=status===kakao.maps.services.Status.OK?{latitude:Number(result[0].y),longitude:Number(result[0].x)}:null;
+      addressCoordinateCache.set(address,coordinate);pendingGeocodes.delete(address);resolve(coordinate);
+    });
+  });
+  pendingGeocodes.set(address,request);return request;
+}
 
 function loadKakao(){
   if(Platform.OS!=='web'||typeof document==='undefined')return Promise.reject(new Error('웹 지도만 지원됩니다.'));
@@ -33,7 +47,10 @@ export function BuyerMapScreen({onHome,onReservations,onMyPage,onBuy,onReserve}:
   })).current;
   useEffect(()=>{let disposed=false;loadKakao().then(async()=>{if(disposed||!mapElement.current)return;const kakao=window.kakao;const map=new kakao.maps.Map(mapElement.current,{center:new kakao.maps.LatLng(33.3938,126.5627),level:9});mapObject.current=map;
     kakao.maps.event.addListener(map,'click',()=>setSelected(null));
+    let rendering=false,renderAgain=false,idleTimer:ReturnType<typeof setTimeout>|null=null;
     const render=async()=>{
+      if(rendering){renderAgain=true;return;} rendering=true;
+      try {
       const bounds=map.getBounds();
       const query={swLat:bounds.getSouthWest().getLat(),swLng:bounds.getSouthWest().getLng(),neLat:bounds.getNorthEast().getLat(),neLng:bounds.getNorthEast().getLng()};
       let pins=await buyerApi.mapPins(query);
@@ -41,18 +58,17 @@ export function BuyerMapScreen({onHome,onReservations,onMyPage,onBuy,onReserve}:
       const known=new Set(pins.map(pin=>pin.id));
       const geocoder=new kakao.maps.services.Geocoder();
       const missing=products.content.filter(product=>!known.has(product.id)&&!!product.address);
-      const geocoded=await Promise.all(missing.map(product=>new Promise((resolve:(pin:MapPin|null)=>void)=>{
-        geocoder.addressSearch(product.address,(result:any[],status:string)=>{
-          if(status!==kakao.maps.services.Status.OK){resolve(null);return;}
-          resolve({id:product.id,name:product.name,businessName:product.businessName??'',category:product.category,originalPrice:product.price,currentPrice:product.currentPrice,discountRate:product.discountRate??0,latitude:Number(result[0].y),longitude:Number(result[0].x),address:product.address,deadline:product.deadline,urgent:!!product.urgent});
-        });
-      })));
+      const geocoded=await Promise.all(missing.map(async product=>{
+        const coordinate=await geocodeAddress(kakao,geocoder,product.address!);if(!coordinate)return null;
+        return {id:product.id,name:product.name,businessName:product.businessName??'',category:product.category,originalPrice:product.price,currentPrice:product.currentPrice,discountRate:product.discountRate??0,...coordinate,address:product.address,deadline:product.deadline,urgent:!!product.urgent} as MapPin;
+      }));
       pins=[...pins,...geocoded.filter((pin):pin is MapPin=>pin!==null)];
       overlays.current.forEach(item=>item.setMap(null));
       overlays.current=pins.map(pin=>{const content=document.createElement('button');content.type='button';content.style.cssText='max-width:142px;height:32px;padding:4px 9px 4px 4px;border:0;border-radius:80px;background:#fff;box-shadow:2px 2px 3px rgba(0,0,0,.1);display:flex;align-items:center;gap:6px;cursor:pointer;';const clock=document.createElement('span');clock.textContent='◷';clock.style.cssText='width:24px;height:24px;border-radius:12px;background:#f3ab24;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;';const label=document.createElement('span');label.textContent=pin.name;label.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#111;';content.append(clock,label);content.onclick=()=>buyerApi.product(pin.id).then(setSelected);const overlay=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(pin.latitude,pin.longitude),content,yAnchor:.5});overlay.setMap(map);return overlay});
+      } finally { rendering=false;if(renderAgain&&!disposed){renderAgain=false;void render();} }
     };
     await render();
-    kakao.maps.event.addListener(map,'idle',()=>void render().catch(()=>undefined));
+    kakao.maps.event.addListener(map,'idle',()=>{if(idleTimer)clearTimeout(idleTimer);idleTimer=setTimeout(()=>void render().catch(()=>undefined),300)});
     navigator.geolocation?.getCurrentPosition(position=>{
       if(disposed)return;
       const here=new kakao.maps.LatLng(position.coords.latitude,position.coords.longitude);
