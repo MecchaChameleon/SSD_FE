@@ -17,7 +17,7 @@ import { RegisteredProductsScreen } from "./RegisteredProductsScreen";
 import { ProductRegistrationScreen } from "./ProductRegistrationScreen";
 import { SellerMyPageScreen } from "./MyPageScreen";
 import { sellerApi } from "../api";
-import type { Reservation as ApiReservation } from "../api";
+import type { Purchase as ApiPurchase } from "../api";
 import { AIRecommendationScreen } from "./AIRecommendationScreen";
 import CalendarIcon from "../../icon/calendar.svg";
 import ChevronDown from "../../icon/chevron_down.svg";
@@ -30,8 +30,8 @@ import UserIcon from "../../icon/user.svg";
 import CloseIcon from "../../icon/x.svg";
 
 type SellerPage =
-  "dashboard" | "reservations" | "products" | "ai" | "mypage";
-type ReservationState = "request" | "confirmed" | "noshow";
+  "dashboard" | "payments" | "products" | "ai" | "mypage";
+type PaymentState = "pending" | "accepted" | "refunded";
 const AppHeader = () => <BaseAppHeader role="seller" />;
 const dateKey = (date: Date) => {
   const year = date.getFullYear();
@@ -40,7 +40,7 @@ const dateKey = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 const displayDate = (value: string | null) => value ? value.replace(/-/g, ".") : "YYYY.MM.DD";
-type Reservation = {
+type Payment = {
   id: number;
   title: string;
   detail: string;
@@ -48,34 +48,23 @@ type Reservation = {
   price: string;
   remaining: string;
   quantity: number;
+  buyerNickname: string;
   time: string;
-  state: ReservationState;
+  state: PaymentState;
 };
 
-function toReservation(item: ApiReservation): Reservation | null {
-  const state: ReservationState | null =
-    item.status === "REQUESTED"
-      ? "request"
-      : item.status === "APPROVED"
-        ? "confirmed"
-        : item.status === "NO_SHOW"
-          ? "noshow"
-          : null;
-  if (!state) return null;
+function toPayment(item: ApiPurchase): Payment {
+  const state: PaymentState = item.status === "ACCEPTED" ? "accepted" : item.status === "REFUNDED" ? "refunded" : "pending";
   return {
     id: item.id,
     title: item.productName,
-    detail: `예약 · ${item.status}`,
+    detail: `결제 · ${state === "pending" ? "판매자 확인 대기" : state === "accepted" ? "판매 수락" : "환불 완료"}`,
     original: `${item.unitPrice.toLocaleString()}원`,
     price: `${item.totalAmount.toLocaleString()}원`,
     remaining: "",
     quantity: item.quantity,
-    time: item.visitStartAt
-      ? new Date(item.visitStartAt).toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "",
+    buyerNickname: item.buyerNickname ?? "구매자",
+    time: new Date(item.requestedAt).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
     state,
   };
 }
@@ -90,11 +79,12 @@ export function SellerHomeScreen({
   onWithdraw?: () => Promise<void>;
 }) {
   const [page, setPage] = useState<SellerPage>("dashboard");
-  const [items, setItems] = useState<Reservation[]>([]);
+  const [items, setItems] = useState<Payment[]>([]);
   const [dashboard, setDashboard] = useState({
     dailyRevenue: 0,
     periodRevenue: 0,
     registeredProductCount: 0,
+    paymentCounts: { pending: 0, accepted: 0, refunded: 0 },
   });
   const today = dateKey(new Date());
   const [rangeOpen, setRangeOpen] = useState(false);
@@ -113,25 +103,24 @@ export function SellerHomeScreen({
       })
       .catch(() => undefined);
     void sellerApi
-      .reservations({ size: 50 })
+      .payments({ size: 50 })
       .then((result) =>
         setItems(
           result.content
-            .map(toReservation)
-            .filter((item): item is Reservation => item !== null),
+            .map(toPayment),
         ),
       )
       .catch(() => undefined);
   }, [today, startDate, endDate]);
   useEffect(() => {
     refresh();
-    if (page !== "dashboard" && page !== "reservations") return;
+    if (page !== "dashboard" && page !== "payments") return;
     const interval = setInterval(refresh, 5_000);
     return () => clearInterval(interval);
   }, [page, refresh]);
-  if (page === "reservations")
+  if (page === "payments")
     return (
-      <ReservationStatus
+      <PaymentStatus
         items={items}
         setItems={setItems}
         onBack={() => setPage("dashboard")}
@@ -175,18 +164,14 @@ export function SellerHomeScreen({
         onWithdraw={onWithdraw}
       />
     );
-  const counts = {
-    request: items.filter((x) => x.state === "request").length,
-    confirmed: items.filter((x) => x.state === "confirmed").length,
-    noshow: items.filter((x) => x.state === "noshow").length,
-  };
+  const counts = dashboard.paymentCounts;
   return (
     <View style={s.root}>
       <AppHeader />
       <ScrollView contentContainerStyle={s.dashboard}>
-        <Text style={s.dashboardTitle}>판매 · 예약 현황 대시보드</Text>
+        <Text style={s.dashboardTitle}>판매 · 결제 현황 대시보드</Text>
         <Text style={s.dashboardBody}>
-          당일 판매 결과, 예약 현황, 매출 집계를 조회할 수 있어요.
+          당일 판매 결과, 결제 현황, 매출 집계를 조회할 수 있어요.
         </Text>
         <Pressable style={s.date} onPress={() => setRangeOpen(true)}>
           <CalendarIcon width={24} height={24} color={colors.g400} />
@@ -197,31 +182,31 @@ export function SellerHomeScreen({
         </Pressable>
         <Pressable
           style={s.dashboardCard}
-          onPress={() => setPage("reservations")}
+          onPress={() => setPage("payments")}
         >
           <View style={s.cardTop}>
-            <Text style={s.cardLabel}>예약 상태 현황</Text>
+            <Text style={s.cardLabel}>결제 상태 현황</Text>
             <ChevronRight width={24} height={24} color={colors.g500} />
           </View>
           <View style={s.tags}>
             <CountTag
-              label="요청"
-              value={counts.request}
+              label="확인 대기"
+              value={counts.pending}
               color={colors.primary500}
             />
             <CountTag
-              label="확정"
-              value={counts.confirmed}
+              label="수락"
+              value={counts.accepted}
               color={colors.success}
             />
-            <CountTag label="노쇼" value={counts.noshow} color={colors.info} />
+            <CountTag label="환불" value={counts.refunded} color={colors.info} />
           </View>
           <View style={s.bar}>
             <View
               style={[
                 s.barPart,
                 {
-                  flex: counts.request || 1,
+                  flex: counts.pending || 1,
                   backgroundColor: colors.primary500,
                 },
               ]}
@@ -230,7 +215,7 @@ export function SellerHomeScreen({
               style={[
                 s.barPart,
                 {
-                  flex: counts.confirmed || 1,
+                  flex: counts.accepted || 1,
                   backgroundColor: colors.success,
                 },
               ]}
@@ -238,7 +223,7 @@ export function SellerHomeScreen({
             <View
               style={[
                 s.barPart,
-                { flex: counts.noshow || 1, backgroundColor: colors.info },
+                { flex: counts.refunded || 1, backgroundColor: colors.info },
               ]}
             />
           </View>
@@ -398,24 +383,24 @@ function DateRangeSheet({
   );
 }
 
-function ReservationStatus({
+function PaymentStatus({
   items,
   setItems,
   onBack,
 }: {
-  items: Reservation[];
-  setItems: React.Dispatch<React.SetStateAction<Reservation[]>>;
+  items: Payment[];
+  setItems: React.Dispatch<React.SetStateAction<Payment[]>>;
   onBack: () => void;
 }) {
   const [reject, setReject] = useState<number | null>(null);
-  const groups: [ReservationState, string, string, string][] = [
-    ["request", "예약 요청", "예약 요청이 없어요.", colors.primary500],
-    ["confirmed", "예약 확정", "승인한 예약이 없어요.", colors.success],
-    ["noshow", "노쇼", "미방문한 손님이 없어요.", colors.info],
+  const groups: [PaymentState, string, string, string][] = [
+    ["pending", "판매자 확인 대기", "확인 대기 중인 결제가 없어요.", colors.primary500],
+    ["accepted", "결제 수락", "수락한 결제가 없어요.", colors.success],
+    ["refunded", "환불 완료", "환불한 결제가 없어요.", colors.info],
   ];
-  const change = async (id: number, state: ReservationState) => {
-    if (state === "confirmed") await sellerApi.approveReservation(id);
-    if (state === "noshow") await sellerApi.noShowReservation(id);
+  const accept = async (id: number) => {
+    await sellerApi.acceptPayment(id);
+    const state: PaymentState = "accepted";
     setItems((v) => v.map((x) => (x.id === id ? { ...x, state } : x)));
   };
   return (
@@ -424,7 +409,7 @@ function ReservationStatus({
         <Pressable onPress={onBack}>
           <ChevronLeft width={24} height={24} color={colors.black} />
         </Pressable>
-        <Text style={s.headerTitle}>예약 상태 현황</Text>
+        <Text style={s.headerTitle}>결제 상태 현황</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView contentContainerStyle={s.statusContent}>
@@ -440,19 +425,11 @@ function ReservationStatus({
                 <Text style={s.empty}>{empty}</Text>
               ) : (
                 list.map((x) => (
-                  <SellerReservationCard
+                  <SellerPaymentCard
                     key={x.id}
                     item={x}
-                    onApprove={() => change(x.id, "confirmed")}
+                    onAccept={() => accept(x.id)}
                     onReject={() => setReject(x.id)}
-                    onVisited={() => {
-                      void sellerApi
-                        .completeReservation(x.id)
-                        .then(() =>
-                          setItems((v) => v.filter((y) => y.id !== x.id)),
-                        );
-                    }}
-                    onNoShow={() => change(x.id, "noshow")}
                   />
                 ))
               )}
@@ -463,14 +440,14 @@ function ReservationStatus({
       <RejectModal
         visible={reject !== null}
         onClose={() => setReject(null)}
-        onConfirm={() => {
+        onConfirm={(reason) => {
           if (reject !== null) {
             void sellerApi
-              .rejectReservation(reject, {
+              .rejectPayment(reject, {
                 reasonCode: "OTHER",
-                reason: "판매자 거절",
+                reason,
               })
-              .then(() => setItems((v) => v.filter((x) => x.id !== reject)));
+              .then(() => setItems((v) => v.map((x) => x.id === reject ? { ...x, state: "refunded" } : x)));
           }
           setReject(null);
         }}
@@ -479,18 +456,14 @@ function ReservationStatus({
   );
 }
 
-function SellerReservationCard({
+function SellerPaymentCard({
   item,
-  onApprove,
+  onAccept,
   onReject,
-  onVisited,
-  onNoShow,
 }: {
-  item: Reservation;
-  onApprove: () => void;
+  item: Payment;
+  onAccept: () => void;
   onReject: () => void;
-  onVisited: () => void;
-  onNoShow: () => void;
 }) {
   return (
     <View style={s.resCard}>
@@ -507,21 +480,17 @@ function SellerReservationCard({
       ) : null}
       <View style={s.bookingInfo}>
         <Text style={s.infoLabel}>
-          구매 수량 <Text style={s.infoValue}>{item.quantity}개</Text>
+          구매자 <Text style={s.infoValue}>{item.buyerNickname}</Text>
         </Text>
         <Text style={s.infoLabel}>
-          예약 시각 <Text style={s.infoValue}>{item.time}</Text>
+          결제 시각 <Text style={s.infoValue}>{item.time}</Text>
         </Text>
+        <Text style={s.infoLabel}>구매 수량 <Text style={s.infoValue}>{item.quantity}개</Text></Text>
       </View>
-      {item.state === "request" ? (
+      {item.state === "pending" ? (
         <View style={s.buttons}>
-          <SmallButton label="승인" onPress={onApprove} />
-          <SmallButton label="거절" muted onPress={onReject} />
-        </View>
-      ) : item.state === "confirmed" ? (
-        <View style={s.buttons}>
-          <SmallButton label="방문 확인" onPress={onVisited} />
-          <SmallButton label="미방문" muted onPress={onNoShow} />
+          <SmallButton label="결제 수락" onPress={onAccept} />
+          <SmallButton label="거절 · 환불" muted onPress={onReject} />
         </View>
       ) : null}
     </View>
@@ -535,7 +504,7 @@ function RejectModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void;
 }) {
   const [reason, setReason] = useState("당일 재고 소진");
   const [custom, setCustom] = useState("");
@@ -555,7 +524,7 @@ function RejectModal({
       <View style={s.overlay}>
         <View style={s.reject}>
           <View style={s.rejectHead}>
-            <Text style={s.rejectTitle}>예약 거절 사유를 알려주세요.</Text>
+            <Text style={s.rejectTitle}>결제 거절 및 환불 사유를 알려주세요.</Text>
             <Pressable onPress={onClose}>
               <CloseIcon width={24} height={24} color={colors.g500} />
             </Pressable>
@@ -579,8 +548,8 @@ function RejectModal({
               <Text style={s.counter}>{custom.length}/50</Text>
             </View>
           ) : null}
-          <Pressable style={s.rejectButton} onPress={onConfirm}>
-            <Text style={s.buttonText}>예약 거절</Text>
+          <Pressable style={s.rejectButton} onPress={() => onConfirm(reason === "기타 (직접 입력)" ? custom.trim() : reason)}>
+            <Text style={s.buttonText}>거절하고 환불하기</Text>
           </Pressable>
         </View>
       </View>

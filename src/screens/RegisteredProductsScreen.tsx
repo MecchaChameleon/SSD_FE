@@ -30,7 +30,6 @@ type Product = {
   endIso: string;
   location: string;
   status: string;
-  reservations: number;
 };
 
 const businessLabel = {
@@ -101,7 +100,6 @@ const toViewProduct = (item: ApiProduct): Product => ({
       : item.status === "PAUSED"
         ? "판매중지"
         : "판매종료",
-  reservations: 0,
 });
 const statusByLabel = {
   판매중: "ACTIVE",
@@ -256,10 +254,6 @@ function ProductCard({
           <View style={s.stateTag}>
             <Text style={s.stateText}>{item.status}</Text>
           </View>
-          <Text style={s.stateLabel}>예약 현황 |</Text>
-          <View style={s.reserveTag}>
-            <Text style={s.reserveText}>{item.reservations}</Text>
-          </View>
         </View>
         <Pressable hitSlop={8} onPress={onMenu}>
           <MoreIcon width={24} height={24} color={colors.g300} />
@@ -313,34 +307,25 @@ function DeleteDialog({
   onDelete: () => void;
 }) {
   if (!product) return null;
-  const blocked = product.reservations > 0;
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <View style={s.overlay}>
         <View style={s.dialog}>
           <Text style={s.dialogTitle}>
-            ⓘ{" "}
-            {blocked
-              ? "상품을 삭제할 수 없습니다."
-              : "이 상품을 정말 삭제하시겠습니까?"}
+            ⓘ 이 상품을 정말 삭제하시겠습니까?
           </Text>
           <Text style={s.dialogBody}>
-            {blocked
-              ? "현재 이 상품에 대기 중이거나 확정된 예약이 있습니다.\n주문 관리 화면에서 승인 또는 거절을 먼저 처리하신 후 삭제해 주세요."
-              : "삭제하시면 홈 화면과 지도에서 상품이 즉시 사라지며,\n근처 관광객들이 더 이상 할인 상품을 볼 수 없습니다."}
+            삭제하시면 홈 화면과 지도에서 상품이 즉시 사라지며,{"\n"}
+            근처 관광객들이 더 이상 할인 상품을 볼 수 없습니다.
           </Text>
-          {blocked ? (
-            <ActionButton onPress={onClose}>확인</ActionButton>
-          ) : (
-            <View style={s.dialogButtons}>
-              <Pressable style={[s.dialogButton, s.cancel]} onPress={onClose}>
-                <Text style={s.buttonText}>취소</Text>
-              </Pressable>
-              <Pressable style={[s.dialogButton, s.delete]} onPress={onDelete}>
-                <Text style={s.buttonText}>삭제</Text>
-              </Pressable>
-            </View>
-          )}
+          <View style={s.dialogButtons}>
+            <Pressable style={[s.dialogButton, s.cancel]} onPress={onClose}>
+              <Text style={s.buttonText}>취소</Text>
+            </Pressable>
+            <Pressable style={[s.dialogButton, s.delete]} onPress={onDelete}>
+              <Text style={s.buttonText}>삭제</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </Modal>

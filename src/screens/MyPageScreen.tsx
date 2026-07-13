@@ -25,12 +25,22 @@ const sampleBusiness: Business = mockBusiness;
 const profileToBusiness = (profile: SellerProfile): Business => { const numbers=profile.businessNumber.split('-'); return {shop:profile.businessName,number1:numbers[0]??'',number2:numbers[1]??'',number3:numbers[2]??'',address:profile.address??'',bank:profile.bankName??'',account:profile.accountNumber??''}; };
 const addresses = mockAddresses;
 const banks = mockBanks;
-const favoriteProducts = mockFavoriteProducts;
+type FavoriteProduct = {
+  id: number;
+  title: string;
+  discount: string;
+  shop: string;
+  location: string;
+  original: string;
+  price: string;
+  remaining: string;
+};
+const favoriteProducts: FavoriteProduct[] = mockFavoriteProducts;
 const USER_CACHE_KEY='localtime:user';
 async function cachedNickname(){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);return raw?JSON.parse(raw).nickname??'':''}catch{return''}}
 async function cacheNickname(nickname:string){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);if(raw)await AsyncStorage.setItem(USER_CACHE_KEY,JSON.stringify({...JSON.parse(raw),nickname}))}catch{}}
 
-export function MyPageScreen({ onHome, onMap, onReservations, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onMap: () => void; onReservations: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
+export function MyPageScreen({ onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
   const [page, setPage] = useState<Page>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [name, setName] = useState('');
@@ -60,7 +70,7 @@ export function MyPageScreen({ onHome, onMap, onReservations, onSellerMode, onLo
     <AppHeader />
     <Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black} /> : null}</Pressable>)}
-    <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'reservations' ? onReservations() : undefined} />
+    <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'purchases' ? onPurchases() : undefined} />
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); setPage('withdrawDone'); } }} />
   </View>;
 }
@@ -98,7 +108,7 @@ function SellerMyNavigation({ onHome, onProducts, onAi }: { onHome: () => void; 
 function SellerModePage({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMode: () => void }) {
   const [buyer, setBuyer] = useState(false);
   return <View style={s.root}><Header title="앱 모드 전환" onBack={onBack}/>
-    <View style={s.modeSection}><Text style={s.sectionTitle}>현재 서비스 모드 상태</Text><Text style={s.sectionBody}>현재 <Text style={s.highlight}>판매자 모드</Text>로 매장을 관리하고 있습니다.{`\n`}구매자 모드로 전환하면 주변의 마감 상품과 자원을 둘러보고 예약할 수 있어요.</Text>
+    <View style={s.modeSection}><Text style={s.sectionTitle}>현재 서비스 모드 상태</Text><Text style={s.sectionBody}>현재 <Text style={s.highlight}>판매자 모드</Text>로 매장을 관리하고 있습니다.{`\n`}구매자 모드로 전환하면 주변의 마감 상품과 자원을 둘러보고 결제할 수 있어요.</Text>
       <View style={s.modeTabs}><Pressable onPress={() => setBuyer(true)} style={[s.modeTab, buyer && s.modeTabOn]}><Text>구매자 모드</Text></Pressable><Pressable onPress={() => setBuyer(false)} style={[s.modeTab, !buyer && s.modeTabOn]}><Text>판매자 모드</Text></Pressable></View>
     </View>
     <View style={s.bottomActions}><ActionButton disabled={!buyer} onPress={onBuyerMode}>변경하기</ActionButton></View>
@@ -108,12 +118,12 @@ function SellerModePage({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMo
 function SellerNotificationPage({ onBack }: { onBack: () => void }) {
   const groups = [
     ['서비스 공통 알림', ['공지사항 및 이벤트 알림']],
-    ['판매자 모드 알림', ['예약 요청 및 취소 알림', 'AI 실시간 가격 제안 알림', '정산 및 대금 입금 알림']],
-    ['구매자 모드 알림', ['마감 임박 알림', '예약 승인 알림']],
+    ['판매자 모드 알림', ['결제 접수 및 환불 알림', 'AI 실시간 가격 제안 알림', '정산 및 대금 입금 알림']],
+    ['구매자 모드 알림', ['마감 임박 알림', '결제 수락 및 환불 알림']],
   ] as const;
   const [values, setValues] = useState<Record<string, boolean>>(() => Object.fromEntries(groups.flatMap(([, items]) => items.map(item => [item, true]))));
-  useEffect(()=>{notificationApi.settings().then(value=>setValues({'공지사항 및 이벤트 알림':value.commonEvent,'예약 요청 및 취소 알림':value.sellerReservation,'AI 실시간 가격 제안 알림':value.sellerAiPrice,'정산 및 대금 입금 알림':value.sellerSettlement,'마감 임박 알림':value.buyerDeadline,'예약 승인 알림':value.buyerReservationApproved})).catch(()=>undefined)},[]);
-  const change=(item:string,value:boolean)=>setValues(old=>{const next={...old,[item]:value};void notificationApi.updateSettings({commonEvent:!!next['공지사항 및 이벤트 알림'],sellerReservation:!!next['예약 요청 및 취소 알림'],sellerAiPrice:!!next['AI 실시간 가격 제안 알림'],sellerSettlement:!!next['정산 및 대금 입금 알림'],buyerDeadline:!!next['마감 임박 알림'],buyerReservationApproved:!!next['예약 승인 알림']}).catch(()=>undefined);return next});
+  useEffect(()=>{notificationApi.settings().then(value=>setValues({'공지사항 및 이벤트 알림':value.commonEvent,'결제 접수 및 환불 알림':value.sellerPayment,'AI 실시간 가격 제안 알림':value.sellerAiPrice,'정산 및 대금 입금 알림':value.sellerSettlement,'마감 임박 알림':value.buyerDeadline,'결제 수락 및 환불 알림':value.buyerPaymentResult})).catch(()=>undefined)},[]);
+  const change=(item:string,value:boolean)=>setValues(old=>{const next={...old,[item]:value};void notificationApi.updateSettings({commonEvent:!!next['공지사항 및 이벤트 알림'],sellerPayment:!!next['결제 접수 및 환불 알림'],sellerAiPrice:!!next['AI 실시간 가격 제안 알림'],sellerSettlement:!!next['정산 및 대금 입금 알림'],buyerDeadline:!!next['마감 임박 알림'],buyerPaymentResult:!!next['결제 수락 및 환불 알림']}).catch(()=>undefined);return next});
   return <View style={s.root}><Header title="알림 설정" onBack={onBack}/><View style={s.notice}><Text style={s.noticeText}>ⓘ  중요한 정보를 놓칠 수 있으므로 알림을 꼭 켜주세요.</Text></View><ScrollView contentContainerStyle={s.notifications}>{groups.map(([title, items]) => <View key={title} style={s.notifyGroup}><Text style={s.notifyGroupTitle}>{title}</Text>{items.map(item => <View key={item} style={s.notifyRow}><Text style={s.notifyText}>{item}</Text><Toggle value={!!values[item]} onChange={value => change(item,value)}/></View>)}</View>)}</ScrollView></View>;
 }
 
@@ -195,7 +205,7 @@ function ModeCompletion({ onDone }: { onDone: () => void }) { const [name,setNam
 
 function NotificationPage({ onBack }: { onBack: () => void }) { return <SellerNotificationPage onBack={onBack}/>; }
 
-function ConfirmDialog({ type, onClose, onConfirm }: { type: 'logout' | 'withdraw' | null; onClose: () => void; onConfirm: () => void | Promise<void> }) { return <Modal transparent visible={!!type} animationType="fade" onRequestClose={onClose}><View style={s.dialogOverlay}><View style={s.dialog}><Text style={s.dialogTitle}>{type === 'logout' ? '로그아웃 하시겠습니까?' : '회원 탈퇴 하시겠습니까?'}</Text><Text style={s.dialogBody}>{type === 'logout' ? '로그아웃 후에는 실시간 예약 요청 및 푸시 알림이 발송되지 않습니다.' : '등록된 매장 정보, 상품 등록 및 구매 이력, AI 매출 리포트 데이터가 즉시 삭제되며 복구되지 않습니다.'}</Text>{type === 'withdraw' && <Text style={s.dialogNotice}>ⓘ 현재 진행 중인 예약 요청 및 정산이 있다면 처리 완료 후 탈퇴가 가능합니다.</Text>}<View style={s.dialogButtons}><Pressable onPress={onConfirm} style={[s.dialogButton, s.orange]}><Text style={s.whiteText}>{type === 'logout' ? '로그아웃' : '탈퇴하기'}</Text></Pressable><Pressable onPress={onClose} style={[s.dialogButton, s.gray]}><Text style={s.whiteText}>취소</Text></Pressable></View></View></View></Modal>; }
+function ConfirmDialog({ type, onClose, onConfirm }: { type: 'logout' | 'withdraw' | null; onClose: () => void; onConfirm: () => void | Promise<void> }) { return <Modal transparent visible={!!type} animationType="fade" onRequestClose={onClose}><View style={s.dialogOverlay}><View style={s.dialog}><Text style={s.dialogTitle}>{type === 'logout' ? '로그아웃 하시겠습니까?' : '회원 탈퇴 하시겠습니까?'}</Text><Text style={s.dialogBody}>{type === 'logout' ? '로그아웃 후에는 실시간 결제 및 환불 푸시 알림이 발송되지 않습니다.' : '등록된 매장 정보, 상품 등록 및 구매 이력, AI 매출 리포트 데이터가 즉시 삭제되며 복구되지 않습니다.'}</Text>{type === 'withdraw' && <Text style={s.dialogNotice}>ⓘ 판매자 확인 대기 중인 결제가 있다면 처리 완료 후 탈퇴가 가능합니다.</Text>}<View style={s.dialogButtons}><Pressable onPress={onConfirm} style={[s.dialogButton, s.orange]}><Text style={s.whiteText}>{type === 'logout' ? '로그아웃' : '탈퇴하기'}</Text></Pressable><Pressable onPress={onClose} style={[s.dialogButton, s.gray]}><Text style={s.whiteText}>취소</Text></Pressable></View></View></View></Modal>; }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white }, header: { height: 56, borderBottomWidth: 1, borderBottomColor: colors.g200, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, headerTitle: { fontSize: 16, fontWeight: '600', color: colors.black }, headerSide: { width: 24 },

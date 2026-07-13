@@ -84,7 +84,7 @@ export function SalesHistoryScreen({
           <Text style={s.empty}>선택한 기간에 결제 완료된 판매 내역이 없습니다.</Text>
         ) : (
           <>
-            {items.map((item) => <SaleItem key={item.reservationId} item={item} />)}
+            {items.map((item) => <SaleItem key={item.purchaseId} item={item} />)}
             {!last ? <Pressable disabled={loading} onPress={loadMore} style={s.more}><Text style={s.moreText}>{loading ? "불러오는 중..." : "판매 내역 더보기"}</Text></Pressable> : null}
           </>
         )}

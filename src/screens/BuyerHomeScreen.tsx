@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -14,7 +13,7 @@ import {
   BottomNavigation,
   Product,
   ProductCard,
-  ReservationStatus,
+  PaymentDisplayStatus,
 } from "../components/home";
 import { Chip } from "../components/ui";
 import { colors, radius } from "../theme";
@@ -22,16 +21,12 @@ import ChevronDownIcon from "../../icon/chevron_down.svg";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import SearchIcon from "../../icon/search.svg";
 import CloseIcon from "../../icon/x.svg";
-import { ReservationScreen } from "./ReservationScreen";
 import { MyPageScreen } from "./MyPageScreen";
 import { SellerHomeScreen } from "./SellerHomeScreen";
 import { BuyerMapScreen } from "./BuyerMapScreen";
 import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
-import {
-  ReservationHistoryScreen,
-  ReservationItem,
-} from "./ReservationHistoryScreen";
-import { buyerApi, BusinessType, Product as ApiProduct } from "../api";
+import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
+import { buyerApi, BusinessType, Product as ApiProduct, Purchase as ApiPurchase } from "../api";
 
 export type PurchasePayload = {
   productId: number;
@@ -95,8 +90,8 @@ const apiProductToCard = (p: ApiProduct): Product => {
     discountRate,
   };
 };
-const reservationStatus = (status:string,paymentStatus?:string):ReservationStatus => paymentStatus==='PAID'?'paid':status==='REQUESTED'?'waiting':status==='APPROVED'?'confirmed':status==='REJECTED'?'rejected':status==='COMPLETED'?'completed':status==='CANCELED'?'canceled':'noshow';
-const apiReservationToItem = (item: any): ReservationItem => ({
+const paymentStatus = (status:ApiPurchase['status']):PaymentDisplayStatus => status==='ACCEPTED'?'accepted':status==='REFUNDED'?'refunded':'pending';
+const apiPurchaseToItem = (item: ApiPurchase): PurchaseItem => ({
   id: item.id,
   product: {
     id: item.productId,
@@ -104,15 +99,16 @@ const apiReservationToItem = (item: any): ReservationItem => ({
     discount: "",
     shop: item.businessName ?? "",
     location: "",
-    detail: "예약 상품",
+    detail: "결제 상품",
     insight: "",
     original: `${item.unitPrice.toLocaleString()}원`,
     price: `${item.unitPrice.toLocaleString()}원`,
     remaining: "",
   },
-  status: reservationStatus(item.status,item.paymentStatus),
+  status: paymentStatus(item.status),
   quantity: item.quantity,
-  reservedAt: item.requestedAt,
+  purchasedAt: item.requestedAt,
+  rejectReason: item.rejectReason,
 });
 
 export function BuyerHomeScreen({
@@ -129,10 +125,8 @@ export function BuyerHomeScreen({
   const [liked, setLiked] = useState<number[]>([]);
   const [purchase, setPurchase] = useState<Product | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
-  const [reserve, setReserve] = useState<Product | null>(null);
-  const [status, setStatus] = useState<ReservationStatus | undefined>();
-  const [reservations, setReservations] = useState<ReservationItem[]>([]);
-  const [tab, setTab] = useState<"home" | "map" | "reservations" | "mypage">("home");
+  const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
+  const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">("home");
   const [sellerMode, setSellerMode] = useState(false);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
@@ -167,8 +161,8 @@ export function BuyerHomeScreen({
       .then((page) => setLiked(page.content.map((item) => item.id)))
       .catch(() => undefined);
     buyerApi
-      .reservations({ size: 50 })
-      .then((page) => setReservations(page.content.map(apiReservationToItem)))
+      .purchases({ size: 50 })
+      .then((page) => setPurchases(page.content.map(apiPurchaseToItem)))
       .catch(() => undefined);
     return()=>clearInterval(productInterval);
   }, [tab, sellerMode, category]);
@@ -264,19 +258,9 @@ export function BuyerHomeScreen({
         setQuantity(p.id === 1 ? 2 : 1);
         setPurchase(p);
       }}
-      onReserve={() => setReserve(p)}
-      status={p.id === 1 ? status : undefined}
-      onCancel={() => setStatus(undefined)}
-      onDelete={() => setStatus(undefined)}
-      onReason={() =>
-        Alert.alert(
-          "거절 사유",
-          "판매 가능한 수량이 부족하여 예약이 거절되었습니다.",
-        )
-      }
     />
   ));
-  if(paymentComplete) return <PaymentCompleteScreen onReservations={()=>{setPaymentComplete(false);setTab('reservations');void buyerApi.reservations({size:50}).then(page=>setReservations(page.content.map(apiReservationToItem)))}} onHome={()=>{setPaymentComplete(false);setTab('home')}}/>;
+  if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);setTab('purchases');void buyerApi.purchases({size:50}).then(page=>setPurchases(page.content.map(apiPurchaseToItem)))}} onHome={()=>{setPaymentComplete(false);setTab('home')}}/>;
   if (sellerMode)
     return (
       <SellerHomeScreen
@@ -290,34 +274,23 @@ export function BuyerHomeScreen({
       <MyPageScreen
         onHome={() => setTab("home")}
         onMap={() => setTab("map")}
-        onReservations={() => setTab("reservations")}
+        onPurchases={() => setTab("purchases")}
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
       />
     );
-  if (tab === "reservations")
+  if (tab === "purchases")
     return (
-      <ReservationHistoryScreen
-        items={reservations}
+      <PurchaseHistoryScreen
+        items={purchases}
         onHome={() => setTab("home")}
         onMap={() => setTab("map")}
         onMyPage={() => setTab("mypage")}
-        onCancel={(id) => {
-          void buyerApi
-            .cancelReservation(id, "사용자 취소")
-            .then(() => setReservations((v) => v.filter((x) => x.id !== id)));
-          setStatus(undefined);
-        }}
         onDelete={(id) => {
           void buyerApi
-            .hideReservation(id)
-            .then(() => setReservations((v) => v.filter((x) => x.id !== id)));
-        }}
-        onBuy={(p) => {
-          setQuantity(1);
-          setPurchase(p);
-          setTab("home");
+            .hidePurchase(id)
+            .then(() => setPurchases((v) => v.filter((x) => x.id !== id)));
         }}
       />
     );
@@ -325,43 +298,12 @@ export function BuyerHomeScreen({
     return (
       <BuyerMapScreen
         onHome={() => setTab("home")}
-        onReservations={() => setTab("reservations")}
+        onPurchases={() => setTab("purchases")}
         onMyPage={() => setTab("mypage")}
         onBuy={(item) => {
           setQuantity(1);
           setPurchase(apiProductToCard(item));
           setTab("home");
-        }}
-        onReserve={(item) => {
-          setReserve(apiProductToCard(item));
-          setTab("home");
-        }}
-      />
-    );
-  if (reserve)
-    return (
-      <ReservationScreen
-        product={reserve}
-        onClose={() => setReserve(null)}
-        onComplete={(reservedQuantity) => {
-          setStatus("waiting");
-          setLiked((v) => (v.includes(reserve.id) ? v : [...v, reserve.id]));
-          setReservations((v) =>
-            v.some((x) => x.product.id === reserve.id)
-              ? v
-              : [
-                  ...v,
-                  {
-                    id: Date.now(),
-                    product: reserve,
-                    status: "waiting",
-                    quantity: reservedQuantity,
-                    reservedAt: new Date().toISOString(),
-                  },
-                ],
-          );
-          setReserve(null);
-          setTab("reservations");
         }}
       />
     );

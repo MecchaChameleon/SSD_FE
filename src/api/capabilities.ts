@@ -7,7 +7,7 @@ export const apiCapabilities = {
   sellerAiRecommendation: true,
   buyerProducts: true,
   purchases: true,
-  reservations: true,
+  payments: true,
   wishlist: true,
   notifications: true,
   dashboard: true,

@@ -5,12 +5,12 @@ export const mockBuyerProducts: Product[] = [
   {id:2,title:'바다 전망 커플룸 당일 숙박권',discount:'20%',shop:'푸른바다 게스트하우스',location:'제주시 애월읍 · 2.4km',detail:'당일 공실 · 마감 23:00',insight:'주변 숙박 수요 대비 합리적인 가격이에요.',original:'90,000원',price:'72,000원',remaining:'잔여수량 1개'},
 ];
 
-export const mockSellerReservations = [];
+export const mockSellerPayments = [];
 
 export const mockRegisteredProducts = [
-  {id:1,name:'흑돼지 도시락',category:'음식점',type:'당일 재고',quantity:'7',regular:'20,000',minimum:'13,000',start:'오후 5:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매중',reservations:2},
-  {id:2,name:'게스트하우스 당일 공실',category:'숙박',type:'당일 공실',quantity:'1',regular:'70,000',minimum:'50,000',start:'오후 3:00',end:'오후 11:00',location:'푸른바다 게스트하우스',status:'판매중',reservations:1},
-  {id:3,name:'제주 갈치살 세트',category:'음식점',type:'당일 재고',quantity:'4',regular:'35,000',minimum:'25,000',start:'오후 3:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매종료',reservations:0},
+  {id:1,name:'흑돼지 도시락',category:'음식점',type:'당일 재고',quantity:'7',regular:'20,000',minimum:'13,000',start:'오후 5:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매중'},
+  {id:2,name:'게스트하우스 당일 공실',category:'숙박',type:'당일 공실',quantity:'1',regular:'70,000',minimum:'50,000',start:'오후 3:00',end:'오후 11:00',location:'푸른바다 게스트하우스',status:'판매중'},
+  {id:3,name:'제주 갈치살 세트',category:'음식점',type:'당일 재고',quantity:'4',regular:'35,000',minimum:'25,000',start:'오후 3:00',end:'오후 10:00',location:'춘자네 흑돼지',status:'판매종료'},
 ];
 
 export const mockSales = [

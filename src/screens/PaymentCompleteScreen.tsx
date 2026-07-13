@@ -3,14 +3,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 import { colors, radius } from '../theme';
 
-export function PaymentCompleteScreen({onReservations,onHome}:{onReservations:()=>void;onHome:()=>void}) {
+export function PaymentCompleteScreen({onPurchases,onHome}:{onPurchases:()=>void;onHome:()=>void}) {
   return <View style={s.root}>
     <View style={s.body}>
       <Character width={112} height={112}/>
-      <View style={s.copy}><Text style={s.title}>결제 완료!</Text><Text style={s.description}>매장에 방문하여 사장님께 결제 완료 화면을 보여주세요.</Text></View>
+      <View style={s.copy}><Text style={s.title}>결제 완료!</Text><Text style={s.description}>판매자가 결제를 확인하면 판매가 최종 수락됩니다.</Text></View>
     </View>
     <View style={s.actions}>
-      <Pressable style={[s.button,s.primary]} onPress={onReservations}><Text style={s.buttonText}>예약 내역 보러가기</Text></Pressable>
+      <Pressable style={[s.button,s.primary]} onPress={onPurchases}><Text style={s.buttonText}>결제 내역 보러가기</Text></Pressable>
       <Pressable style={[s.button,s.secondary]} onPress={onHome}><Text style={s.buttonText}>홈 화면으로 이동</Text></Pressable>
     </View>
   </View>;

@@ -1,10 +1,10 @@
 import { apiRequest } from './client';
-import type { Page, Product, ProductInput, ProductStatus, Reservation, ReservationStatus, SellerApplication, SellerProfile } from './types';
+import type { Page, Product, ProductInput, ProductStatus, Purchase, PurchaseStatus, SellerApplication, SellerProfile } from './types';
 
 export type SellerProfileInput = {businessName:string;businessNumber:string;address:string;latitude:number|null;longitude:number|null;bankName:string;accountNumber:string;accountHolder:string};
-export type Dashboard = {date:string;reservationCounts:{requested:number;approved:number;noShow:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
+export type Dashboard = {date:string;paymentCounts:{pending:number;accepted:number;refunded:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
 export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[]};
-export type SalesHistoryItem = {reservationId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
+export type SalesHistoryItem = {purchaseId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
 
 let latestDashboard: Dashboard | null = null;
 
@@ -28,11 +28,9 @@ export const sellerApi = {
   price: (id:number) => apiRequest<{currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[]}>(`/api/seller/products/${id}/price`),
   strategy: (id:number) => apiRequest<{message:string}>(`/api/seller/products/${id}/strategy`),
   applyPrice: (id:number,body:{price:number;recommendationId?:number}) => apiRequest<Product>(`/api/seller/products/${id}/price/apply`,{method:'POST',body}),
-  reservations: (query:{status?:ReservationStatus;date?:string;page?:number;size?:number}={}) => apiRequest<Page<Reservation>>('/api/seller/reservations',{query}),
-  approveReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/approve`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.requested=Math.max(0,latestDashboard.reservationCounts.requested-1);latestDashboard.reservationCounts.approved+=1}return value},
-  rejectReservation: async (id:number,body:{reasonCode:'SOLD_OUT'|'CAPACITY_FULL'|'EARLY_CLOSE'|'OTHER';reason:string}) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/reject`,{method:'PATCH',body});if(latestDashboard)latestDashboard.reservationCounts.requested=Math.max(0,latestDashboard.reservationCounts.requested-1);return value},
-  completeReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/complete`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);if(value.paymentStatus==='PAID'){latestDashboard.dailyRevenue+=value.totalAmount;latestDashboard.periodRevenue+=value.totalAmount}}return value},
-  noShowReservation: async (id:number) => {const value=await apiRequest<Reservation>(`/api/seller/reservations/${id}/no-show`,{method:'PATCH'});if(latestDashboard){latestDashboard.reservationCounts.approved=Math.max(0,latestDashboard.reservationCounts.approved-1);latestDashboard.reservationCounts.noShow+=1}return value},
+  payments: (query:{status?:PurchaseStatus;date?:string;page?:number;size?:number}={}) => apiRequest<Page<Purchase>>('/api/seller/payments',{query}),
+  acceptPayment: async (id:number) => {const value=await apiRequest<Purchase>(`/api/seller/payments/${id}/accept`,{method:'PATCH'});if(latestDashboard){latestDashboard.paymentCounts.pending=Math.max(0,latestDashboard.paymentCounts.pending-1);latestDashboard.paymentCounts.accepted+=1;latestDashboard.dailyRevenue+=value.totalAmount;latestDashboard.periodRevenue+=value.totalAmount}return value},
+  rejectPayment: async (id:number,body:{reasonCode:'SOLD_OUT'|'CAPACITY_FULL'|'EARLY_CLOSE'|'OTHER';reason:string}) => {const value=await apiRequest<Purchase>(`/api/seller/payments/${id}/reject`,{method:'PATCH',body});if(latestDashboard){latestDashboard.paymentCounts.pending=Math.max(0,latestDashboard.paymentCounts.pending-1);latestDashboard.paymentCounts.refunded+=1}return value},
   dashboard: async (date:string) => {
     const value=await apiRequest<Dashboard>('/api/seller/dashboard',{query:{date}});
     latestDashboard=value;
