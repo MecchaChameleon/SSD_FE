@@ -18,7 +18,7 @@ const toViewProduct=(item:ApiProduct):Product=>({id:item.id,name:item.name,categ
 
 export function RegisteredProductsScreen({onBack}:{onBack:()=>void}){
   const[items,setItems]=useState<Product[]>([]); const[menu,setMenu]=useState<number|null>(null); const[editing,setEditing]=useState<Product|null>(null); const[deleting,setDeleting]=useState<Product|null>(null); const[sortDesc,setSortDesc]=useState(true);
-  useEffect(()=>{sellerApi.products().then(page=>setItems(page.content.map(toViewProduct))).catch(()=>undefined)},[]);
+  useEffect(()=>{const refresh=()=>sellerApi.products().then(page=>setItems(page.content.map(toViewProduct))).catch(()=>undefined);void refresh();const interval=setInterval(refresh,5_000);return()=>clearInterval(interval)},[]);
   const shown=useMemo(()=>sortDesc?[...items]:[...items].reverse(),[items,sortDesc]);
   if(editing)return <EditProduct product={editing} onBack={()=>setEditing(null)} onSave={async next=>{await sellerApi.updateProduct(next.id,{name:next.name,businessType:businessTypeByLabel[next.category as keyof typeof businessTypeByLabel],category:categoryByLabel[next.type as keyof typeof categoryByLabel],qty:Number(next.quantity),price:Number(next.regular.replace(/,/g,'')),minPrice:Number(next.minimum.replace(/,/g,'')),address:next.location});setItems(list=>list.map(item=>item.id===next.id?next:item));setEditing(null)}}/>;
   return <View style={s.root}><Header title="등록 상품/자원 수" onBack={onBack}/><ScrollView contentContainerStyle={s.list}>

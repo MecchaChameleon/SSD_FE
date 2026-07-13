@@ -18,7 +18,7 @@ export function SalesReportScreen({ onBack }: { onBack: () => void }) {
   const [end, setEnd] = useState<number | null>(null);
   const [range, setRange] = useState<{ start: number; end: number } | null>(null);
   const [sortDesc, setSortDesc] = useState(true);
-  useEffect(()=>{const today=new Date().toISOString().slice(0,10);sellerApi.salesReport({startDate:today,endDate:today}).then(report=>setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})))).catch(()=>setSalesData([]))},[]);
+  useEffect(()=>{const refresh=()=>{const today=new Date().toISOString().slice(0,10);return sellerApi.salesReport({startDate:today,endDate:today}).then(report=>setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})))).catch(()=>setSalesData([]))};void refresh();const interval=setInterval(refresh,5_000);return()=>clearInterval(interval)},[]);
   const shown = useMemo(() => sortDesc ? [...salesData].sort((a, b) => b.revenue - a.revenue) : [...salesData].sort((a, b) => a.revenue - b.revenue), [salesData,sortDesc]);
   const total = salesData.reduce((sum, item) => sum + item.revenue, 0);
   return <View style={s.root}>
