@@ -94,7 +94,9 @@ const toViewProduct = (item: ApiProduct): Product => ({
   endIso: item.deadline,
   location: item.address ?? "",
   status:
-    item.status === "ACTIVE"
+    item.status === "ACTIVE" && new Date(item.deadline).getTime() <= Date.now()
+      ? "판매종료"
+      : item.status === "ACTIVE"
       ? "판매중"
       : item.status === "PAUSED"
         ? "판매중지"
