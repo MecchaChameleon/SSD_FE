@@ -453,7 +453,6 @@ function ReservationStatus({
           );
         })}
       </ScrollView>
-      <SellerNavigation active="home" onHome={onBack} />
       <RejectModal
         visible={reject !== null}
         onClose={() => setReject(null)}
@@ -779,7 +778,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerTitle: { fontSize: 16, fontWeight: "600" },
-  statusContent: { paddingHorizontal: 16, paddingBottom: 92 },
+  statusContent: { paddingHorizontal: 16, paddingBottom: 24 },
   group: {
     paddingVertical: 24,
     borderBottomWidth: 1,
