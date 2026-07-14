@@ -162,6 +162,7 @@ export function SellerHomeScreen({
       />
     );
   const counts = dashboard.paymentCounts;
+  const hasPayments = counts.pending + counts.accepted + counts.refunded > 0;
   return (
     <View style={s.root}>
       <AppHeader />
@@ -199,7 +200,7 @@ export function SellerHomeScreen({
             <CountTag label="환불" value={counts.refunded} color={colors.info} />
           </View>
           <View style={s.bar}>
-            <View
+            {!hasPayments ? <View style={[s.barPart,s.emptyBar]} /> : <><View
               style={[
                 s.barPart,
                 {
@@ -223,6 +224,7 @@ export function SellerHomeScreen({
                 { flex: counts.refunded || 1, backgroundColor: colors.info },
               ]}
             />
+            </>}
           </View>
         </Pressable>
         <Metric
@@ -763,6 +765,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
   },
   barPart: { height: "100%" },
+  emptyBar: { flex: 1, backgroundColor: colors.g300 },
   metric: {
     height: 84,
     marginTop: 12,

@@ -21,7 +21,7 @@ export const mockSales = [
 export const mockFavoriteProducts = [];
 
 export const mockLocations=['동문시장 한라봉집','제주시 중앙로 12','서귀포 바다점'];
-export const mockBusiness={shop:'춘자네 흑돼지 협재점',number1:'120',number2:'23',number3:'45678',address:'제주시 한림읍 한림로 341',bank:'제주은행',account:'123-04-0567890'};
+export const mockBusiness={shop:'춘자네 흑돼지 협재점',representative:'김로컬',number1:'120',number2:'23',number3:'45678',openYear:'2024',openMonth:'01',openDay:'15',address:'제주시 한림읍 한림로 341',bank:'제주은행',account:'123-04-0567890'};
 export const mockAddresses=[['63011','제주특별자치도 제주시 한림읍 한림로 341','제주특별자치도 제주시 한림읍 협재리 2446-2'],['63024','제주특별자치도 제주시 한림읍 귀덕3길','제주특별자치도 제주시 귀덕리 1249-1']];
 export const mockBanks=['NH농협','KB국민','카카오뱅크','신한은행','우리은행','하나은행','새마을금고','토스뱅크','IBK기업'];
 

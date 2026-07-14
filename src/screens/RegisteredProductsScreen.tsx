@@ -663,16 +663,31 @@ function Wheel({
   const itemHeight = 44;
   const ref = useRef<ScrollView>(null);
   const index = Math.max(0, values.indexOf(selected));
+  const lastOffset = useRef(index * itemHeight);
+
+  useEffect(() => {
+    const offset = index * itemHeight;
+    lastOffset.current = offset;
+    const timer = setTimeout(() => {
+      ref.current?.scrollTo({ y: offset, animated: false });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [index, itemHeight]);
+
   const finish = (event: any) => {
+    const offset = event.nativeEvent.contentOffset.y;
+    lastOffset.current = offset;
     const next = Math.max(
       0,
       Math.min(
         values.length - 1,
-        Math.round(event.nativeEvent.contentOffset.y / itemHeight),
+        Math.round(offset / itemHeight),
       ),
     );
     onSelect(values[next]);
-    ref.current?.scrollTo({ y: next * itemHeight, animated: true });
+    const snappedOffset = next * itemHeight;
+    lastOffset.current = snappedOffset;
+    ref.current?.scrollTo({ y: snappedOffset, animated: true });
   };
   return (
     <ScrollView
@@ -685,11 +700,13 @@ function Wheel({
       snapToAlignment="start"
       disableIntervalMomentum
       decelerationRate="fast"
-      contentOffset={{ x: 0, y: index * itemHeight }}
       scrollEventThrottle={16}
       onScrollBeginDrag={onInteract}
-      onScroll={event=>{const next=Math.max(0,Math.min(values.length-1,Math.round(event.nativeEvent.contentOffset.y/itemHeight)));if(values[next]!==selected)onSelect(values[next]);}}
-      onScrollEndDrag={finish}
+      onScroll={event => { lastOffset.current = event.nativeEvent.contentOffset.y; }}
+      onScrollEndDrag={event => {
+        const velocity = event.nativeEvent.velocity?.y ?? 0;
+        if (Math.abs(velocity) < 0.01) finish(event);
+      }}
       onMomentumScrollEnd={finish}
     >
       {values.map((item) => (

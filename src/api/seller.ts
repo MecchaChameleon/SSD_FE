@@ -1,7 +1,7 @@
 import { apiRequest } from './client';
 import type { Page, Product, ProductInput, ProductStatus, Purchase, PurchaseStatus, SellerApplication, SellerProfile } from './types';
 
-export type SellerProfileInput = {businessName:string;businessNumber:string;address:string;latitude:number|null;longitude:number|null;bankName:string;accountNumber:string;accountHolder:string};
+export type SellerProfileInput = {businessName:string;businessNumber:string;representativeName:string;openDate:string;address:string;latitude:number|null;longitude:number|null;bankName:string;accountNumber:string;accountHolder:string};
 export type Dashboard = {date:string;paymentCounts:{pending:number;accepted:number;refunded:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
 export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[];bankName:string|null;accountNumber:string|null};
 export type Settlement = {id:number;grossAmount:number;platformFee:number;paymentFee:number;settlementAmount:number;status:'REQUESTED';requestedAt:string};
@@ -10,9 +10,9 @@ export type SalesHistoryItem = {purchaseId:number;productId:number;productName:s
 let latestDashboard: Dashboard | null = null;
 
 export const sellerApi = {
-  apply: (body:{businessName:string;businessNumber:string;representativeName:string;businessDocumentUrl?:string|null}) => apiRequest<SellerApplication>('/api/seller/application', {method:'POST', body}),
+  apply: (body:{businessName:string;businessNumber:string;representativeName:string;openDate:string;businessDocumentUrl?:string|null}) => apiRequest<SellerApplication>('/api/seller/application', {method:'POST', body}),
   myApplication: () => apiRequest<SellerApplication>('/api/seller/application/me'),
-  createProfile: (body:Omit<SellerProfileInput,'businessName'|'businessNumber'>) => apiRequest<SellerProfile>('/api/seller/profile', {method:'POST', body}),
+  createProfile: (body:Omit<SellerProfileInput,'businessName'|'businessNumber'|'representativeName'|'openDate'>) => apiRequest<SellerProfile>('/api/seller/profile', {method:'POST', body}),
   profile: () => apiRequest<SellerProfile>('/api/seller/profile'),
   updateProfile: (body:Partial<SellerProfileInput>) => apiRequest<SellerProfile>('/api/seller/profile', {method:'PUT', body}),
   createProduct: async (body:ProductInput) => {
