@@ -45,9 +45,8 @@ export default function App(){
       const me=await authApi.me();
       setName(me.nickname);
       setProfileImageUrl(me.profileImageUrl);
-      setHomeEntry(me.role==='SELLER'?'seller':'buyer');
-    }catch{setHomeEntry('buyer')}
-    setRoute('home');
+    }catch{}
+    setRoute('mode');
   },[]);
   const kakao=useKakaoLogin(handleLogin);
 
