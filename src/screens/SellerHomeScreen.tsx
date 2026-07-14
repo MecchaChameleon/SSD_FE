@@ -64,7 +64,7 @@ function toPayment(item: ApiPurchase): Payment {
     remaining: "",
     quantity: item.quantity,
     buyerNickname: item.buyerNickname ?? "구매자",
-    time: new Date(item.requestedAt).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
+    time: new Date(item.requestedAt).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" }),
     state,
   };
 }

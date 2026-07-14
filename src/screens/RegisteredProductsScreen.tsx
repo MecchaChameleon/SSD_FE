@@ -65,8 +65,9 @@ const typeOptionsByBusiness = {
 const timeLabel = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleTimeString("ko-KR", {
-        hour: "numeric",
-        minute: "2-digit",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "Asia/Seoul",
       })
     : "";
 const withTime = (iso: string | null, label: string) => {
@@ -76,8 +77,8 @@ const withTime = (iso: string | null, label: string) => {
   if (!match) return base.toISOString();
   let hour = Number(match[2]) % 12;
   if (match[1] === "오후") hour += 12;
-  base.setHours(hour, Number(match[3]), 0, 0);
-  return base.toISOString();
+  const date = base.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+  return new Date(`${date}T${String(hour).padStart(2,'0')}:${String(Number(match[3])).padStart(2,'0')}:00+09:00`).toISOString();
 };
 const toViewProduct = (item: ApiProduct): Product => ({
   id: item.id,

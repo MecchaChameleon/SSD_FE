@@ -27,12 +27,12 @@ const productTypeConfig = {
 } as const;
 
 function timeToIso(value: string) {
-  const date = new Date();
   const match = value.match(/(오전|오후)\s*(\d+):(\d+)/);
   let hour = Number(match?.[2] ?? 0) % 12;
   if (match?.[1] === '오후') hour += 12;
-  date.setHours(hour, Number(match?.[3] ?? 0), 0, 0);
-  return date.toISOString();
+  const date = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+  const minute = Number(match?.[3] ?? 0);
+  return new Date(`${date}T${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:00+09:00`).toISOString();
 }
 function timeMinutes(value:string){const match=value.match(/(오전|오후)\s*(\d+):(\d+)/);if(!match)return-1;let hour=Number(match[2])%12;if(match[1]==='오후')hour+=12;return hour*60+Number(match[3]);}
 
