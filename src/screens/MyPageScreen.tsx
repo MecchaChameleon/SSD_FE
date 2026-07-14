@@ -41,8 +41,8 @@ const USER_CACHE_KEY='localtime:user';
 async function cachedNickname(){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);return raw?JSON.parse(raw).nickname??'':''}catch{return''}}
 async function cacheNickname(nickname:string){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);if(raw)await AsyncStorage.setItem(USER_CACHE_KEY,JSON.stringify({...JSON.parse(raw),nickname}))}catch{}}
 
-export function MyPageScreen({ onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw }: { onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
-  const [page, setPage] = useState<Page>('main');
+export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
+  const [page, setPage] = useState<Page>(initialBusinessRegistration?'businessForm':'main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [name, setName] = useState('');
   const [profileImageUrl,setProfileImageUrl]=useState<string|null>(null);
@@ -54,7 +54,7 @@ export function MyPageScreen({ onHome, onMap, onPurchases, onSellerMode, onLogou
   if (page === 'profile') return <ProfilePage name={name} profileImageUrl={profileImageUrl} onBack={() => setPage('main')} onSave={async (nextName,image) => {let url=profileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setProfileImageUrl(url);setPage('main'); }} />;
   if (page === 'favorites') return <FavoritesPage onBack={() => setPage('main')} />;
   if (page === 'mode') return <ModePage certified={!!business} onRegister={() => openBusiness('mode')} onComplete={() => setPage('modeDone')} onBack={() => setPage('main')} />;
-  if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => setPage(formReturn)} onSave={async value => { if(!business)await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:name,businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:null,longitude:null,bankName:value.bank,accountNumber:value.account,accountHolder:name});setBusiness(value);setPage(business ? 'business' : 'businessDone'); }} />;
+  if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => initialBusinessRegistration?onHome():setPage(formReturn)} onSave={async value => { if(!business)await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:name,businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:null,longitude:null,bankName:value.bank,accountNumber:value.account,accountHolder:name});setBusiness(value);if(initialBusinessRegistration&&onBusinessRegistered){onBusinessRegistered();return}setPage(business ? 'business' : 'businessDone'); }} />;
   if (page === 'businessDone') return <Completion title="사업자 정보 등록 완료!" body="이제 판매자 모드로 전환하여 상품/자원을 등록할 수 있어요." button="홈 화면으로 이동" onPress={() => setPage(formReturn)} />;
   if (page === 'business' && business) return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
   if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;

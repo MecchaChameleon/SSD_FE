@@ -1,5 +1,5 @@
 export type Page<T> = { content:T[]; page?:number; number?:number; size:number; totalElements:number; totalPages:number; last:boolean };
-export type UserRole = 'USER'|'ADMIN';
+export type UserRole = 'USER'|'SELLER'|'ADMIN';
 export type BusinessType = 'RESTAURANT'|'LODGING'|'EXPERIENCE'|'RENTAL_MOBILITY';
 export type ProductCategory = 'SAME_DAY_INVENTORY'|'EMPTY_TIME_RESOURCE'|'SAME_DAY_ROOM'|'TOUR_REMAINDER';
 export type ProductStatus = 'ACTIVE'|'PAUSED'|'CLOSED';

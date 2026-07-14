@@ -119,10 +119,14 @@ const apiPurchaseToItem = (item: ApiPurchase): PurchaseItem => ({
 });
 
 export function BuyerHomeScreen({
+  initialEntry='buyer',
+  onBusinessRegistered,
   onLogout,
   onWithdraw,
   onPurchase,
 }: {
+  initialEntry?: 'buyer'|'seller'|'businessRegistration';
+  onBusinessRegistered?: () => void;
   onLogout: () => Promise<void>;
   onWithdraw: () => Promise<void>;
   onPurchase?: (payload: PurchasePayload) => void | Promise<void>;
@@ -136,8 +140,8 @@ export function BuyerHomeScreen({
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
-  const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">("home");
-  const [sellerMode, setSellerMode] = useState(false);
+  const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
+  const [sellerMode, setSellerMode] = useState(initialEntry==='seller');
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
@@ -283,6 +287,8 @@ export function BuyerHomeScreen({
   if (tab === "mypage")
     return (
       <MyPageScreen
+        initialBusinessRegistration={initialEntry==='businessRegistration'}
+        onBusinessRegistered={onBusinessRegistered}
         onHome={() => setTab("home")}
         onMap={() => setTab("map")}
         onPurchases={() => setTab("purchases")}
