@@ -226,7 +226,7 @@ export function SellerHomeScreen({
           </View>
         </Pressable>
         <Metric
-          label="당일 매출 집계 · 리포트"
+          label="당일 매출 · 정산 금액"
           value={`${dashboard.dailyRevenue.toLocaleString()}원`}
           startDate={today}
           endDate={today}

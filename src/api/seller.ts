@@ -3,7 +3,8 @@ import type { Page, Product, ProductInput, ProductStatus, Purchase, PurchaseStat
 
 export type SellerProfileInput = {businessName:string;businessNumber:string;address:string;latitude:number|null;longitude:number|null;bankName:string;accountNumber:string;accountHolder:string};
 export type Dashboard = {date:string;paymentCounts:{pending:number;accepted:number;refunded:number};dailyRevenue:number;periodRevenue:number;registeredProductCount:number};
-export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[]};
+export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[];bankName:string|null;accountNumber:string|null};
+export type Settlement = {id:number;grossAmount:number;platformFee:number;paymentFee:number;settlementAmount:number;status:'REQUESTED';requestedAt:string};
 export type SalesHistoryItem = {purchaseId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
 
 let latestDashboard: Dashboard | null = null;
@@ -37,5 +38,6 @@ export const sellerApi = {
     return value;
   },
   salesReport: (query:{startDate:string;endDate:string;sort?:'REVENUE_DESC'|'REVENUE_ASC'}) => apiRequest<SalesReport>('/api/seller/sales/report',{query}),
+  requestSettlement: (body:{startDate:string;endDate:string}) => apiRequest<Settlement>('/api/seller/settlements',{method:'POST',body}),
   salesHistory: (query:{startDate:string;endDate:string;page?:number;size?:number}) => apiRequest<Page<SalesHistoryItem>>('/api/seller/sales/history',{query}),
 };

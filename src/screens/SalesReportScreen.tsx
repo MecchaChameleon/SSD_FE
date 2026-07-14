@@ -1,55 +1,74 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius } from '../theme';
-import CalendarIcon from '../../icon/calendar.svg';
-import ChevronDown from '../../icon/chevron_down.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
-import ChevronRight from '../../icon/chevron_right.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
-import { sellerApi } from '../api';
+import { sellerApi, type SalesReport } from '../api/seller';
 
-type Sale = { id: number; name: string; detail: string; quantity: number; revenue: number };
 const money = (value: number) => `${value.toLocaleString()}원`;
+const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
-export function SalesReportScreen({ onBack,startDate,endDate }: { onBack: () => void;startDate?:string;endDate?:string }) {
-  const [salesData,setSalesData]=useState<Sale[]>([]);
-  const [calendar, setCalendar] = useState(false);
-  const [start, setStart] = useState<number | null>(10);
-  const [end, setEnd] = useState<number | null>(null);
-  const [range, setRange] = useState<{ start: number; end: number } | null>(null);
-  const [sortDesc, setSortDesc] = useState(true);
-  const [settlementBase,setSettlementBase]=useState(0);
-  useEffect(()=>{const refresh=()=>{const today=new Date().toISOString().slice(0,10);return sellerApi.salesReport({startDate:startDate??today,endDate:endDate??today}).then(report=>{setSalesData(report.items.map((item,index)=>({id:item.productId??index,name:item.productName,detail:'판매 완료',quantity:item.quantity,revenue:item.revenue})));setSettlementBase(report.settlementRevenue)}).catch(()=>{setSalesData([]);setSettlementBase(0)})};void refresh();const interval=setInterval(refresh,5_000);return()=>clearInterval(interval)},[startDate,endDate]);
-  const shown = useMemo(() => sortDesc ? [...salesData].sort((a, b) => b.revenue - a.revenue) : [...salesData].sort((a, b) => a.revenue - b.revenue), [salesData,sortDesc]);
-  const total = salesData.reduce((sum, item) => sum + item.revenue, 0);
-  const platformFee=Math.round(settlementBase*.03),paymentFee=Math.round(settlementBase*.02),settlement=settlementBase-platformFee-paymentFee;
+export function SalesReportScreen({ onBack, startDate, endDate }: { onBack: () => void; startDate?: string; endDate?: string }) {
+  const start = startDate ?? today();
+  const end = endDate ?? today();
+  const [report, setReport] = useState<SalesReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [complete, setComplete] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try { setReport(await sellerApi.salesReport({ startDate: start, endDate: end })); }
+    catch { setReport(null); }
+    finally { setLoading(false); }
+  }, [start, end]);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+  const gross = report?.settlementRevenue ?? 0;
+  const platformFee = Math.round(gross * .03);
+  const paymentFee = Math.round(gross * .02);
+  const settlement = gross - platformFee - paymentFee;
+
+  const requestSettlement = async () => {
+    if (!gross || submitting) return;
+    setSubmitting(true);
+    try {
+      await sellerApi.requestSettlement({ startDate: start, endDate: end });
+      setComplete(true);
+    } catch (error) {
+      Alert.alert('정산 신청 실패', error instanceof Error ? error.message : '잠시 후 다시 시도해 주세요.');
+    } finally { setSubmitting(false); }
+  };
+
+  if (complete) return <SettlementComplete onConfirm={onBack} />;
   return <View style={s.root}>
     <Header onBack={onBack} />
     <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-      {shown.length?<><View style={s.reportSection}><Text style={s.reportTitle}>당일 총 매출</Text><Text style={s.reportHint}>ⓘ 판매자가 수락한 결제만 당일 매출 집계에 포함됩니다.</Text><View style={s.reportTable}>{shown.map(item=><View key={item.id} style={s.reportItem}><ReportRow label="상품명" value={item.name}/><ReportRow label="판매 수량" value={`${item.quantity}개`}/><ReportRow label="매출" value={money(item.revenue)}/></View>)}<View style={s.reportTotal}><Text style={s.reportTotalLabel}>당일 총 매출</Text><Text style={s.reportTotalValue}>{money(total)}</Text></View></View></View><View style={s.reportSection}><Text style={s.reportTitle}>정산 금액 계산</Text><View style={s.reportTable}><ReportRow label="플랫폼 수수료" value={`-${money(platformFee)}`}/><ReportRow label="결제 수수료" value={`-${money(paymentFee)}`}/><View style={s.reportTotal}><Text style={s.reportTotalLabel}>정산 금액</Text><Text style={s.settlement}>{money(settlement)}</Text></View></View></View></>:<EmptyState/>}
+      <Section title="등록된 계좌 정보" compact>
+        <Text style={s.account}>{report?.bankName && report?.accountNumber ? `${report.bankName} ${report.accountNumber}` : '등록된 계좌 정보가 없어요.'}</Text>
+      </Section>
+      <Section title="당일 총 매출" hint="ⓘ 예약 확정 시 자동으로 재고가 차감되며, 당일 매출 집계에 포함됩니다.">
+        {loading ? <ActivityIndicator color={colors.primary500} style={s.empty}/> : report?.items.length ? <View style={s.table}>
+          {report.items.map(item => <View key={item.productId} style={s.item}>
+            <Row label="상품명" value={item.productName}/><Row label="판매 수량" value={`${item.quantity}개`}/><Row label="매출" value={money(item.revenue)}/>
+          </View>)}
+          <TotalRow label="당일 총 매출" value={money(report.totalRevenue)}/>
+        </View> : <Empty text="오늘 판매된 내역이 없어요."/>}
+      </Section>
+      <Section title="정산 금액 계산">
+        {gross ? <View style={s.table}><View style={s.fees}><Row label="플랫폼 수수료" value={`-${money(platformFee)}`} muted/><Row label="결제 수수료" value={`-${money(paymentFee)}`} muted/></View><TotalRow label="정산 금액" value={money(settlement)} accent/></View> : <Empty text="오늘 판매된 내역이 없어요."/>}
+      </Section>
     </ScrollView>
-    <CalendarSheet visible={calendar} start={start} end={end} onDate={day => { if (start === null || end !== null || day < start) { setStart(day); setEnd(null); } else setEnd(day); }} onClose={() => setCalendar(false)} onApply={() => { if (start !== null && end !== null) setRange({ start, end }); setCalendar(false); }}/>
+    <View style={s.bottom}><Pressable disabled={!gross || submitting} onPress={requestSettlement} style={[s.button, (!gross || submitting) && s.buttonDisabled]}>{submitting ? <ActivityIndicator color={colors.white}/> : <Text style={[s.buttonText, !gross && s.buttonTextDisabled]}>정산 받기</Text>}</Pressable></View>
   </View>;
 }
 
-function Header({ onBack }: { onBack: () => void }) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black}/></Pressable><Text style={s.headerTitle}>당일 매출 집계 · 리포트</Text><View style={{ width: 24 }}/></View>; }
-function ReportRow({label,value}:{label:string;value:string}){return <View style={s.reportRow}><Text style={s.reportLabel}>{label}</Text><Text numberOfLines={1} style={s.reportValue}>{value}</Text></View>}
-function SaleCard({ item }: { item: Sale }) { return <View style={s.card}><View style={s.cardTitleRow}><View style={{ flex: 1 }}><Text style={s.cardTitle}>{item.name}</Text><Text style={s.cardDetail}>{item.detail}</Text></View><ChevronRight width={20} height={20} color={colors.g400}/></View><Text style={s.cardLine}>총 판매 수량  <Text style={s.accent}>{item.quantity}개</Text></Text><Text style={s.cardLine}>총 매출  <Text style={s.accent}>{money(item.revenue)}</Text></Text></View>; }
-function EmptyState() { return <View style={s.empty}><Character width={112} height={112}/><Text style={s.emptyTitle}>오늘 판매된 내역이 아직 없어요.</Text><Text style={s.emptyBody}>AI 추천 할인가를 참고해 상품을 등록하고 매출을 올려보세요!</Text></View>; }
+function Header({onBack}:{onBack:()=>void}) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black}/></Pressable><Text style={s.headerTitle}>당일 매출 · 정산 금액</Text><View style={{width:24}}/></View>; }
+function Section({title,hint,compact,children}:{title:string;hint?:string;compact?:boolean;children:React.ReactNode}) { return <View style={[s.section,compact&&s.compact]}><View style={s.sectionHead}><Text style={s.sectionTitle}>{title}</Text>{hint?<Text style={s.hint}>{hint}</Text>:null}</View>{children}</View>; }
+function Row({label,value,muted}:{label:string;value:string;muted?:boolean}) { return <View style={s.row}><Text style={[s.label,muted&&s.muted]}>{label}</Text><Text numberOfLines={1} style={[s.value,muted&&s.muted]}>{value}</Text></View>; }
+function TotalRow({label,value,accent}:{label:string;value:string;accent?:boolean}) { return <View style={s.totalRow}><Text style={s.totalLabel}>{label}</Text><Text style={[s.totalValue,accent&&s.accent]}>{value}</Text></View>; }
+function Empty({text}:{text:string}) { return <View style={s.empty}><Text style={s.emptyText}>{text}</Text></View>; }
+function SettlementComplete({onConfirm}:{onConfirm:()=>void}) { return <View style={s.complete}><View style={s.completeBody}><Character width={112} height={112}/><Text style={s.completeTitle}>정산 신청 완료!</Text><Text style={s.completeText}>신청한 정산 금액은 영업일 기준 3일 이내에{`\n`}등록된 계좌로 안전하게 입금됩니다.</Text></View><View style={s.bottom}><Pressable onPress={onConfirm} style={s.button}><Text style={s.buttonText}>확인</Text></Pressable></View></View>; }
 
-function CalendarSheet({ visible, start, end, onDate, onClose, onApply }: { visible: boolean; start: number | null; end: number | null; onDate: (day: number) => void; onClose: () => void; onApply: () => void }) {
-  const cells = [28,29,30,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,1];
-  return <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}><Pressable style={s.overlay} onPress={onClose}><Pressable style={s.sheet} onPress={() => undefined}><View style={s.handle}/>
-    <View style={s.sheetRange}><CalendarIcon width={24} height={24} color={colors.g400}/><Text style={s.sheetRangeText}>{start ? `2026.07.${String(start).padStart(2, '0')}` : 'YYYY.MM.DD'}</Text><Text style={s.dash}>-</Text><Text style={[s.sheetRangeText, !end && s.placeholder]}>{end ? `2026.07.${String(end).padStart(2, '0')}` : 'YYYY.MM.DD'}</Text><ChevronDown width={24} height={24} color={colors.g400}/></View>
-    <View style={s.monthRow}><Text style={s.monthArrow}>‹</Text><Text style={s.month}>2026년 7월</Text><Text style={s.monthArrow}>›</Text></View>
-    <View style={s.week}>{['일','월','화','수','목','금','토'].map(day => <Text key={day} style={s.weekText}>{day}</Text>)}</View>
-    <View style={s.days}>{cells.map((day, index) => { const current = index >= 3 && index <= 33; const isStart = current && start !== null && day === start; const isEnd = current && end !== null && day === end; const selected = isStart || isEnd; const hasRange = start !== null && end !== null; const between = current && hasRange && day > start && day < end; return <Pressable key={`${day}-${index}`} disabled={!current} onPress={() => onDate(day)} style={s.dayCell}>{between ? <View style={s.rangeFull}/> : null}{isStart && hasRange ? <View style={s.rangeFromStart}/> : null}{isEnd && hasRange ? <View style={s.rangeToEnd}/> : null}<View style={[s.dayCircle, selected && s.daySelected]}><Text style={[s.dayText, !current && s.outside, selected && s.daySelectedText]}>{day}</Text></View></Pressable>; })}</View>
-    <Pressable disabled={start === null || end === null} onPress={onApply} style={[s.apply, (start === null || end === null) && s.applyDisabled]}><Text style={[s.applyText, (start === null || end === null) && s.applyTextDisabled]}>조회하기</Text></Pressable>
-  </Pressable></Pressable></Modal>;
-}
-
-const s = StyleSheet.create({
-  root:{flex:1,backgroundColor:colors.white},header:{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},headerTitle:{fontSize:16,fontWeight:'600'},content:{padding:16,paddingBottom:40},summary:{gap:5,marginTop:8,marginBottom:18},summaryLabel:{fontSize:18,fontWeight:'600'},totalRow:{flexDirection:'row',alignItems:'center',gap:12},total:{fontSize:32,fontWeight:'700',color:colors.info},helper:{fontSize:12,color:colors.g600},rangeField:{height:52,borderWidth:1,borderColor:colors.g200,borderRadius:26,paddingHorizontal:16,flexDirection:'row',alignItems:'center',gap:9},rangeText:{flex:1,fontSize:14,color:colors.black},placeholder:{color:colors.g400},dash:{color:colors.g400},sort:{height:42,flexDirection:'row',alignItems:'center',justifyContent:'flex-end'},sortText:{fontSize:12,color:colors.g500},card:{borderWidth:1,borderColor:colors.g300,borderRadius:radius.lg,padding:12,marginBottom:8,gap:8},cardTitleRow:{flexDirection:'row',alignItems:'center'},cardTitle:{fontSize:20,fontWeight:'600'},cardDetail:{fontSize:12,color:colors.g500,marginTop:5},cardLine:{fontSize:14,fontWeight:'500'},accent:{color:colors.primary500,fontWeight:'600'},empty:{paddingTop:150,alignItems:'center',gap:7},emptyTitle:{fontSize:18,fontWeight:'600',color:colors.g600},emptyBody:{fontSize:12,color:colors.g500},
-  reportSection:{gap:16,marginTop:12,marginBottom:22},reportTitle:{fontSize:18,fontWeight:'600',color:colors.black},reportHint:{fontSize:10,color:colors.g500},reportTable:{borderTopWidth:2,borderBottomWidth:2,borderColor:colors.g200},reportItem:{paddingVertical:4,borderBottomWidth:1,borderBottomColor:colors.g200},reportRow:{height:28,flexDirection:'row',alignItems:'center'},reportLabel:{width:128,fontSize:12,color:colors.g600},reportValue:{flex:1,textAlign:'right',fontSize:14,color:colors.g800},reportTotal:{height:48,flexDirection:'row',alignItems:'center'},reportTotalLabel:{width:128,fontSize:14,fontWeight:'500'},reportTotalValue:{flex:1,textAlign:'right',fontSize:16,fontWeight:'600'},settlement:{flex:1,textAlign:'right',fontSize:18,fontWeight:'600',color:colors.info},
-  overlay:{flex:1,backgroundColor:'rgba(0,0,0,.25)',justifyContent:'flex-end',alignItems:'center'},sheet:{width:'100%',maxWidth:402,height:588,backgroundColor:colors.white,borderTopLeftRadius:24,borderTopRightRadius:24,paddingHorizontal:16,paddingTop:12},handle:{width:60,height:4,borderRadius:2,backgroundColor:colors.g200,alignSelf:'center',marginBottom:40},sheetRange:{height:52,borderWidth:1,borderColor:colors.g200,borderRadius:26,paddingHorizontal:16,flexDirection:'row',alignItems:'center',gap:9},sheetRangeText:{flex:1,fontSize:14},monthRow:{height:76,paddingHorizontal:20,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},month:{fontSize:16,fontWeight:'600'},monthArrow:{fontSize:34,fontWeight:'300'},week:{height:36,borderBottomWidth:1,borderBottomColor:colors.g300,flexDirection:'row'},weekText:{width:'14.285%',fontSize:12,color:colors.g300,textAlign:'center'},days:{flexDirection:'row',flexWrap:'wrap'},dayCell:{width:'14.285%',height:52,alignItems:'center',justifyContent:'center',position:'relative'},rangeFull:{position:'absolute',left:0,right:0,top:12,bottom:12,backgroundColor:'#ffdc9b'},rangeFromStart:{position:'absolute',left:'50%',right:0,top:12,bottom:12,backgroundColor:'#ffdc9b'},rangeToEnd:{position:'absolute',left:0,right:'50%',top:12,bottom:12,backgroundColor:'#ffdc9b'},dayCircle:{width:28,height:28,borderRadius:14,alignItems:'center',justifyContent:'center',zIndex:1},daySelected:{backgroundColor:colors.primary500},dayText:{fontSize:14,color:colors.g800},outside:{color:colors.g300},daySelectedText:{color:colors.white,fontWeight:'600'},apply:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:20},applyDisabled:{backgroundColor:colors.g200},applyText:{fontSize:16,fontWeight:'600',color:colors.white},applyTextDisabled:{color:colors.g400},
+const s=StyleSheet.create({
+  root:{flex:1,backgroundColor:colors.white},header:{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},headerTitle:{fontSize:16,fontWeight:'600',color:colors.black},content:{paddingHorizontal:16,paddingBottom:116},section:{marginTop:32,gap:16},compact:{marginTop:0,gap:0},sectionHead:{minHeight:52,borderBottomWidth:1,borderBottomColor:colors.g200,justifyContent:'center',gap:8},sectionTitle:{fontSize:18,fontWeight:'600',color:colors.black},hint:{fontSize:10,color:colors.g500},account:{height:48,textAlignVertical:'center',fontSize:14,fontWeight:'500',color:colors.g600},table:{borderTopWidth:2,borderBottomWidth:2,borderColor:colors.g200},item:{paddingVertical:4,borderBottomWidth:1,borderBottomColor:colors.g200},fees:{paddingVertical:4},row:{height:28,flexDirection:'row',alignItems:'center'},label:{width:128,fontSize:12,color:colors.g600},value:{flex:1,textAlign:'right',fontSize:14,fontWeight:'500',color:'#62615d'},muted:{fontSize:12,fontWeight:'400',color:colors.g600},totalRow:{height:48,flexDirection:'row',alignItems:'center'},totalLabel:{width:128,fontSize:14,fontWeight:'500',color:colors.black},totalValue:{flex:1,textAlign:'right',fontSize:16,fontWeight:'600',color:colors.black},accent:{fontSize:18,color:colors.info},empty:{height:84,alignItems:'center',justifyContent:'center'},emptyText:{fontSize:14,color:colors.g500},bottom:{position:'absolute',left:16,right:16,bottom:34},button:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center'},buttonDisabled:{backgroundColor:colors.g200},buttonText:{fontSize:16,fontWeight:'600',color:colors.white},buttonTextDisabled:{color:colors.g400},complete:{flex:1,backgroundColor:colors.white},completeBody:{position:'absolute',top:199,left:16,right:16,alignItems:'center'},completeTitle:{marginTop:18,fontSize:18,fontWeight:'600',color:colors.black},completeText:{marginTop:6,fontSize:14,lineHeight:19,textAlign:'center',color:colors.g800}
 });
