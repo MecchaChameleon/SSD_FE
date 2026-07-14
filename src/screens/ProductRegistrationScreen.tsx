@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, radius } from '../theme';
 import { ApiError, sellerApi } from '../api';
 import ChevronDown from '../../icon/chevron_down.svg';
@@ -53,15 +54,22 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
   const [requestError, setRequestError] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [timeError, setTimeError] = useState<string | null>(null);
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   useEffect(()=>{sellerApi.profile().then(profile=>{if(profile.address){setLocations([profile.address]);setLocation(profile.address)}}).catch(()=>setRequestError('사업자 정보의 매장 주소를 불러오지 못했습니다.'))},[]);
 
-  const requiredFieldsValid = !!(name.trim() && category && type && quantity && regular && minimum && start && end && location);
+  const requiredFieldsValid = !!(images.length && name.trim() && category && type && quantity && regular && minimum && start && end && location);
   const invalidPriceRange = !!(regular && minimum && Number(minimum) > Number(regular));
   const invalidTimeRange = !!(start && end && timeMinutes(start) >= timeMinutes(end));
   const valid = requiredFieldsValid && !invalidPriceRange && !invalidTimeRange;
   const types = useMemo(() => category ? categoryTypes[category] : [], [category]);
   const digits = (value: string, setter: (value: string) => void) => setter(value.replace(/\D/g, ''));
   const error = (value: string) => submitted && !value;
+  const pickImages = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) { setRequestError('사진 등록을 위해 사진 보관함 접근 권한을 허용해 주세요.'); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:true,selectionLimit:3-images.length,quality:.85});
+    if (!result.canceled) setImages(current => [...current, ...result.assets].slice(0,3));
+  };
   const submit = async () => {
     setSubmitted(true);
     setRequestError(null);
@@ -73,7 +81,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
     if (!productCategory) return;
     setSaving(true);
     try {
-      await sellerApi.createProduct({
+      const product = await sellerApi.createProduct({
         name: name.trim(),
         businessType: config.businessType,
         category: productCategory,
@@ -84,6 +92,12 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
         deadline: timeToIso(end),
         address: location,
       });
+      try {
+        await sellerApi.uploadProductImages(product.id, images.map((image,index)=>({uri:image.uri,name:image.fileName??`product-${index+1}.jpg`,type:image.mimeType??'image/jpeg',file:image.file})));
+      } catch (uploadError) {
+        await sellerApi.deleteProduct(product.id).catch(()=>undefined);
+        throw uploadError;
+      }
       setComplete(true);
     } catch (cause) {
       const message = cause instanceof ApiError ? cause.message : '상품 등록 요청에 실패했습니다. 잠시 후 다시 시도해주세요.';
@@ -99,6 +113,14 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
     <Header onBack={onBack} />
     <ScrollView contentContainerStyle={s.form} keyboardShouldPersistTaps="handled">
       <Text style={s.title}>신규 상품/자원 등록하기</Text>
+      <View style={s.photoField}>
+        <View style={s.photoHead}><Text style={s.label}>사진 등록<Text style={s.required}> *</Text></Text><Text style={s.photoHint}>첫 번째로 등록된 이미지가 대표 썸네일로 자동 지정되며, 최대 3장까지 등록 가능합니다.</Text></View>
+        {images.length===0 ? <Pressable accessibilityLabel="상품 사진 추가" onPress={pickImages} style={s.addCircle}><Text style={s.plus}>＋</Text></Pressable> : <View style={s.photos}>
+          {images.map((image,index)=><View key={`${image.uri}-${index}`} style={[s.photo,index===0&&s.coverPhoto]}><Image source={{uri:image.uri}} style={s.photoImage}/><Pressable accessibilityLabel={`${index+1}번째 사진 삭제`} hitSlop={6} onPress={()=>setImages(current=>current.filter((_,i)=>i!==index))} style={s.removePhoto}><Text style={s.removeText}>×</Text></Pressable></View>)}
+          {images.length<3?<Pressable accessibilityLabel="상품 사진 추가" onPress={pickImages} style={[s.photo,s.photoAdd]}><Text style={s.plus}>＋</Text></Pressable>:null}
+        </View>}
+        {submitted&&!images.length?<Text style={s.errorText}>상품 사진을 1장 이상 등록해 주세요.</Text>:null}
+      </View>
       <FormField label="상품/자원 이름" error={error(name)} message="상품/자원 이름을 입력해주세요.">
         <TextInput value={name} onChangeText={setName} placeholder="예시: 카페 창가 빈 좌석 2인" placeholderTextColor={colors.g400} style={[s.input, error(name) && s.inputError]} />
       </FormField>
@@ -174,6 +196,7 @@ function Completion({ onDone }: { onDone: () => void }) {
 const s = StyleSheet.create({
   root:{flex:1,backgroundColor:colors.white}, header:{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, headerTitle:{fontSize:16,fontWeight:'600',color:colors.black},
   form:{padding:16,paddingBottom:100,gap:24}, title:{fontSize:20,fontWeight:'600',color:colors.black}, field:{gap:8}, label:{fontSize:14,fontWeight:'500',color:colors.black}, required:{color:colors.primary500}, input:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,fontSize:16,color:colors.black,backgroundColor:colors.white}, inputError:{borderColor:colors.danger}, errorText:{fontSize:12,color:colors.danger},
+  photoField:{gap:16,alignItems:'center'},photoHead:{width:'100%',gap:4},photoHint:{fontSize:10,color:colors.g500},addCircle:{width:44,height:44,borderRadius:22,backgroundColor:'rgba(230,230,229,.5)',alignItems:'center',justifyContent:'center'},plus:{fontSize:28,fontWeight:'300',color:colors.g500},photos:{width:'100%',flexDirection:'row',gap:12},photo:{width:94,height:94,borderRadius:12,overflow:'hidden',backgroundColor:colors.g100,borderWidth:1,borderColor:'transparent'},coverPhoto:{borderColor:colors.primary500,borderWidth:2},photoImage:{width:'100%',height:'100%'},photoAdd:{alignItems:'center',justifyContent:'center',borderStyle:'dashed',borderColor:colors.g300},removePhoto:{position:'absolute',right:5,top:5,width:20,height:20,borderRadius:10,backgroundColor:'rgba(126,124,119,.72)',alignItems:'center',justifyContent:'center'},removeText:{color:colors.white,fontSize:18,lineHeight:20,fontWeight:'600'},
   select:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:colors.white}, selectDisabled:{backgroundColor:colors.g100,borderColor:colors.g200}, selectText:{flex:1,fontSize:16,color:colors.black}, placeholder:{color:colors.g400}, money:{flexDirection:'row',alignItems:'center',gap:10}, moneyInput:{flex:1}, won:{fontSize:16,color:colors.black,paddingHorizontal:8}, timeRow:{flexDirection:'row',gap:12}, timeCell:{flex:1}, timeRangeError:{fontSize:12,color:colors.danger,marginTop:-16},
   submit:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:8}, submitDisabled:{backgroundColor:colors.g200}, submitText:{fontSize:16,fontWeight:'600',color:colors.white}, submitTextDisabled:{color:colors.g400}, requestError:{fontSize:12,lineHeight:18,color:colors.danger,textAlign:'center'},
   overlay:{flex:1,backgroundColor:'rgba(17,17,17,.28)',justifyContent:'flex-end',alignItems:'center'}, sheet:{width:'100%',maxWidth:402,maxHeight:'72%',backgroundColor:colors.white,borderTopLeftRadius:24,borderTopRightRadius:24,padding:20,paddingBottom:28}, sheetHead:{flexDirection:'row',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}, sheetTitle:{fontSize:18,fontWeight:'600',color:colors.black}, sheetHint:{fontSize:12,color:colors.g500,marginTop:5}, options:{maxHeight:450}, option:{minHeight:54,borderBottomWidth:1,borderBottomColor:colors.g200,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, optionText:{fontSize:16,color:colors.g800}, optionSelected:{fontWeight:'600',color:colors.primary700}, radio:{width:24,height:24,borderRadius:12,borderWidth:2,borderColor:colors.g300,alignItems:'center',justifyContent:'center'}, radioOn:{borderColor:colors.primary500}, radioDot:{width:12,height:12,borderRadius:6,backgroundColor:colors.primary500},
