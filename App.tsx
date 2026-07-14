@@ -10,6 +10,7 @@ import { ModeSelectionScreen, ServiceMode } from './src/screens/ModeSelectionScr
 import { CompleteScreen } from './src/screens/CompleteScreen';
 import { ComponentGalleryScreen } from './src/screens/ComponentGalleryScreen';
 import { BuyerHomeScreen } from './src/screens/BuyerHomeScreen';
+import { BusinessRegistrationScreen } from './src/screens/MyPageScreen';
 import type { PurchasePayload } from './src/screens/BuyerHomeScreen';
 import { colors } from './src/theme';
 import { LoginUser,useKakaoLogin,withdrawAccount } from './src/auth/kakao';
@@ -17,7 +18,7 @@ import { DeviceFrame } from './src/components/DeviceFrame';
 import { authApi, sellerApi } from './src/api';
 import { warmUpApi } from './src/api/client';
 
-type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'mode'|'complete'|'home'|'gallery';
+type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'mode'|'businessRegistration'|'complete'|'home'|'gallery';
 type HomeEntry='buyer'|'seller'|'businessRegistration';
 
 void warmUpApi();
@@ -70,8 +71,7 @@ export default function App(){
       setHomeEntry('seller');
       setRoute('complete');
     }catch{
-      setHomeEntry('businessRegistration');
-      setRoute('home');
+      setRoute('businessRegistration');
     }
   };
   const finishBusinessRegistration=()=>{setType('seller');setHomeEntry('seller');setRoute('complete')};
@@ -86,6 +86,7 @@ export default function App(){
     :route==='login'?<LoginScreen onLogin={kakao.login} loading={kakao.loading} error={kakao.error} disabled={!kakao.ready}/>
     :route==='signup'?<SignupScreen initialNickname={name} profileImageUrl={profileImageUrl} onBack={()=>setRoute('login')} onComplete={signup}/>
     :route==='mode'?<ModeSelectionScreen onComplete={selectMode}/>
+    :route==='businessRegistration'?<BusinessRegistrationScreen name={name} onBack={()=>setRoute('mode')} onComplete={finishBusinessRegistration}/>
     :route==='complete'?<CompleteScreen name={name} userType={type} onStart={start}/>
     :route==='gallery'?<ComponentGalleryScreen onClose={()=>setRoute('home')}/>
     :<BuyerHomeScreen initialEntry={homeEntry} onBusinessRegistered={finishBusinessRegistration} onLogout={logout} onWithdraw={withdraw} onPurchase={purchase}/>;
