@@ -647,6 +647,62 @@ export function TimeWheel({
     </Modal>
   );
 }
+
+export function TimeOptionWheel({
+  visible,
+  value,
+  values,
+  title,
+  onClose,
+  onApply,
+}: {
+  visible: boolean;
+  value: string;
+  values: string[];
+  title: string;
+  onClose: () => void;
+  onApply: (value: string) => void;
+}) {
+  const [selected, setSelected] = useState(value || values[0] || "");
+
+  useEffect(() => {
+    if (visible) setSelected(value || values[0] || "");
+  }, [visible, value, values]);
+
+  return (
+    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+      <Pressable style={s.pickerOverlay} onPress={onClose}>
+        <Pressable style={s.pickerSheet} onPress={event => event.stopPropagation()}>
+          <View style={s.pickerHandle} />
+          <Text style={s.pickerTitle}>{title}</Text>
+          <View style={s.wheels}>
+            <View style={s.wheelHighlight} />
+            {values.length ? (
+              <Wheel
+                values={values}
+                selected={selected}
+                onSelect={setSelected}
+                emphasize
+                onInteract={() => undefined}
+              />
+            ) : null}
+          </View>
+          <Pressable
+            disabled={!selected}
+            style={[s.pickerApply, !selected && s.disabled]}
+            onPress={event => {
+              event.stopPropagation();
+              if (selected) onApply(selected);
+            }}
+          >
+            <Text style={s.buttonText}>선택 완료</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 function Wheel({
   values,
   selected,
@@ -665,6 +721,8 @@ function Wheel({
   const index = Math.max(0, values.indexOf(selected));
   const lastOffset = useRef(index * itemHeight);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastEmitted = useRef(selected);
+  const mounted = useRef(false);
 
   const selectOffset = (offset: number, animated: boolean) => {
     const next = Math.max(
@@ -673,13 +731,19 @@ function Wheel({
     );
     const snappedOffset = next * itemHeight;
     lastOffset.current = snappedOffset;
-    if (values[next] !== selected) onSelect(values[next]);
+    if (values[next] !== lastEmitted.current) {
+      lastEmitted.current = values[next];
+      onSelect(values[next]);
+    }
     if (Math.abs(offset - snappedOffset) > 0.5) {
       ref.current?.scrollTo({ y: snappedOffset, animated });
     }
   };
 
   useEffect(() => {
+    if (mounted.current && selected === lastEmitted.current) return;
+    mounted.current = true;
+    lastEmitted.current = selected;
     const offset = index * itemHeight;
     lastOffset.current = offset;
     const timer = setTimeout(() => {
@@ -716,6 +780,14 @@ function Wheel({
       onScroll={event => {
         const offset = event.nativeEvent.contentOffset.y;
         lastOffset.current = offset;
+        const next = Math.max(
+          0,
+          Math.min(values.length - 1, Math.round(offset / itemHeight)),
+        );
+        if (values[next] !== lastEmitted.current) {
+          lastEmitted.current = values[next];
+          onSelect(values[next]);
+        }
         if (settleTimer.current) clearTimeout(settleTimer.current);
         settleTimer.current = setTimeout(() => selectOffset(lastOffset.current, true), 80);
       }}
