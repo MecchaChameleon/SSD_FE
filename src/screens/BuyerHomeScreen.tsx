@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Modal,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -88,6 +89,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     lat: p.lat,
     lng: p.lng,
     discountRate,
+    imageUrls: p.imageUrls ?? [],
   };
 };
 const paymentStatus = (status:ApiPurchase['status']):PaymentDisplayStatus => status==='ACCEPTED'?'accepted':status==='REFUNDED'?'refunded':'pending';
@@ -126,6 +128,7 @@ export function BuyerHomeScreen({
   const [productItems, setProductItems] = useState<Product[]>([]);
   const [liked, setLiked] = useState<number[]>([]);
   const [purchase, setPurchase] = useState<Product | null>(null);
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">("home");
@@ -256,12 +259,10 @@ export function BuyerHomeScreen({
       product={p}
       liked={liked.includes(p.id)}
       onLike={() => toggleLike(p.id)}
-      onBuy={() => {
-        setQuantity(p.id === 1 ? 2 : 1);
-        setPurchase(p);
-      }}
+      onBuy={() => setDetailProduct(p)}
     />
   ));
+  if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setPurchase(detailProduct);setDetailProduct(null)}}/>;
   if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);setTab('purchases');void buyerApi.purchases({size:50}).then(page=>setPurchases(page.content.map(apiPurchaseToItem)))}} onHome={()=>{setPaymentComplete(false);setTab('home')}}/>;
   if (sellerMode)
     return (
@@ -455,7 +456,7 @@ export function BuyerHomeScreen({
           ) : null}
         </View>
         {productCards.length > 0 ? (
-          productCards
+          <View style={s.productGrid}>{productCards}</View>
         ) : (
           <Text style={s.empty}>검색 결과가 없습니다.</Text>
         )}
@@ -471,6 +472,25 @@ export function BuyerHomeScreen({
     </View>
   );
 }
+function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product;liked:boolean;onBack:()=>void;onLike:()=>void;onBuy:()=>void}) {
+  const images=product.imageUrls??[];
+  const [index,setIndex]=useState(0);
+  return <View style={detailStyles.root}>
+    <View style={detailStyles.hero}>{images.length?<ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={event=>setIndex(Math.round(event.nativeEvent.contentOffset.x/event.nativeEvent.layoutMeasurement.width))}>{images.map((url,i)=><Image key={`${url}-${i}`} source={{uri:url}} resizeMode="cover" style={detailStyles.heroImage}/>)}</ScrollView>:<View style={detailStyles.fallback}/>}<View style={detailStyles.heroActions}><Pressable onPress={onBack} style={detailStyles.circle}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Pressable onPress={onLike} style={detailStyles.circle}><Text style={[detailStyles.heart,liked&&detailStyles.heartLiked]}>♥</Text></Pressable></View>{images.length>1?<View style={detailStyles.dots}>{images.map((_,i)=><View key={i} style={[detailStyles.dot,index===i&&detailStyles.dotOn]}/>)}</View>:null}</View>
+    <ScrollView contentContainerStyle={detailStyles.panel}>
+      <View style={detailStyles.titleRow}><View style={detailStyles.nameRow}><Text numberOfLines={1} style={detailStyles.name}>{product.title}</Text>{product.urgent?<View style={detailStyles.tag}><Text style={detailStyles.tagText}>마감임박</Text></View>:null}</View><Text style={detailStyles.discount}>{product.discount}</Text></View>
+      <View style={detailStyles.locationRow}><Text style={detailStyles.shop}>{product.shop}</Text><Text numberOfLines={1} style={detailStyles.location}>{product.location}</Text></View>
+      <DetailRow label="상품정보" value={product.detail.split('·')[0].trim()}/><DetailRow label="마감시각" value={product.deadlineAt?new Date(product.deadlineAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}):'-'}/><DetailRow label="잔여수량" value={product.remaining.replace(/[^0-9]/g,'')||'-'}/>
+      <View style={detailStyles.priceRow}><Text style={detailStyles.original}>{product.original}</Text><View style={detailStyles.sale}><Text style={detailStyles.saleLabel}>[할인가]</Text><Text style={detailStyles.price}>{product.price}</Text></View></View>
+      <View style={detailStyles.insight}><Text style={detailStyles.sun}>☼</Text><Text style={detailStyles.insightText}>{product.insight}</Text></View>
+    </ScrollView>
+    <View style={detailStyles.bottom}><Pressable onPress={onBuy} style={detailStyles.buy}><Text style={detailStyles.buyText}>구매하기</Text></Pressable></View>
+  </View>;
+}
+function DetailRow({label,value}:{label:string;value:string}){return <View style={detailStyles.detailRow}><Text style={detailStyles.detailLabel}>{label}</Text><Text style={detailStyles.detailValue}>{value}</Text></View>}
+
+const detailStyles=StyleSheet.create({root:{flex:1,backgroundColor:colors.white},hero:{height:319,backgroundColor:colors.g100,position:'relative'},heroImage:{width:402,height:319},fallback:{flex:1,backgroundColor:colors.g100},heroActions:{position:'absolute',left:16,right:16,top:60,flexDirection:'row',justifyContent:'space-between'},circle:{width:44,height:44,borderRadius:22,backgroundColor:'rgba(230,230,229,.72)',alignItems:'center',justifyContent:'center'},heart:{fontSize:24,color:colors.white},heartLiked:{color:colors.primary500},dots:{position:'absolute',bottom:40,left:0,right:0,flexDirection:'row',justifyContent:'center',gap:8},dot:{width:6,height:6,borderRadius:3,backgroundColor:colors.g300},dotOn:{backgroundColor:colors.white},panel:{minHeight:494,marginTop:-29,borderTopLeftRadius:30,borderTopRightRadius:30,backgroundColor:colors.white,padding:16,paddingBottom:100},titleRow:{height:52,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},nameRow:{flex:1,flexDirection:'row',alignItems:'center',gap:12},name:{maxWidth:230,fontSize:20,fontWeight:'600',color:colors.black},tag:{paddingHorizontal:4,paddingVertical:2,borderRadius:4,backgroundColor:colors.primary500},tagText:{fontSize:12,fontWeight:'600',color:colors.white},discount:{fontSize:14,fontWeight:'600',color:colors.info},locationRow:{height:32,flexDirection:'row',alignItems:'center',gap:12},shop:{fontSize:14,fontWeight:'600',color:'#2b2b29'},location:{flex:1,fontSize:12,color:colors.g600},detailRow:{height:32,flexDirection:'row',alignItems:'center'},detailLabel:{width:128,fontSize:12,color:colors.g600},detailValue:{flex:1,textAlign:'right',fontSize:14,fontWeight:'500',color:colors.black},priceRow:{height:52,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},original:{fontSize:16,color:colors.g800,textDecorationLine:'line-through'},sale:{flexDirection:'row',alignItems:'center',gap:6},saleLabel:{fontSize:10,color:colors.info},price:{fontSize:20,fontWeight:'600',color:colors.info},insight:{marginTop:8,minHeight:69,paddingHorizontal:8,paddingVertical:16,borderRadius:8,backgroundColor:'rgba(255,237,204,.5)',flexDirection:'row',alignItems:'flex-start',gap:8},sun:{fontSize:24,color:colors.primary500},insightText:{flex:1,fontSize:12,lineHeight:16,fontWeight:'600',color:colors.primary500},bottom:{position:'absolute',left:16,right:16,bottom:34},buy:{height:56,borderRadius:12,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center'},buyText:{fontSize:16,fontWeight:'600',color:colors.white}});
+
 function PurchaseModal({
   product,
   quantity,
@@ -619,6 +639,7 @@ const s = StyleSheet.create({
   },
   aiText: { fontSize: 9, lineHeight: 12, color: colors.white },
   empty: { paddingVertical: 80, textAlign: "center", color: colors.g500 },
+  productGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 20 },
   searchHeader: {
     height: 60,
     flexDirection: "row",

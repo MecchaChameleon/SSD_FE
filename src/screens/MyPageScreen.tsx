@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { AppHeader, BottomNavigation } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
 import { colors, radius } from '../theme';
@@ -44,12 +45,13 @@ export function MyPageScreen({ onHome, onMap, onPurchases, onSellerMode, onLogou
   const [page, setPage] = useState<Page>('main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [name, setName] = useState('');
+  const [profileImageUrl,setProfileImageUrl]=useState<string|null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [formReturn, setFormReturn] = useState<'main' | 'mode'>('main');
-  useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);void cacheNickname(me.nickname)}).catch(()=>undefined);sellerApi.profile().then(profile=>setBusiness(profileToBusiness(profile))).catch(()=>undefined)},[]);
+  useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);setProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(()=>undefined);sellerApi.profile().then(profile=>setBusiness(profileToBusiness(profile))).catch(()=>undefined)},[]);
 
   const openBusiness = (from: 'main' | 'mode') => { setFormReturn(from); setPage(business ? 'business' : 'businessForm'); };
-  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setPage('main'); }} />;
+  if (page === 'profile') return <ProfilePage name={name} profileImageUrl={profileImageUrl} onBack={() => setPage('main')} onSave={async (nextName,image) => {let url=profileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setProfileImageUrl(url);setPage('main'); }} />;
   if (page === 'favorites') return <FavoritesPage onBack={() => setPage('main')} />;
   if (page === 'mode') return <ModePage certified={!!business} onRegister={() => openBusiness('mode')} onComplete={() => setPage('modeDone')} onBack={() => setPage('main')} />;
   if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => setPage(formReturn)} onSave={async value => { if(!business)await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:name,businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:null,longitude:null,bankName:value.bank,accountNumber:value.account,accountHolder:name});setBusiness(value);setPage(business ? 'business' : 'businessDone'); }} />;
@@ -68,7 +70,7 @@ export function MyPageScreen({ onHome, onMap, onPurchases, onSellerMode, onLogou
   ];
   return <View style={s.root}>
     <AppHeader />
-    <Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
+    <Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} url={profileImageUrl} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black} /> : null}</Pressable>)}
     <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'purchases' ? onPurchases() : undefined} />
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); setPage('withdrawDone'); } }} />
@@ -82,8 +84,9 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [name, setName] = useState('');
-  useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
-  if (page === 'profile') return <ProfilePage name={name} onBack={() => setPage('main')} onSave={async nextName => { await authApi.updateMe({nickname:nextName}); await cacheNickname(nextName); setName(nextName); setPage('main'); }} />;
+  const [sellerProfileImageUrl,setSellerProfileImageUrl]=useState<string|null>(null);
+  useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);setSellerProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile); setBusiness(profileToBusiness(profile)); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
+  if (page === 'profile') return <ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => setPage('main')} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);setPage('main'); }} />;
   if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
   if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,address:value.address,latitude:sellerProfile?.latitude??null,longitude:sellerProfile?.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness(profileToBusiness(profile)); setPage('business'); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />;
   if (page === 'mode') return <SellerModePage onBack={() => setPage('main')} onBuyerMode={onBuyerMode} />;
@@ -96,7 +99,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
+  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
     <SellerMyNavigation onHome={onBack} onProducts={onProducts} onAi={onAi}/>
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); setPage('withdrawDone'); } }} />
@@ -129,19 +132,22 @@ function SellerNotificationPage({ onBack }: { onBack: () => void }) {
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable><Text style={s.headerTitle}>{title}</Text><View style={s.headerSide} /></View>; }
 function LocaltimeCharacter({ size }: { size: number }) { return <View style={{ width: size, height: size, zIndex: 1 }}><Character width={size} height={size} /></View>; }
-function Avatar({ size }: { size: number }) { return <View style={[s.avatar, { width: size, height: size, borderRadius: size / 2 }]}><LocaltimeCharacter size={size} /></View>; }
+function Avatar({ size,url }: { size: number;url?:string|null }) { return <View style={[s.avatar, { width: size, height: size, borderRadius: size / 2 }]}>{url?<Image source={{uri:url}} resizeMode="cover" style={{width:size,height:size}}/>:<LocaltimeCharacter size={size} />}</View>; }
 
-function ProfilePage({ name, onBack, onSave }: { name: string; onBack: () => void; onSave: (name: string) => void }) {
+function ProfilePage({ name,profileImageUrl,onBack,onSave }: { name: string;profileImageUrl:string|null;onBack: () => void; onSave: (name: string,image?:ImagePicker.ImagePickerAsset) => Promise<void> }) {
   const [value, setValue] = useState(name);
+  const [image,setImage]=useState<ImagePicker.ImagePickerAsset|null>(null);
+  const [saving,setSaving]=useState(false);
   const trimmed = value.trim();
   const valid = trimmed.length >= 2 && trimmed.length <= 10;
-  const changed = trimmed !== name;
+  const changed = trimmed !== name || !!image;
+  const pick=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:false,quality:.85});if(!result.canceled)setImage(result.assets[0])};
   return <View style={s.root}><Header title="프로필 수정" onBack={onBack} />
-    <View style={s.profileAvatar}><Avatar size={120} /><View style={s.editBadge}><Text style={s.editBadgeText}>＋</Text></View></View>
+    <Pressable accessibilityLabel="프로필 사진 선택" onPress={pick} style={s.profileAvatar}><Avatar size={120} url={image?.uri??profileImageUrl} /><View style={s.editBadge}><Text style={s.editBadgeText}>＋</Text></View></Pressable>
     <View style={s.profileForm}><Text style={s.fieldLabel}>닉네임</Text><TextInput value={value} onChangeText={setValue} maxLength={10} autoFocus={false} placeholder="닉네임 입력" placeholderTextColor={colors.g400} style={[s.input, value.length > 0 && !valid && s.invalidInput]} />
       <View style={s.nicknameHelp}><Text style={[s.nicknameGuide, value.length > 0 && !valid && s.invalidText]}>{value.length > 0 && !valid ? '닉네임은 2~10자로 입력해 주세요.' : '2~10자 이내로 설정해 주세요.'}</Text><Text style={s.nicknameCount}>{value.length}/10</Text></View>
     </View>
-    <View style={s.profileSave}><ActionButton disabled={!valid || !changed} onPress={() => onSave(trimmed)}>저장하기</ActionButton></View>
+    <View style={s.profileSave}><ActionButton disabled={!valid || !changed || saving} onPress={async()=>{setSaving(true);try{await onSave(trimmed,image??undefined)}finally{setSaving(false)}}}>{saving?'저장 중...':'저장하기'}</ActionButton></View>
   </View>;
 }
 
