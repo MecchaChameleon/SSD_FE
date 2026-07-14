@@ -112,6 +112,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
   const [menu, setMenu] = useState<number | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
+  const [deleteError,setDeleteError]=useState<string|null>(null);
   const [sortDesc, setSortDesc] = useState(true);
   useEffect(() => {
     const refresh = () =>
@@ -197,11 +198,14 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
           try {
             await sellerApi.deleteProduct(deleting.id);
             setItems((list) => list.filter((item) => item.id !== deleting.id));
+          } catch(error) {
+            setDeleteError(error instanceof ApiError?error.message:"상품을 삭제할 수 없습니다.");
           } finally {
             setDeleting(null);
           }
         }}
       />
+      <DeleteBlockedDialog message={deleteError} onClose={()=>setDeleteError(null)}/>
     </View>
   );
 }
@@ -296,6 +300,8 @@ function ProductCard({
     </View>
   );
 }
+
+function DeleteBlockedDialog({message,onClose}:{message:string|null;onClose:()=>void}){if(!message)return null;return <Modal transparent visible animationType="fade" onRequestClose={onClose}><View style={s.overlay}><View style={s.dialog}><Text style={s.dialogTitle}>ⓘ 상품을 삭제할 수 없습니다.</Text><Text style={s.dialogBody}>현재 이 상품에 대기 중이거나 확정된 예약이 있습니다.{`\n`}주문 관리 화면에서 승인 또는 거절을 먼저 처리하신 후 삭제해 주세요.</Text><Pressable style={[s.dialogButton,s.delete,{flex:0}]} onPress={onClose}><Text style={s.buttonText}>확인</Text></Pressable></View></View></Modal>}
 
 function DeleteDialog({
   product,
