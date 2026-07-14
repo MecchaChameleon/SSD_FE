@@ -664,6 +664,20 @@ function Wheel({
   const ref = useRef<ScrollView>(null);
   const index = Math.max(0, values.indexOf(selected));
   const lastOffset = useRef(index * itemHeight);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const selectOffset = (offset: number, animated: boolean) => {
+    const next = Math.max(
+      0,
+      Math.min(values.length - 1, Math.round(offset / itemHeight)),
+    );
+    const snappedOffset = next * itemHeight;
+    lastOffset.current = snappedOffset;
+    if (values[next] !== selected) onSelect(values[next]);
+    if (Math.abs(offset - snappedOffset) > 0.5) {
+      ref.current?.scrollTo({ y: snappedOffset, animated });
+    }
+  };
 
   useEffect(() => {
     const offset = index * itemHeight;
@@ -671,23 +685,17 @@ function Wheel({
     const timer = setTimeout(() => {
       ref.current?.scrollTo({ y: offset, animated: false });
     }, 0);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    };
   }, [index, itemHeight]);
 
   const finish = (event: any) => {
     const offset = event.nativeEvent.contentOffset.y;
     lastOffset.current = offset;
-    const next = Math.max(
-      0,
-      Math.min(
-        values.length - 1,
-        Math.round(offset / itemHeight),
-      ),
-    );
-    onSelect(values[next]);
-    const snappedOffset = next * itemHeight;
-    lastOffset.current = snappedOffset;
-    ref.current?.scrollTo({ y: snappedOffset, animated: true });
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    selectOffset(offset, true);
   };
   return (
     <ScrollView
@@ -701,8 +709,16 @@ function Wheel({
       disableIntervalMomentum
       decelerationRate="fast"
       scrollEventThrottle={16}
-      onScrollBeginDrag={onInteract}
-      onScroll={event => { lastOffset.current = event.nativeEvent.contentOffset.y; }}
+      onScrollBeginDrag={() => {
+        if (settleTimer.current) clearTimeout(settleTimer.current);
+        onInteract();
+      }}
+      onScroll={event => {
+        const offset = event.nativeEvent.contentOffset.y;
+        lastOffset.current = offset;
+        if (settleTimer.current) clearTimeout(settleTimer.current);
+        settleTimer.current = setTimeout(() => selectOffset(lastOffset.current, true), 80);
+      }}
       onScrollEndDrag={event => {
         const velocity = event.nativeEvent.velocity?.y ?? 0;
         if (Math.abs(velocity) < 0.01) finish(event);
