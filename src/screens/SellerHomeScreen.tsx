@@ -233,6 +233,7 @@ export function SellerHomeScreen({
           startDate={today}
           endDate={today}
           arrow
+          onReturn={refresh}
         />
         <Metric
           label="기간 매출 집계 · 판매 내역"
@@ -243,11 +244,13 @@ export function SellerHomeScreen({
           history
           arrow
           onPress={() => setRangeOpen(true)}
+          onReturn={refresh}
         />
         <Metric
           label="등록 상품/자원 수"
           value={`${dashboard.registeredProductCount}개`}
           arrow
+          onReturn={refresh}
         />
       </ScrollView>
       <DateRangeSheet
@@ -592,6 +595,7 @@ function Metric({
   totalRevenue,
   history,
   onPress,
+  onReturn,
 }: {
   label: string;
   value: string;
@@ -601,6 +605,7 @@ function Metric({
   totalRevenue?: number;
   history?: boolean;
   onPress?: () => void;
+  onReturn?: () => void | Promise<void>;
 }) {
   const [report, setReport] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -632,25 +637,25 @@ function Metric({
       <Modal
         visible={report}
         animationType="slide"
-        onRequestClose={() => setReport(false)}
+        onRequestClose={() => {setReport(false);void onReturn?.();}}
       >
         <DeviceFrame>
-          <SalesReportScreen startDate={startDate} endDate={endDate} onBack={() => setReport(false)} />
+          <SalesReportScreen startDate={startDate} endDate={endDate} onBack={() => {setReport(false);void onReturn?.();}} />
         </DeviceFrame>
       </Modal>
       <Modal
         visible={registered}
         animationType="slide"
-        onRequestClose={() => setRegistered(false)}
+        onRequestClose={() => {setRegistered(false);void onReturn?.();}}
       >
         <DeviceFrame>
-          <RegisteredProductsScreen onBack={() => setRegistered(false)} />
+          <RegisteredProductsScreen onBack={() => {setRegistered(false);void onReturn?.();}} />
         </DeviceFrame>
       </Modal>
       <Modal
         visible={historyOpen}
         animationType="slide"
-        onRequestClose={() => setHistoryOpen(false)}
+        onRequestClose={() => {setHistoryOpen(false);void onReturn?.();}}
       >
         <DeviceFrame>
           {startDate && endDate ? (
@@ -658,7 +663,7 @@ function Metric({
               startDate={startDate}
               endDate={endDate}
               totalRevenue={totalRevenue ?? 0}
-              onBack={() => setHistoryOpen(false)}
+              onBack={() => {setHistoryOpen(false);void onReturn?.();}}
             />
           ) : null}
         </DeviceFrame>
