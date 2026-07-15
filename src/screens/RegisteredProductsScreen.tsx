@@ -28,6 +28,7 @@ type Product = {
   quantity: string;
   regular: string;
   minimum: string;
+  currentPrice: string;
   start: string;
   end: string;
   startIso: string | null;
@@ -94,6 +95,7 @@ const toViewProduct = (item: ApiProduct): Product => ({
   quantity: String(item.qty),
   regular: String(item.price),
   minimum: String(item.minPrice),
+  currentPrice: String(item.currentPrice),
   start: timeLabel(item.openTime),
   end: timeLabel(item.deadline),
   startIso: item.openTime,
@@ -254,11 +256,11 @@ function ProductCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const selling = item.status === "판매중";
+  const salePrice = Number(item.currentPrice.replace(/,/g, ""));
+  const originalPrice = Number(item.regular.replace(/,/g, ""));
   const discount = Math.round(
-    (1 -
-      Number(item.minimum.replace(/,/g, "")) /
-        Number(item.regular.replace(/,/g, ""))) *
-      100,
+    (1 - salePrice / Math.max(1, originalPrice)) * 100,
   );
   return (
     <View style={s.card}>
@@ -301,9 +303,9 @@ function ProductCard({
         </Text>
       </View>
       <View style={s.discountRow}>
-        <Text style={s.bold}>현재 추천 할인가</Text>
+        <Text style={s.bold}>{selling ? "현재 판매 가격" : "마지막 판매 가격"}</Text>
         <Text style={s.price}>
-          {Number(item.minimum.replace(/,/g, "")).toLocaleString()}원
+          {salePrice.toLocaleString()}원
         </Text>
         <Text style={s.discount}>{discount}% 할인</Text>
       </View>

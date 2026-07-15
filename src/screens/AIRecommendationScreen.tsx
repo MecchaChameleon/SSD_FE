@@ -13,10 +13,10 @@ const normalizePriceExplanation=(value:AiPrice):AiPrice=>{
   if(!legacy.length)return value;
   const retained=value.explanations.filter(item=>!legacyWeatherFeatures.has(item.feature)&&item.feature!=='weather');
   const impact=legacy.reduce((sum,item)=>sum+item.impact,0);
-  const weather:PriceExplanation={feature:'weather',label:'날씨',value:0,displayValue:value.weatherSummary,impact,direction:impact>0?'UP':impact<0?'DOWN':'NEUTRAL'};
+  const currentWeather=value.weather?`현재 ${value.weather.currentTemperature.toFixed(1)}°C · 강수 ${value.weather.currentPrecipitation.toFixed(1)}mm · 바람 ${value.weather.currentWindSpeed.toFixed(1)}m/s`:value.weatherSummary.split(' · 3시간')[0];
+  const weather:PriceExplanation={feature:'weather',label:'날씨',value:0,displayValue:currentWeather,impact,direction:impact>0?'UP':impact<0?'DOWN':'NEUTRAL'};
   const explanations=[...retained,weather].sort((a,b)=>Math.abs(b.impact)-Math.abs(a.impact));
-  const reason=explanations.slice(0,3).map(item=>`${item.label}이 가격을 ${item.impact>0?'높이는':'낮추는'} 방향으로 ${Math.abs(Math.round(item.impact)).toLocaleString()}원 작용`).join(' · ');
-  return {...value,explanations,reason};
+  return {...value,explanations,reason:''};
 };
 
 export function AIRecommendationScreen(){
@@ -77,19 +77,16 @@ export function AIRecommendationScreen(){
           <View style={s.weatherHeader}><Text style={s.weatherTitle}>실시간 제주 날씨</Text><Text style={s.weatherSource}>{weatherSource(price.weather.source)} · {timeText(price.weather.observedAt)}</Text></View>
           <View style={s.weatherRows}>
             <View style={s.weatherColumn}><Text style={s.weatherCaption}>현재</Text><Text style={s.weatherTemperature}>{price.weather.currentTemperature.toFixed(1)}°</Text><Text style={s.weatherDetail}>강수 {price.weather.currentPrecipitation.toFixed(1)}mm</Text><Text style={s.weatherDetail}>풍속 {price.weather.currentWindSpeed.toFixed(1)}m/s</Text></View>
-            <View style={s.weatherDivider}/>
-            <View style={s.weatherColumn}><Text style={s.weatherCaption}>3시간 내</Text><Text style={s.weatherTemperature}>{price.weather.forecastTemperature==null?'-':`${price.weather.forecastTemperature.toFixed(1)}°`}</Text><Text style={s.weatherDetail}>강수 {price.weather.forecastPrecipitation.toFixed(1)}mm</Text><Text style={s.weatherDetail}>풍속 {price.weather.forecastWindSpeed.toFixed(1)}m/s</Text></View>
           </View>
         </View>:null}
         {price?.regionalDemand?<View style={s.demandCard}>
-          <View style={s.weatherHeader}><Text style={s.weatherTitle}>과거 3년 지역 수요</Text><Text style={s.weatherSource}>{price.regionalDemand.basisDate} 기준 예측</Text></View>
-          <View style={s.demandRow}><View><Text style={s.weatherCaption}>{price.regionalDemand.region??'지역 미확인'}</Text><Text style={s.demandValue}>{price.regionalDemand.predictedVisitPopulation==null?'-':`${price.regionalDemand.predictedVisitPopulation.toLocaleString()}명`}</Text></View><View style={s.demandRank}><Text style={s.demandRankValue}>상위 {Math.max(1,Math.round((1-price.regionalDemand.percentile)*100))}%</Text><Text style={s.weatherCaption}>과거 동일 지역 대비</Text></View></View>
+          <View style={s.weatherHeader}><Text style={s.weatherTitle}>지역 수요</Text><Text style={s.weatherSource}>{price.regionalDemand.basisDate} 기준 예측</Text></View>
+          <View style={s.demandRow}><View><Text style={s.weatherCaption}>{price.regionalDemand.region??'제주 지역'}</Text><Text style={s.demandValue}>{price.regionalDemand.predictedVisitPopulation==null?'-':`${price.regionalDemand.predictedVisitPopulation.toLocaleString()}명`}</Text></View><View style={s.demandRank}><Text style={s.demandRankValue}>상위 {Math.max(1,Math.round((1-price.regionalDemand.percentile)*100))}%</Text><Text style={s.weatherCaption}>과거 동일 지역 대비</Text></View></View>
           {price.regionalDemand.trainingStartDate&&price.regionalDemand.trainingEndDate?<Text style={s.trainingPeriod}>EBM 학습 기간 {price.regionalDemand.trainingStartDate} ~ {price.regionalDemand.trainingEndDate} · 날짜·요일·공휴일·읍면동 반영</Text>:null}
         </View>:null}
         <View style={s.autoRow}><View style={s.autoCopy}><Text style={s.autoTitle}>AI 기반 실시간 가격</Text><Text style={s.autoDescription}>{price?.autoPricingEnabled?`다음 갱신 ${timeText(price.nextUpdateAt)}`:'켜면 즉시 적용 후 10분마다 갱신'}</Text></View><Toggle value={price?.autoPricingEnabled??false} onChange={changeAuto}/></View>
         {changing?<Text style={s.updating}>설정을 반영하는 중...</Text>:null}
-        {price?.reason?<Text style={s.reason}>{price.reason}</Text>:null}
-        {price?.explanations?.length?<View style={s.explainBox}><Text style={s.sectionTitle}>이 가격에 영향을 준 요인</Text>{price.explanations.map(item=><View key={item.feature} style={s.factor}><View style={s.factorHeader}><Text style={s.factorLabel}>{item.label}{item.displayValue?` (${item.displayValue})`:''}</Text><Text style={[s.impact,item.impact>=0?s.up:s.down]}>{item.impact>=0?'+':''}{Math.round(item.impact).toLocaleString()}원</Text></View><View style={s.track}><View style={[s.bar,{width:`${normalizedImpact(item.impact)}%`,backgroundColor:item.impact>=0?colors.info:colors.primary500}]}/></View></View>)}</View>:null}
+        {price?.explanations?.length?<View style={s.explainBox}><Text style={s.sectionTitle}>이 가격에 영향을 준 요인</Text>{price.explanations.map(item=><View key={item.feature} style={s.factor}><View style={s.factorHeader}><Text style={s.factorLabel}>{item.label}{item.feature!=='demand_percentile'&&item.displayValue?` (${item.displayValue})`:''}</Text><Text style={[s.impact,item.impact>=0?s.up:s.down]}>{item.impact>=0?'+':''}{Math.round(item.impact).toLocaleString()}원</Text></View><View style={s.track}><View style={[s.bar,{width:`${normalizedImpact(item.impact)}%`,backgroundColor:item.impact>=0?colors.info:colors.primary500}]}/></View></View>)}</View>:null}
         <Pressable disabled={!price||price.autoPricingEnabled} onPress={apply} style={[s.button,(!price||price.autoPricingEnabled)&&s.disabled]}><Text style={s.buttonText}>{price?.autoPricingEnabled?'자동 가격 적용 중':'이번 추천가 적용'}</Text></Pressable>
         {message?<Text style={s.message}>{message}</Text>:null}
       </>}
