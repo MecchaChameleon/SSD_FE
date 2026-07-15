@@ -4,7 +4,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors, radius } from '../theme';
 import { ApiError, sellerApi } from '../api';
 import ChevronDown from '../../icon/chevron_down.svg';
-import ChevronLeft from '../../icon/chevron_left.svg';
 import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 import { TimeWheel } from './RegisteredProductsScreen';
@@ -36,7 +35,7 @@ function timeToIso(value: string) {
 }
 function timeMinutes(value:string){const match=value.match(/(오전|오후)\s*(\d+):(\d+)/);if(!match)return-1;let hour=Number(match[2])%12;if(match[1]==='오후')hour+=12;return hour*60+Number(match[3]);}
 
-export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () => void; onCreated?: () => void }) {
+export function ProductRegistrationScreen({ onBack, onCreated, showHeader=true }: { onBack: () => void; onCreated?: () => void; showHeader?:boolean }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category | null>(null);
@@ -112,7 +111,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
   if (complete) return <Completion onDone={() => { onCreated?.(); onBack(); }} />;
 
   return <View style={s.root}>
-    <Header onBack={onBack} />
+    {showHeader?<Header />:null}
     <ScrollView contentContainerStyle={s.form} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <Text style={s.title}>신규 상품/자원 등록하기</Text>
       <View style={s.photoField}>
@@ -169,8 +168,8 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
   </View>;
 }
 
-function Header({ onBack }: { onBack: () => void }) {
-  return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable><Text style={s.headerTitle}>상품등록</Text><View style={{ width: 24 }} /></View>;
+function Header() {
+  return <View style={s.header}><View style={{width:24}}/><Text style={s.headerTitle}>상품등록</Text><View style={{ width: 24 }} /></View>;
 }
 function FormField({ label, error, message, children }: { label: string; error?: boolean; message?: string; children: React.ReactNode }) {
   return <View style={s.field}><Text style={s.label}>{label}<Text style={s.required}> *</Text></Text>{children}{error && message ? <Text style={s.errorText}>{message}</Text> : null}</View>;

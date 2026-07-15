@@ -45,7 +45,7 @@ const initialCachedNickname=()=>readWebCache<CachedUser>(USER_CACHE_KEY)?.nickna
 async function cachedNickname(){return (await readCache<CachedUser>(USER_CACHE_KEY))?.nickname??''}
 async function cacheNickname(nickname:string){const cached=await readCache<CachedUser>(USER_CACHE_KEY);await writeCache(USER_CACHE_KEY,{...cached,nickname})}
 
-export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
+export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw, onRootChange }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void>; onRootChange?:(root:boolean)=>void }) {
   const [page, setPage] = useState<Page>(initialBusinessRegistration?'businessForm':'main');
   const [pageDirection,setPageDirection]=useState<-1|1>(1);
   const [pageTransitionEnabled,setPageTransitionEnabled]=useState(false);
@@ -55,6 +55,7 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
   const [business, setBusiness] = useState<Business | null>(null);
   const [formReturn, setFormReturn] = useState<'main' | 'mode'>('main');
   useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);setProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(()=>undefined);sellerApi.profile().then(profile=>{const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current??next,application))).catch(()=>undefined)}).catch(()=>undefined)},[]);
+  useEffect(()=>onRootChange?.(page==='main'),[page,onRootChange]);
 
   const go=(next:Page,direction:-1|1=1)=>{setPageTransitionEnabled(true);setPageDirection(direction);setPage(next)};
   const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
@@ -85,7 +86,7 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
   </View>);
 }
 
-export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLogout, onWithdraw }: { onBack: () => void; onProducts?: () => void; onAi?:()=>void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void> }) {
+export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLogout, onWithdraw, onRootChange }: { onBack: () => void; onProducts?: () => void; onAi?:()=>void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void>; onRootChange?:(root:boolean)=>void }) {
   const [page, setPage] = useState<'main' | 'profile' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
   const [pageDirection,setPageDirection]=useState<-1|1>(1);
   const [pageTransitionEnabled,setPageTransitionEnabled]=useState(false);
@@ -98,6 +99,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   const go=(next:typeof page,direction:-1|1=1)=>{setPageTransitionEnabled(true);setPageDirection(direction);setPage(next)};
   const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
   useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);setSellerProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile);const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current,application))).catch(()=>undefined); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
+  useEffect(()=>onRootChange?.(page==='main'),[page,onRootChange]);
   if (page === 'profile') return screen(<ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => go('main',-1)} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);go('main',-1); }} />);
   if (page === 'business') return screen(<BusinessInfo value={business} onBack={() => go('main',-1)} onEdit={() => go('businessForm')} />);
   if (page === 'businessForm') return screen(<BusinessForm initial={business} editing onBack={() => go('business',-1)} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness({...profileToBusiness(profile),representative:value.representative,openYear:value.openYear,openMonth:value.openMonth,openDay:value.openDay}); go('business',-1); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />);
@@ -241,6 +243,8 @@ function BusinessInfo({ value, onBack, onEdit }: { value: Business; onBack: () =
 
 function Completion({ title, body, button, onPress }: { title: string; body: string; button: string; onPress: () => void | Promise<void> }) { return <View style={s.root}><View style={s.completeArt}><LocaltimeCharacter size={112} /></View><View style={s.completeCopy}><Text style={s.completeTitle}>{title}</Text><Text style={s.completeBody}>{body}</Text></View><View style={s.completeButton}><ActionButton onPress={onPress}>{button}</ActionButton></View></View>; }
 function ModeCompletion({ onDone }: { onDone: () => void }) { const [name,setName]=useState(initialCachedNickname); useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);void cacheNickname(me.nickname)}).catch(()=>undefined)},[]); return <View style={s.root}><Text style={s.modeDoneLabel}>판매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>{name}님, 환영합니다!</Text><Text style={s.completeBody}>매장의 마감 상품 및 자원을 등록하고,{`\n`}AI 가격 제안으로 매출을 극대화해 보세요.</Text></View><View style={s.modeDoneButton}><ActionButton onPress={onDone}>시작하기</ActionButton></View></View>; }
+
+export function BuyerModeCompletion({ready,onDone}:{ready:boolean;onDone:()=>void}) { const [name,setName]=useState(initialCachedNickname); useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);void cacheNickname(me.nickname)}).catch(()=>undefined)},[]); return <View style={s.root}><Text style={s.modeDoneLabel}>구매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>{name}님, 환영합니다!</Text><Text style={s.completeBody}>{ready?'주변의 마감 상품과 자원을 둘러보고,\n합리적인 가격으로 구매해 보세요.':'주변의 마감 상품을 불러오고 있어요.\n잠시만 기다려 주세요.'}</Text></View><View style={s.modeDoneButton}><ActionButton disabled={!ready} onPress={onDone}>{ready?'시작하기':'홈 준비 중...'}</ActionButton></View></View>; }
 
 function NotificationPage({ onBack }: { onBack: () => void }) { return <SellerNotificationPage onBack={onBack}/>; }
 

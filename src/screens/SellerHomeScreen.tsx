@@ -82,6 +82,7 @@ export function SellerHomeScreen({
 }) {
   const [page, setPage] = useState<SellerPage>("dashboard");
   const [pageDirection,setPageDirection]=useState<-1|1>(1);
+  const [myPageRoot,setMyPageRoot]=useState(true);
   const [items, setItems] = useState<Payment[]>([]);
   const today = dateKey(new Date());
   const cachedDashboard = readWebCache<CachedSellerDashboard>(SELLER_DASHBOARD_CACHE_KEY);
@@ -101,7 +102,16 @@ export function SellerHomeScreen({
     setPageDirection(direction??(order[next]>order[page]?1:-1));
     setPage(next);
   };
-  const screen=(content:React.ReactNode)=><ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>;
+  const screen=(content:React.ReactNode)=>{
+    const tabPage=page!=="payments";
+    const chromeVisible=tabPage&&(page!=="mypage"||myPageRoot);
+    const active=page==="dashboard"?"home":page;
+    return <View style={{flex:1,overflow:"hidden"}}>
+      <ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>
+      {chromeVisible?<View style={{position:"absolute",left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}>{page==="products"?<View style={{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,alignItems:"center",justifyContent:"center"}}><Text style={{fontSize:16,fontWeight:"600",color:colors.black}}>상품등록</Text></View>:<AppHeader/>}</View>:null}
+      {chromeVisible?<View style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:66}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
+    </View>;
+  };
   const refresh = useCallback(async () => {
     try {
       const [value, payments, report] = await Promise.all([
@@ -141,7 +151,7 @@ export function SellerHomeScreen({
   if (page === "products")
     return screen(
       <View style={s.root}>
-        <ProductRegistrationScreen onBack={() => navigate("dashboard",-1)} />
+        <ProductRegistrationScreen showHeader={false} onBack={() => navigate("dashboard",-1)} />
         <SellerNavigation
           active="products"
           onHome={() => navigate("dashboard")}
@@ -174,6 +184,7 @@ export function SellerHomeScreen({
         onBuyerMode={onBuyerMode}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
+        onRootChange={setMyPageRoot}
       />
     );
   const counts = dashboard.paymentCounts;

@@ -25,7 +25,7 @@ import ChevronDownIcon from "../../icon/chevron_down.svg";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import SearchIcon from "../../icon/search.svg";
 import CloseIcon from "../../icon/x.svg";
-import { MyPageScreen } from "./MyPageScreen";
+import { BuyerModeCompletion, MyPageScreen } from "./MyPageScreen";
 import { SellerHomeScreen } from "./SellerHomeScreen";
 import { BuyerMapScreen } from "./BuyerMapScreen";
 import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
@@ -147,7 +147,10 @@ export function BuyerHomeScreen({
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
   const [tabDirection,setTabDirection]=useState<-1|1>(1);
+  const [myPageRoot,setMyPageRoot]=useState(initialEntry!=='businessRegistration');
   const [sellerMode, setSellerMode] = useState(initialEntry==='seller');
+  const [buyerModeComplete,setBuyerModeComplete]=useState(false);
+  const [buyerHomeReady,setBuyerHomeReady]=useState(initialEntry!=='seller');
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
@@ -163,7 +166,14 @@ export function BuyerHomeScreen({
     setTabDirection(order[next]>order[tab]?1:-1);
     setTab(next);
   };
-  const tabScreen=(content:React.ReactNode)=><ScreenTransition key={tab} direction={tabDirection}>{content}</ScreenTransition>;
+  const tabScreen=(content:React.ReactNode)=>{
+    const chromeVisible=tab!=='mypage'||myPageRoot;
+    return <View style={{flex:1,overflow:'hidden'}}>
+      <ScreenTransition key={tab} direction={tabDirection}>{content}</ScreenTransition>
+      {tab!=='map'&&chromeVisible?<View style={{position:'absolute',left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader/></View>:null}
+      {chromeVisible?<View style={{position:'absolute',left:0,right:0,bottom:0,zIndex:20,height:66}}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
+    </View>;
+  };
   useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);
@@ -180,7 +190,8 @@ export function BuyerHomeScreen({
         return all.content.filter(product=>product.businessType===businessType);
       })
       .then(items => setProductItems(items.map(apiProductToCard)))
-      .catch(() => setProductItems([]));
+      .catch(() => setProductItems([]))
+      .finally(()=>setBuyerHomeReady(true));
     void refreshProducts();
     const productInterval=setInterval(refreshProducts,5_000);
     buyerApi
@@ -289,10 +300,11 @@ export function BuyerHomeScreen({
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
   if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);setTab('purchases');void buyerApi.purchases({size:50}).then(page=>setPurchases(page.content.map(apiPurchaseToItem)))}} onHome={()=>{setPaymentComplete(false);setTab('home')}}/>;
+  if(buyerModeComplete)return <BuyerModeCompletion ready={buyerHomeReady} onDone={()=>setBuyerModeComplete(false)}/>;
   if (sellerMode)
     return (
       <SellerHomeScreen
-        onBuyerMode={() => {setSellerMode(false);setTab('home');}}
+        onBuyerMode={() => {setBuyerHomeReady(false);setSellerMode(false);setTab('home');setBuyerModeComplete(true);}}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
       />
@@ -308,6 +320,7 @@ export function BuyerHomeScreen({
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
+        onRootChange={setMyPageRoot}
       />
     );
   if (tab === "purchases")
