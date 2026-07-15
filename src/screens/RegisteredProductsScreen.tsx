@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -8,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { ActionButton } from "../components/ui";
 import { colors, radius } from "../theme";
 import { ApiError, Product as ApiProduct, sellerApi } from "../api";
@@ -30,6 +32,7 @@ type Product = {
   endIso: string;
   location: string;
   status: string;
+  imageUrls: string[];
 };
 
 const businessLabel = {
@@ -101,6 +104,7 @@ const toViewProduct = (item: ApiProduct): Product => ({
       : item.status === "PAUSED"
         ? "판매중지"
         : "판매종료",
+  imageUrls: item.imageUrls ?? [],
 });
 const statusByLabel = {
   판매중: "ACTIVE",
@@ -134,7 +138,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
       <EditProduct
         product={editing}
         onBack={() => setEditing(null)}
-        onSave={async (next) => {
+        onSave={async (next, images) => {
           await sellerApi.updateProduct(next.id, {
             name: next.name,
             businessType:
@@ -151,6 +155,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
             address: next.location,
             status: statusByLabel[next.status as keyof typeof statusByLabel],
           });
+          if(images.length)await sellerApi.uploadProductImages(next.id,images.map((image,index)=>({uri:image.uri,name:image.fileName??`product-${index+1}.jpg`,type:image.mimeType??"image/jpeg",file:image.file})));
           setItems((list) =>
             list.map((item) => (item.id === next.id ? next : item)),
           );
@@ -346,7 +351,7 @@ function EditProduct({
 }: {
   product: Product;
   onBack: () => void;
-  onSave: (p: Product) => void | Promise<void>;
+  onSave: (p: Product, images: ImagePicker.ImagePickerAsset[]) => void | Promise<void>;
 }) {
   const [value, setValue] = useState(product);
   const [sheet, setSheet] = useState<
@@ -357,6 +362,8 @@ function EditProduct({
   );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [newImages,setNewImages]=useState<ImagePicker.ImagePickerAsset[]>([]);
+  const pickImages=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted){setSaveError("사진 수정을 위해 사진 보관함 접근 권한을 허용해 주세요.");return}const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],allowsMultipleSelection:true,selectionLimit:Math.max(1,3-product.imageUrls.length-newImages.length),quality:.85});if(!result.canceled)setNewImages(current=>[...current,...result.assets].slice(0,Math.max(0,3-product.imageUrls.length)))};
   useEffect(() => {
     sellerApi
       .profile()
@@ -370,7 +377,7 @@ function EditProduct({
   }, [product.location]);
   const set = (key: keyof Product, text: string) =>
     setValue((v) => ({ ...v, [key]: text }));
-  const changed = JSON.stringify(value) !== JSON.stringify(product);
+  const changed = JSON.stringify(value) !== JSON.stringify(product) || newImages.length>0;
   const valid = !!(
     value.name.trim() &&
     value.category &&
@@ -388,7 +395,7 @@ function EditProduct({
     setSaving(true);
     setSaveError(null);
     try {
-      await onSave(Number(value.quantity) <= 0 ? { ...value, status: "판매중지" } : value);
+      await onSave(Number(value.quantity) <= 0 ? { ...value, status: "판매중지" } : value,newImages);
     } catch (error) {
       setSaveError(error instanceof ApiError ? error.message : "상품 정보를 저장하지 못했습니다.");
     } finally {
@@ -399,6 +406,10 @@ function EditProduct({
     <View style={s.root}>
       <Header title="등록 상품/자원 수정" onBack={onBack} />
       <ScrollView contentContainerStyle={s.form} showsVerticalScrollIndicator={false}>
+        <Field label="상품 사진">
+          <View style={s.editPhotos}>{product.imageUrls.map((uri,index)=><View key={uri} style={s.editPhoto}><Image source={{uri}} style={s.editPhotoImage}/>{index===0?<Text style={s.coverBadge}>대표</Text>:null}</View>)}{newImages.map((image,index)=><View key={image.uri} style={s.editPhoto}><Image source={{uri:image.uri}} style={s.editPhotoImage}/><Pressable onPress={()=>setNewImages(items=>items.filter((_,i)=>i!==index))} style={s.removeEditPhoto}><Text style={s.removeEditPhotoText}>×</Text></Pressable></View>)}{product.imageUrls.length+newImages.length<3?<Pressable accessibilityLabel="상품 사진 추가" onPress={pickImages} style={[s.editPhoto,s.addEditPhoto]}><Text style={s.addEditPhotoText}>＋</Text></Pressable>:null}</View>
+          <Text style={s.photoHelp}>새 사진을 최대 3장까지 추가하거나 선택한 사진을 취소할 수 있습니다.</Text>
+        </Field>
         <Field label="상품/자원 이름">
           <TextInput
             style={s.input}
@@ -1033,6 +1044,15 @@ const s = StyleSheet.create({
   },
   disabled: { backgroundColor: colors.g200 },
   saveError:{fontSize:12,lineHeight:18,color:colors.danger,textAlign:"center"},
+  editPhotos:{flexDirection:"row",gap:10,flexWrap:"wrap"},
+  editPhoto:{width:92,height:92,borderRadius:12,overflow:"hidden",backgroundColor:colors.g100},
+  editPhotoImage:{width:"100%",height:"100%"},
+  coverBadge:{position:"absolute",left:5,bottom:5,paddingHorizontal:6,paddingVertical:2,borderRadius:4,backgroundColor:colors.primary500,color:colors.white,fontSize:10,fontWeight:"600"},
+  removeEditPhoto:{position:"absolute",right:5,top:5,width:22,height:22,borderRadius:11,backgroundColor:"rgba(17,17,17,.55)",alignItems:"center",justifyContent:"center"},
+  removeEditPhotoText:{fontSize:18,lineHeight:20,color:colors.white},
+  addEditPhoto:{borderWidth:1,borderStyle:"dashed",borderColor:colors.g300,alignItems:"center",justifyContent:"center"},
+  addEditPhotoText:{fontSize:28,color:colors.g500},
+  photoHelp:{fontSize:10,color:colors.g500},
   pickerOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,.25)",

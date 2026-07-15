@@ -111,7 +111,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
 
   return <View style={s.root}>
     <Header onBack={onBack} />
-    <ScrollView contentContainerStyle={s.form} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={s.form} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <Text style={s.title}>신규 상품/자원 등록하기</Text>
       <View style={s.photoField}>
         <View style={s.photoHead}><Text style={s.label}>사진 등록<Text style={s.required}> *</Text></Text><Text style={s.photoHint}>첫 번째로 등록된 이미지가 대표 썸네일로 자동 지정되며, 최대 3장까지 등록 가능합니다.</Text></View>

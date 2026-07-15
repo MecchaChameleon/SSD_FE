@@ -319,8 +319,7 @@ export function BuyerHomeScreen({
         onPurchases={() => setTab("purchases")}
         onMyPage={() => setTab("mypage")}
         onBuy={(item) => {
-          setQuantity(1);
-          setPurchase(apiProductToCard(item));
+          setDetailProduct(apiProductToCard(item));
           setTab("home");
         }}
       />
@@ -477,13 +476,6 @@ export function BuyerHomeScreen({
         )}
       </ScrollView>
       <BottomNavigation active="home" onSelect={setTab} />
-      <PurchaseModal
-        product={purchase}
-        quantity={quantity}
-        onQuantity={setQuantity}
-        onClose={() => setPurchase(null)}
-        onConfirm={confirmPurchase}
-      />
     </View>
   );
 }

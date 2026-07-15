@@ -30,10 +30,7 @@ export function PurchaseHistoryScreen({ items, onHome, onMap, onMyPage, onDelete
       {items.length === 0 ? <View style={s.empty}><Text style={s.emptyTitle}>결제 내역이 없어요.</Text><Text style={s.emptyBody}>내 주변 할인 상품을 확인하고 구매해 보세요!</Text></View> : items.map(item =>
         <View key={item.id} style={s.purchaseItem}>
           <ProductCard product={item.product} liked={false} onLike={() => {}} onBuy={() => {}} status={item.status} onDelete={() => onDelete(item.id)} onReason={() => setRefunded(item)} />
-          <View style={s.paymentSummary}>
-            <View style={s.summaryRow}><Text style={s.summaryLabel}>구매 수량</Text><Text style={s.summaryValue}>{item.quantity}개</Text></View>
-            <View style={s.summaryRow}><Text style={s.summaryLabel}>총 결제 금액</Text><Text style={s.totalAmount}>{item.totalAmount.toLocaleString()}원</Text></View>
-          </View>
+          <View style={s.paymentSummary}><View style={s.summaryRow}><View><Text style={s.summaryLabel}>구매 수량</Text><Text style={s.summaryValue}>{item.quantity}개</Text></View><View style={s.summaryDivider}/><View style={s.totalGroup}><Text style={s.summaryLabel}>총 결제 금액</Text><Text style={s.totalAmount}>{item.totalAmount.toLocaleString()}원</Text></View></View></View>
         </View>
       )}
     </ScrollView>
@@ -51,7 +48,9 @@ const s = StyleSheet.create({
   description: { fontSize: 12, color: colors.g500, marginTop: 8, marginBottom: 20 },
   purchaseItem: { marginBottom: 16 },
   paymentSummary: { paddingVertical: 14, paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.g200, gap: 10 },
-  summaryRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  summaryRow: { flexDirection: "row", alignItems: "center" },
+  summaryDivider: { width: 1, height: 36, marginHorizontal: 18, backgroundColor: colors.g200 },
+  totalGroup: { flex: 1, alignItems: "flex-end" },
   summaryLabel: { fontSize: 14, color: colors.g500 },
   summaryValue: { fontSize: 15, fontWeight: "600", color: colors.g800 },
   totalAmount: { fontSize: 17, fontWeight: "700", color: colors.black },
