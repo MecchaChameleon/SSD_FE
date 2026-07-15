@@ -29,7 +29,7 @@ import { BuyerMapScreen } from "./BuyerMapScreen";
 import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
 import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
 import { TimeOptionWheel } from "./RegisteredProductsScreen";
-import { buyerApi, BusinessType, Product as ApiProduct, Purchase as ApiPurchase } from "../api";
+import { buyerApi, BusinessType, Product as ApiProduct, Purchase as ApiPurchase, resolveApiAssetUrl } from "../api";
 
 export type PurchasePayload = {
   productId: number;
@@ -93,7 +93,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     lat: p.lat,
     lng: p.lng,
     discountRate,
-    imageUrls: p.imageUrls ?? [],
+    imageUrls: (p.imageUrls ?? []).map(resolveApiAssetUrl),
   };
 };
 const paymentStatus = (status:ApiPurchase['status']):PaymentDisplayStatus => status==='ACCEPTED'?'accepted':status==='REFUNDED'?'refunded':'pending';

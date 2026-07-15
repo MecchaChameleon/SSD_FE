@@ -12,7 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { ActionButton } from "../components/ui";
 import { colors, radius } from "../theme";
-import { ApiError, Product as ApiProduct, sellerApi } from "../api";
+import { ApiError, Product as ApiProduct, resolveApiAssetUrl, sellerApi } from "../api";
 import ChevronDown from "../../icon/chevron_down.svg";
 import ChevronLeft from "../../icon/chevron_left.svg";
 import MoreIcon from "../../icon/more_vertical.svg";
@@ -104,7 +104,7 @@ const toViewProduct = (item: ApiProduct): Product => ({
       : item.status === "PAUSED"
         ? "판매중지"
         : "판매종료",
-  imageUrls: item.imageUrls ?? [],
+  imageUrls: (item.imageUrls ?? []).map(resolveApiAssetUrl),
 });
 const statusByLabel = {
   판매중: "ACTIVE",
