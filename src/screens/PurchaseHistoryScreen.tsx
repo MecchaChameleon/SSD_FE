@@ -22,6 +22,7 @@ export function PurchaseHistoryScreen({ items, onHome, onMap, onMyPage, onDelete
   onDelete: (id: number) => void;
 }) {
   const [refunded, setRefunded] = useState<PurchaseItem | null>(null);
+  const purchaseDate=(iso:string)=>new Date(iso).toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Seoul"});
   return <View style={s.root}>
     <AppHeader />
     <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
@@ -29,7 +30,7 @@ export function PurchaseHistoryScreen({ items, onHome, onMap, onMyPage, onDelete
       <Text style={s.description}>판매자 수락 전에는 결제 확인 대기 상태이며, 거절 시 자동 환불됩니다.</Text>
       {items.length === 0 ? <View style={s.empty}><Text style={s.emptyTitle}>결제 내역이 없어요.</Text><Text style={s.emptyBody}>내 주변 할인 상품을 확인하고 구매해 보세요!</Text></View> : items.map(item =>
         <View key={item.id} style={s.purchaseItem}>
-          <ProductCard product={item.product} liked={false} onLike={() => {}} onBuy={() => {}} status={item.status} purchaseQuantity={item.quantity} totalAmount={item.totalAmount} onDelete={() => onDelete(item.id)} onReason={() => setRefunded(item)} />
+          <ProductCard product={item.product} liked={false} onLike={() => {}} onBuy={() => {}} status={item.status} purchaseQuantity={item.quantity} totalAmount={item.totalAmount} purchasedAt={purchaseDate(item.purchasedAt)} onDelete={() => onDelete(item.id)} onReason={() => setRefunded(item)} />
         </View>
       )}
     </ScrollView>

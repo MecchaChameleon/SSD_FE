@@ -107,7 +107,7 @@ const apiPurchaseToItem = (item: ApiPurchase): PurchaseItem => ({
     location: "",
     detail: "결제 상품",
     insight: "",
-    original: `${item.unitPrice.toLocaleString()}원`,
+    original: `${item.originalPrice.toLocaleString()}원`,
     price: `${item.unitPrice.toLocaleString()}원`,
     remaining: "",
   },
