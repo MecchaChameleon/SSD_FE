@@ -21,6 +21,7 @@ import Character from "../../icon/로컬타임_캐릭터 1.svg";
 type Product = {
   id: number;
   name: string;
+  description: string;
   category: string;
   type: string;
   quantity: string;
@@ -86,6 +87,7 @@ const withTime = (iso: string | null, label: string) => {
 const toViewProduct = (item: ApiProduct): Product => ({
   id: item.id,
   name: item.name,
+  description: item.description ?? "",
   category: businessLabel[item.businessType],
   type: categoryLabel[item.category],
   quantity: String(item.qty),
@@ -141,6 +143,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
         onSave={async (next, retainedUrls, images) => {
           await sellerApi.updateProduct(next.id, {
             name: next.name,
+            description: next.description.trim(),
             businessType:
               businessTypeByLabel[
                 next.category as keyof typeof businessTypeByLabel
@@ -381,6 +384,7 @@ function EditProduct({
   const changed = JSON.stringify(value) !== JSON.stringify(product) || newImages.length>0 || retainedUrls.length!==product.imageUrls.length;
   const valid = !!(
     value.name.trim() &&
+    value.description.trim() &&
     value.category &&
     value.type &&
     value.quantity &&
@@ -431,17 +435,9 @@ function EditProduct({
             onChangeText={(v) => set("quantity", v.replace(/\D/g, ""))}
           />
         </Field>
-        <Field label="정가/원가">
-          <MoneyInput
-            value={value.regular}
-            onChange={(v) => set("regular", v)}
-          />
-        </Field>
-        <Field label="최소 판매가">
-          <MoneyInput
-            value={value.minimum}
-            onChange={(v) => set("minimum", v)}
-          />
+        <View style={s.two}><View style={s.half}><Field label="정가/원가"><MoneyInput value={value.regular} onChange={(v) => set("regular", v)}/></Field></View><View style={s.half}><Field label="최소 판매가"><MoneyInput value={value.minimum} onChange={(v) => set("minimum", v)}/></Field></View></View>
+        <Field label="상품 설명">
+          <View style={s.descriptionBox}><TextInput multiline maxLength={50} value={value.description} onChangeText={(text)=>set("description",text)} placeholder="상품의 특징이나 이용 방법을 입력해주세요." placeholderTextColor={colors.g400} style={s.descriptionInput}/><Text style={s.characterCount}>{value.description.length}/50</Text></View>
         </Field>
         <View style={s.two}>
           <View style={s.half}>
@@ -1055,6 +1051,9 @@ const s = StyleSheet.create({
   addEditPhoto:{borderWidth:1,borderStyle:"dashed",borderColor:colors.g300,alignItems:"center",justifyContent:"center"},
   addEditPhotoText:{fontSize:28,color:colors.g500},
   photoHelp:{fontSize:10,color:colors.g500},
+  descriptionBox:{minHeight:112,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,paddingTop:12,paddingBottom:8,backgroundColor:colors.white},
+  descriptionInput:{minHeight:70,fontSize:14,lineHeight:20,color:colors.black,textAlignVertical:"top"},
+  characterCount:{fontSize:10,color:colors.g500,textAlign:"right"},
   pickerOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,.25)",

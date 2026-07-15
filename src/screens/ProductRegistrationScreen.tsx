@@ -38,6 +38,7 @@ function timeMinutes(value:string){const match=value.match(/(오전|오후)\s*(\
 
 export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () => void; onCreated?: () => void }) {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category | null>(null);
   const [type, setType] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -57,7 +58,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   useEffect(()=>{sellerApi.profile().then(profile=>{if(profile.address){setLocations([profile.address]);setLocation(profile.address)}}).catch(()=>setRequestError('사업자 정보의 매장 주소를 불러오지 못했습니다.'))},[]);
 
-  const requiredFieldsValid = !!(images.length && name.trim() && category && type && quantity && regular && minimum && start && end && location);
+  const requiredFieldsValid = !!(images.length && name.trim() && description.trim() && category && type && quantity && regular && minimum && start && end && location);
   const invalidPriceRange = !!(regular && minimum && Number(minimum) > Number(regular));
   const invalidTimeRange = !!(start && end && timeMinutes(start) >= timeMinutes(end));
   const valid = requiredFieldsValid && !invalidPriceRange && !invalidTimeRange;
@@ -83,6 +84,7 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
     try {
       const product = await sellerApi.createProduct({
         name: name.trim(),
+        description: description.trim(),
         businessType: config.businessType,
         category: productCategory,
         qty: Number(quantity),
@@ -131,12 +133,10 @@ export function ProductRegistrationScreen({ onBack, onCreated }: { onBack: () =>
       <FormField label="등록 수량" error={error(quantity)} message="등록 수량을 입력해주세요.">
         <TextInput value={quantity} onChangeText={v => digits(v, setQuantity)} keyboardType="number-pad" placeholder="수량 입력" placeholderTextColor={colors.g400} style={[s.input, error(quantity) && s.inputError]} />
       </FormField>
-      <FormField label="정가/원가" error={error(regular)} message="정가/원가를 입력해주세요.">
-        <MoneyInput value={regular} onChange={v => { digits(v, setRegular); setPriceError(null); }} error={error(regular) || invalidPriceRange} />
-      </FormField>
-      <FormField label="최소 판매가" error={error(minimum)} message="최소 판매가를 입력해주세요.">
-        <MoneyInput value={minimum} onChange={v => { digits(v, setMinimum); setPriceError(null); }} error={error(minimum) || invalidPriceRange} />
-        {priceError ? <Text style={s.errorText}>{priceError}</Text> : null}
+      <View style={s.timeRow}><View style={s.timeCell}><FormField label="정가/원가" error={error(regular)} message="정가/원가를 입력해주세요."><MoneyInput value={regular} onChange={v => { digits(v, setRegular); setPriceError(null); }} error={error(regular) || invalidPriceRange} /></FormField></View><View style={s.timeCell}><FormField label="최소 판매가" error={error(minimum)} message="최소 판매가를 입력해주세요."><MoneyInput value={minimum} onChange={v => { digits(v, setMinimum); setPriceError(null); }} error={error(minimum) || invalidPriceRange} /></FormField></View></View>
+      {priceError ? <Text style={s.timeRangeError}>{priceError}</Text> : null}
+      <FormField label="상품 설명" error={error(description)} message="상품 설명을 입력해주세요.">
+        <View style={[s.descriptionBox,error(description)&&s.inputError]}><TextInput multiline maxLength={50} value={description} onChangeText={setDescription} placeholder="상품의 특징이나 이용 방법을 입력해주세요." placeholderTextColor={colors.g400} style={s.descriptionInput}/><Text style={s.characterCount}>{description.length}/50</Text></View>
       </FormField>
       <View style={s.timeRow}>
         <View style={s.timeCell}><FormField label="판매 시작 시각" error={error(start)}><Select value={start} placeholder="시각 선택" onPress={() => setSheet('start')} error={error(start)} /></FormField></View>
@@ -197,7 +197,7 @@ const s = StyleSheet.create({
   root:{flex:1,backgroundColor:colors.white}, header:{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, headerTitle:{fontSize:16,fontWeight:'600',color:colors.black},
   form:{padding:16,paddingBottom:100,gap:24}, title:{fontSize:20,fontWeight:'600',color:colors.black}, field:{gap:8}, label:{fontSize:14,fontWeight:'500',color:colors.black}, required:{color:colors.primary500}, input:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,fontSize:16,color:colors.black,backgroundColor:colors.white}, inputError:{borderColor:colors.danger}, errorText:{fontSize:12,color:colors.danger},
   photoField:{gap:16,alignItems:'center'},photoHead:{width:'100%',gap:4},photoHint:{fontSize:10,color:colors.g500},addCircle:{width:44,height:44,borderRadius:22,backgroundColor:'rgba(230,230,229,.5)',alignItems:'center',justifyContent:'center'},plus:{fontSize:28,fontWeight:'300',color:colors.g500},photos:{width:'100%',flexDirection:'row',gap:12},photo:{width:94,height:94,borderRadius:12,overflow:'hidden',backgroundColor:colors.g100,borderWidth:1,borderColor:'transparent'},coverPhoto:{borderColor:colors.primary500,borderWidth:2},photoImage:{width:'100%',height:'100%'},photoAdd:{alignItems:'center',justifyContent:'center',borderStyle:'dashed',borderColor:colors.g300},removePhoto:{position:'absolute',right:5,top:5,width:20,height:20,borderRadius:10,backgroundColor:'rgba(126,124,119,.72)',alignItems:'center',justifyContent:'center'},removeText:{color:colors.white,fontSize:18,lineHeight:20,fontWeight:'600'},
-  select:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:colors.white}, selectDisabled:{backgroundColor:colors.g100,borderColor:colors.g200}, selectText:{flex:1,fontSize:16,color:colors.black}, placeholder:{color:colors.g400}, money:{flexDirection:'row',alignItems:'center',gap:10}, moneyInput:{flex:1}, won:{fontSize:16,color:colors.black,paddingHorizontal:8}, timeRow:{flexDirection:'row',gap:12}, timeCell:{flex:1}, timeRangeError:{fontSize:12,color:colors.danger,marginTop:-16},
+  descriptionBox:{minHeight:112,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,paddingTop:12,paddingBottom:8,backgroundColor:colors.white},descriptionInput:{minHeight:70,fontSize:14,lineHeight:20,color:colors.black,textAlignVertical:'top'},characterCount:{fontSize:10,color:colors.g500,textAlign:'right'},select:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:radius.sm,paddingHorizontal:14,flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:colors.white}, selectDisabled:{backgroundColor:colors.g100,borderColor:colors.g200}, selectText:{flex:1,fontSize:16,color:colors.black}, placeholder:{color:colors.g400}, money:{flexDirection:'row',alignItems:'center',gap:10}, moneyInput:{flex:1}, won:{fontSize:16,color:colors.black,paddingHorizontal:8}, timeRow:{flexDirection:'row',gap:12}, timeCell:{flex:1}, timeRangeError:{fontSize:12,color:colors.danger,marginTop:-16},
   submit:{height:56,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:8}, submitDisabled:{backgroundColor:colors.g200}, submitText:{fontSize:16,fontWeight:'600',color:colors.white}, submitTextDisabled:{color:colors.g400}, requestError:{fontSize:12,lineHeight:18,color:colors.danger,textAlign:'center'},
   overlay:{flex:1,backgroundColor:'rgba(17,17,17,.28)',justifyContent:'flex-end',alignItems:'center'}, sheet:{width:'100%',maxWidth:402,maxHeight:'72%',backgroundColor:colors.white,borderTopLeftRadius:24,borderTopRightRadius:24,padding:20,paddingBottom:28}, sheetHead:{flexDirection:'row',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}, sheetTitle:{fontSize:18,fontWeight:'600',color:colors.black}, sheetHint:{fontSize:12,color:colors.g500,marginTop:5}, options:{maxHeight:450}, option:{minHeight:54,borderBottomWidth:1,borderBottomColor:colors.g200,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}, optionText:{fontSize:16,color:colors.g800}, optionSelected:{fontWeight:'600',color:colors.primary700}, radio:{width:24,height:24,borderRadius:12,borderWidth:2,borderColor:colors.g300,alignItems:'center',justifyContent:'center'}, radioOn:{borderColor:colors.primary500}, radioDot:{width:12,height:12,borderRadius:6,backgroundColor:colors.primary500},
   complete:{flex:1,backgroundColor:colors.white,padding:16,justifyContent:'space-between'}, completeAction:{marginBottom:70}, completeBody:{flex:1,alignItems:'center',justifyContent:'center',paddingHorizontal:12}, completeTitle:{fontSize:28,fontWeight:'700',color:colors.black,marginTop:16}, completeText:{fontSize:16,lineHeight:24,color:colors.g500,textAlign:'center',marginTop:10},
