@@ -179,7 +179,7 @@ function Select({ value, placeholder, onPress, disabled, error }: { value: strin
   return <Pressable disabled={disabled} onPress={onPress} style={[s.select, disabled && s.selectDisabled, error && s.inputError]}><Text style={[s.selectText, !value && s.placeholder]} numberOfLines={1}>{value || placeholder}</Text><ChevronDown width={22} height={22} color={disabled ? colors.g200 : colors.g400} /></Pressable>;
 }
 function MoneyInput({ value, onChange, error }: { value: string; onChange: (value: string) => void; error?: boolean }) {
-  return <View style={s.money}><TextInput value={value ? Number(value).toLocaleString() : ''} onChangeText={onChange} keyboardType="number-pad" placeholder="금액 입력" placeholderTextColor={colors.g400} style={[s.input, s.moneyInput, error && s.inputError]} /><Text pointerEvents="none" style={s.won}>원</Text></View>;
+  return <View style={s.money}><TextInput value={value ? Number(value).toLocaleString() : ''} onChangeText={onChange} keyboardType="number-pad" placeholder="금액 입력" placeholderTextColor={colors.g400} style={[s.input, s.moneyInput, {paddingRight:14}, error && s.inputError]} /></View>;
 }
 function ChoiceSheet({ kind, options, selected, onClose, onSelect }: { kind: Sheet; options: string[]; selected: string; onClose: () => void; onSelect: (value: string) => void }) {
   const titles: Record<Exclude<Sheet, null>, string> = { category: '카테고리 선택', type: '유형 선택', start: '판매 시작 시각 선택', end: '판매 마감 시각 선택', location: '상품/자원을 등록할 매장 선택' };

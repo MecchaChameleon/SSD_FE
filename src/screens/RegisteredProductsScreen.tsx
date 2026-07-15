@@ -893,7 +893,6 @@ function MoneyInput({
         value={value}
         onChangeText={(v) => onChange(v.replace(/[^0-9,]/g, ""))}
       />
-      <Text pointerEvents="none" style={s.won}>원</Text>
     </View>
   );
 }
@@ -1030,7 +1029,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
   },
   money: { position: "relative", minWidth: 0 },
-  moneyInput: { width: "100%", minWidth: 0, paddingRight: 36 },
+  moneyInput: { width: "100%", minWidth: 0 },
   won: { position: "absolute", right: 14, top: 0, bottom: 0, textAlignVertical: "center", fontSize: 14, color: colors.black },
   two: { width: "100%", flexDirection: "row", gap: 10 },
   half: { flex: 1, minWidth: 0 },

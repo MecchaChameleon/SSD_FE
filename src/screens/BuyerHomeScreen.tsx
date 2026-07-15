@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Modal,
   Image,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -495,15 +497,34 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
   const images=product.imageUrls??[];
   const [index,setIndex]=useState(0);
   const {width}=useWindowDimensions();const frameWidth=Math.min(width,402);
-  return <View style={[detailStyles.root,{width:frameWidth,alignSelf:'center'}]}>
-    <View style={detailStyles.hero}>{images.length?<ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={event=>setIndex(Math.round(event.nativeEvent.contentOffset.x/event.nativeEvent.layoutMeasurement.width))}>{images.map((url,i)=><Image key={`${url}-${i}`} source={{uri:url}} resizeMode="cover" style={[detailStyles.heroImage,{width:frameWidth}]}/>)}</ScrollView>:<View style={detailStyles.fallback}/>}<View style={detailStyles.heroActions}><Pressable onPress={onBack} style={detailStyles.circle}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Pressable onPress={onLike} style={detailStyles.circle}><Text style={[detailStyles.heart,liked&&detailStyles.heartLiked]}>♥</Text></Pressable></View>{images.length>1?<View style={detailStyles.dots}>{images.map((_,i)=><View key={i} style={[detailStyles.dot,index===i&&detailStyles.dotOn]}/>)}</View>:null}</View>
-    <View style={detailStyles.panel}>
+  const heroCollapse=useRef(new Animated.Value(0)).current;
+  const collapseStart=useRef(0);
+  const panResponder=useRef(PanResponder.create({
+    onStartShouldSetPanResponder:()=>true,
+    onMoveShouldSetPanResponder:(_,gesture)=>Math.abs(gesture.dy)>4,
+    onPanResponderGrant:()=>{heroCollapse.stopAnimation(value=>{collapseStart.current=value})},
+    onPanResponderMove:(_,gesture)=>heroCollapse.setValue(Math.max(0,Math.min(319,collapseStart.current-gesture.dy))),
+    onPanResponderRelease:(_,gesture)=>{
+      const target=gesture.vy<-.35||collapseStart.current-gesture.dy>145?319:0;
+      Animated.spring(heroCollapse,{toValue:target,tension:72,friction:12,useNativeDriver:false}).start();
+    },
+    onPanResponderTerminate:()=>Animated.spring(heroCollapse,{toValue:collapseStart.current>145?319:0,tension:72,friction:12,useNativeDriver:false}).start(),
+  })).current;
+  const heroHeight=heroCollapse.interpolate({inputRange:[0,319],outputRange:[319,0],extrapolate:'clamp'});
+  const heroOpacity=heroCollapse.interpolate({inputRange:[0,245,319],outputRange:[1,.35,0],extrapolate:'clamp'});
+  const heroScale=heroCollapse.interpolate({inputRange:[0,319],outputRange:[1,.78],extrapolate:'clamp'});
+  return <View style={[detailStyles.root,gestureStyles.root,{width:frameWidth,alignSelf:'center'}]}>
+    <Animated.View style={[detailStyles.hero,{height:heroHeight,opacity:heroOpacity,transform:[{scale:heroScale}]}]}>{images.length?<ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={event=>setIndex(Math.round(event.nativeEvent.contentOffset.x/event.nativeEvent.layoutMeasurement.width))}>{images.map((url,i)=><Image key={`${url}-${i}`} source={{uri:url}} resizeMode="cover" style={[detailStyles.heroImage,{width:frameWidth}]}/>)}</ScrollView>:<View style={detailStyles.fallback}/>}<View style={detailStyles.heroActions}><Pressable onPress={onBack} style={detailStyles.circle}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Pressable onPress={onLike} style={detailStyles.circle}><Text style={[detailStyles.heart,liked&&detailStyles.heartLiked]}>♥</Text></Pressable></View>{images.length>1?<View style={detailStyles.dots}>{images.map((_,i)=><View key={i} style={[detailStyles.dot,index===i&&detailStyles.dotOn]}/>)}</View>:null}</Animated.View>
+    <View style={[detailStyles.panel,gestureStyles.panel]}>
+      <View style={gestureStyles.dragArea} {...panResponder.panHandlers}><View style={gestureStyles.dragHandle}/></View>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} contentContainerStyle={gestureStyles.panelContent}>
       <View style={detailStyles.titleRow}><View style={detailStyles.nameRow}><Text numberOfLines={1} style={detailStyles.name}>{product.title}</Text>{product.urgent?<View style={detailStyles.tag}><Text style={detailStyles.tagText}>마감임박</Text></View>:null}</View><Text style={detailStyles.discount}>{product.discount}</Text></View>
       <View style={detailStyles.locationRow}><Text style={detailStyles.shop}>{product.shop}</Text><Text numberOfLines={1} style={detailStyles.location}>{product.location}</Text></View>
       <DetailRow label="상품정보" value={product.detail.split('·')[0].trim()}/><DetailRow label="마감시각" value={product.deadlineAt?new Date(product.deadlineAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'}):'-'}/><DetailRow label="잔여수량" value={product.remaining.replace(/[^0-9]/g,'')||'-'}/>
       <View style={detailStyles.priceRow}><Text style={detailStyles.original}>{product.original}</Text><View style={detailStyles.sale}><Text style={detailStyles.saleLabel}>[할인가]</Text><Text style={detailStyles.price}>{product.price}</Text></View></View>
       {product.description?<View style={{marginTop:8,paddingVertical:10,borderTopWidth:1,borderTopColor:colors.g200,gap:6}}><Text style={{fontSize:12,color:colors.g600}}>상품 설명</Text><Text style={{fontSize:14,lineHeight:20,color:colors.black}}>{product.description}</Text></View>:null}
       <View style={detailStyles.insight}><Text style={detailStyles.sun}>☼</Text><Text style={detailStyles.insightText}>{product.insight}</Text></View>
+      </ScrollView>
     </View>
     <View style={detailStyles.bottom}><Pressable onPress={onBuy} style={detailStyles.buy}><Text style={detailStyles.buyText}>구매하기</Text></Pressable></View>
   </View>;
@@ -514,6 +535,14 @@ const checkoutStyles=StyleSheet.create({root:{flex:1,backgroundColor:colors.whit
 function DetailRow({label,value}:{label:string;value:string}){return <View style={detailStyles.detailRow}><Text style={detailStyles.detailLabel}>{label}</Text><Text style={detailStyles.detailValue}>{value}</Text></View>}
 
 const detailStyles=StyleSheet.create({root:{flex:1,backgroundColor:colors.white},hero:{height:319,backgroundColor:colors.g100,position:'relative'},heroImage:{width:402,height:319},fallback:{flex:1,backgroundColor:colors.g100},heroActions:{position:'absolute',left:16,right:16,top:60,flexDirection:'row',justifyContent:'space-between'},circle:{width:44,height:44,borderRadius:22,backgroundColor:'rgba(230,230,229,.72)',alignItems:'center',justifyContent:'center'},heart:{fontSize:24,color:colors.white},heartLiked:{color:colors.primary500},dots:{position:'absolute',bottom:40,left:0,right:0,flexDirection:'row',justifyContent:'center',gap:8},dot:{width:6,height:6,borderRadius:3,backgroundColor:colors.g300},dotOn:{backgroundColor:colors.white},panel:{minHeight:494,marginTop:-29,borderTopLeftRadius:30,borderTopRightRadius:30,backgroundColor:colors.white,padding:16,paddingBottom:100},titleRow:{height:52,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},nameRow:{flex:1,flexDirection:'row',alignItems:'center',gap:12},name:{maxWidth:230,fontSize:20,fontWeight:'600',color:colors.black},tag:{paddingHorizontal:4,paddingVertical:2,borderRadius:4,backgroundColor:colors.primary500},tagText:{fontSize:12,fontWeight:'600',color:colors.white},discount:{fontSize:14,fontWeight:'600',color:colors.info},locationRow:{height:32,flexDirection:'row',alignItems:'center',gap:12},shop:{fontSize:14,fontWeight:'600',color:'#2b2b29'},location:{flex:1,fontSize:12,color:colors.g600},detailRow:{height:32,flexDirection:'row',alignItems:'center'},detailLabel:{width:128,fontSize:12,color:colors.g600},detailValue:{flex:1,textAlign:'right',fontSize:14,fontWeight:'500',color:colors.black},priceRow:{height:52,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},original:{fontSize:16,color:colors.g800,textDecorationLine:'line-through'},sale:{flexDirection:'row',alignItems:'center',gap:6},saleLabel:{fontSize:10,color:colors.info},price:{fontSize:20,fontWeight:'600',color:colors.info},insight:{marginTop:8,minHeight:69,paddingHorizontal:8,paddingVertical:16,borderRadius:8,backgroundColor:'rgba(255,237,204,.5)',flexDirection:'row',alignItems:'flex-start',gap:8},sun:{fontSize:24,color:colors.primary500},insightText:{flex:1,fontSize:12,lineHeight:16,fontWeight:'600',color:colors.primary500},bottom:{position:'absolute',left:16,right:16,bottom:34},buy:{height:56,borderRadius:12,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center'},buyText:{fontSize:16,fontWeight:'600',color:colors.white}});
+
+const gestureStyles=StyleSheet.create({
+  root:{overflow:'hidden'},
+  panel:{flex:1,minHeight:0,padding:0,paddingBottom:0,overflow:'hidden'},
+  dragArea:{height:30,alignItems:'center',justifyContent:'center'},
+  dragHandle:{width:54,height:4,borderRadius:2,backgroundColor:colors.g300},
+  panelContent:{paddingHorizontal:16,paddingBottom:120},
+});
 
 function PurchaseModal({
   product,
