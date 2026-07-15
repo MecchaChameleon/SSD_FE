@@ -84,7 +84,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     shop: p.businessName ?? "",
     location: p.address ?? "",
     detail: `${categoryLabels[p.category]} · 마감 ${new Date(deadlineAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" })}`,
-    insight: p.aiInsight ?? "현재 판매 중인 마감 상품입니다.",
+    insight: p.aiInsight ?? "",
     original: `${p.price.toLocaleString()}원`,
     price: `${p.currentPrice.toLocaleString()}원`,
     remaining: `잔여수량 ${p.qty}개`,
@@ -563,7 +563,7 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
       <DetailRow label="상품정보" value={product.detail.split('·')[0].trim()}/><DetailRow label="마감시각" value={product.deadlineAt?new Date(product.deadlineAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'}):'-'}/><DetailRow label="잔여수량" value={product.remaining.replace(/[^0-9]/g,'')||'-'}/>
       <View style={detailStyles.priceRow}><Text style={detailStyles.original}>{product.original}</Text><View style={detailStyles.sale}><Text style={detailStyles.saleLabel}>[할인가]</Text><Text style={detailStyles.price}>{product.price}</Text></View></View>
       {product.description?<View style={{marginTop:8,paddingVertical:10,borderTopWidth:1,borderTopColor:colors.g200,gap:6}}><Text style={{fontSize:12,color:colors.g600}}>상품 설명</Text><Text style={{fontSize:14,lineHeight:20,color:colors.black}}>{product.description}</Text></View>:null}
-      <View style={detailStyles.insight}><Text style={detailStyles.sun}>☼</Text><Text style={detailStyles.insightText}>{product.insight}</Text></View>
+      {product.insight?<View style={detailStyles.insight}><Text style={detailStyles.sun}>☼</Text><Text style={detailStyles.insightText}>{product.insight}</Text></View>:null}
       </View>
     </View>
     <View style={[detailStyles.bottom,gestureStyles.purchaseBottom]}><Pressable onPress={onBuy} style={detailStyles.buy}><Text style={detailStyles.buyText}>구매하기</Text></Pressable></View>
