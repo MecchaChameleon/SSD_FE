@@ -32,7 +32,7 @@ export const sellerApi = {
   updateProductStatus: (id:number,status:ProductStatus) => apiRequest<Product>(`/api/seller/products/${id}/status`, {method:'PATCH',body:{status}}),
   uploadProductImages: (id:number, images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'POST',body:form}); },
   replaceProductImages: (id:number, retainedUrls:string[], images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); retainedUrls.forEach(url=>form.append('retainedUrls',toApiAssetPath(url))); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'PUT',body:form}); },
-  price: (id:number) => apiRequest<AiPrice>(`/api/seller/products/${id}/price`),
+  price: (id:number) => apiRequest<AiPrice>(`/api/seller/products/${id}/price`,{cache:'no-store',query:{_t:Date.now()}}),
   autoPricing: (id:number) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`),
   setAutoPricing: (id:number,enabled:boolean) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`,{method:'PUT',body:{enabled}}),
   strategy: (id:number) => apiRequest<{message:string}>(`/api/seller/products/${id}/strategy`),

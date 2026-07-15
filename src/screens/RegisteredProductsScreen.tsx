@@ -303,7 +303,7 @@ function ProductCard({
         </Text>
       </View>
       <View style={s.discountRow}>
-        <Text style={s.bold}>{selling ? "현재 판매 가격" : "마지막 판매 가격"}</Text>
+        <Text style={s.bold}>{selling ? "현재 판매가" : "마지막 등록 가격"}</Text>
         <Text style={s.price}>
           {salePrice.toLocaleString()}원
         </Text>
