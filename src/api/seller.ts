@@ -26,6 +26,7 @@ export const sellerApi = {
   deleteProduct: async (id:number) => {await apiRequest<void>(`/api/seller/products/${id}`, {method:'DELETE'});if(latestDashboard)latestDashboard.registeredProductCount=Math.max(0,latestDashboard.registeredProductCount-1)},
   updateProductStatus: (id:number,status:ProductStatus) => apiRequest<Product>(`/api/seller/products/${id}/status`, {method:'PATCH',body:{status}}),
   uploadProductImages: (id:number, images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'POST',body:form}); },
+  replaceProductImages: (id:number, retainedUrls:string[], images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); retainedUrls.forEach(url=>form.append('retainedUrls',url)); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'PUT',body:form}); },
   price: (id:number) => apiRequest<{currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[]}>(`/api/seller/products/${id}/price`),
   strategy: (id:number) => apiRequest<{message:string}>(`/api/seller/products/${id}/strategy`),
   applyPrice: (id:number,body:{price:number;recommendationId?:number}) => apiRequest<Product>(`/api/seller/products/${id}/price/apply`,{method:'POST',body}),

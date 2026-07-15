@@ -138,7 +138,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
       <EditProduct
         product={editing}
         onBack={() => setEditing(null)}
-        onSave={async (next, images) => {
+        onSave={async (next, retainedUrls, images) => {
           await sellerApi.updateProduct(next.id, {
             name: next.name,
             businessType:
@@ -155,7 +155,7 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
             address: next.location,
             status: statusByLabel[next.status as keyof typeof statusByLabel],
           });
-          if(images.length)await sellerApi.uploadProductImages(next.id,images.map((image,index)=>({uri:image.uri,name:image.fileName??`product-${index+1}.jpg`,type:image.mimeType??"image/jpeg",file:image.file})));
+          if(retainedUrls.length!==next.imageUrls.length||images.length){const response=await sellerApi.replaceProductImages(next.id,retainedUrls,images.map((image,index)=>({uri:image.uri,name:image.fileName??`product-${index+1}.jpg`,type:image.mimeType??"image/jpeg",file:image.file})));next={...next,imageUrls:response.imageUrls};}
           setItems((list) =>
             list.map((item) => (item.id === next.id ? next : item)),
           );
@@ -351,7 +351,7 @@ function EditProduct({
 }: {
   product: Product;
   onBack: () => void;
-  onSave: (p: Product, images: ImagePicker.ImagePickerAsset[]) => void | Promise<void>;
+  onSave: (p: Product, retainedUrls: string[], images: ImagePicker.ImagePickerAsset[]) => void | Promise<void>;
 }) {
   const [value, setValue] = useState(product);
   const [sheet, setSheet] = useState<
@@ -363,7 +363,8 @@ function EditProduct({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [newImages,setNewImages]=useState<ImagePicker.ImagePickerAsset[]>([]);
-  const pickImages=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted){setSaveError("사진 수정을 위해 사진 보관함 접근 권한을 허용해 주세요.");return}const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],allowsMultipleSelection:true,selectionLimit:Math.max(1,3-product.imageUrls.length-newImages.length),quality:.85});if(!result.canceled)setNewImages(current=>[...current,...result.assets].slice(0,Math.max(0,3-product.imageUrls.length)))};
+  const [retainedUrls,setRetainedUrls]=useState(product.imageUrls);
+  const pickImages=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted){setSaveError("사진 수정을 위해 사진 보관함 접근 권한을 허용해 주세요.");return}const available=3-retainedUrls.length-newImages.length;if(available<=0)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],allowsMultipleSelection:true,selectionLimit:available,quality:.85});if(!result.canceled)setNewImages(current=>[...current,...result.assets].slice(0,3-retainedUrls.length))};
   useEffect(() => {
     sellerApi
       .profile()
@@ -377,7 +378,7 @@ function EditProduct({
   }, [product.location]);
   const set = (key: keyof Product, text: string) =>
     setValue((v) => ({ ...v, [key]: text }));
-  const changed = JSON.stringify(value) !== JSON.stringify(product) || newImages.length>0;
+  const changed = JSON.stringify(value) !== JSON.stringify(product) || newImages.length>0 || retainedUrls.length!==product.imageUrls.length;
   const valid = !!(
     value.name.trim() &&
     value.category &&
@@ -388,14 +389,15 @@ function EditProduct({
     value.start &&
     value.end &&
     value.location &&
-    value.status
+    value.status &&
+    retainedUrls.length + newImages.length > 0
   );
   const save = async () => {
     if (!changed || !valid || saving) return;
     setSaving(true);
     setSaveError(null);
     try {
-      await onSave(Number(value.quantity) <= 0 ? { ...value, status: "판매중지" } : value,newImages);
+      await onSave(Number(value.quantity) <= 0 ? { ...value, status: "판매중지" } : value,retainedUrls,newImages);
     } catch (error) {
       setSaveError(error instanceof ApiError ? error.message : "상품 정보를 저장하지 못했습니다.");
     } finally {
@@ -407,8 +409,8 @@ function EditProduct({
       <Header title="등록 상품/자원 수정" onBack={onBack} />
       <ScrollView contentContainerStyle={s.form} showsVerticalScrollIndicator={false}>
         <Field label="상품 사진">
-          <View style={s.editPhotos}>{product.imageUrls.map((uri,index)=><View key={uri} style={s.editPhoto}><Image source={{uri}} style={s.editPhotoImage}/>{index===0?<Text style={s.coverBadge}>대표</Text>:null}</View>)}{newImages.map((image,index)=><View key={image.uri} style={s.editPhoto}><Image source={{uri:image.uri}} style={s.editPhotoImage}/><Pressable onPress={()=>setNewImages(items=>items.filter((_,i)=>i!==index))} style={s.removeEditPhoto}><Text style={s.removeEditPhotoText}>×</Text></Pressable></View>)}{product.imageUrls.length+newImages.length<3?<Pressable accessibilityLabel="상품 사진 추가" onPress={pickImages} style={[s.editPhoto,s.addEditPhoto]}><Text style={s.addEditPhotoText}>＋</Text></Pressable>:null}</View>
-          <Text style={s.photoHelp}>새 사진을 최대 3장까지 추가하거나 선택한 사진을 취소할 수 있습니다.</Text>
+          <View style={s.editPhotos}>{retainedUrls.map((uri,index)=><View key={uri} style={s.editPhoto}><Image source={{uri}} style={s.editPhotoImage}/>{index===0?<Text style={s.coverBadge}>대표</Text>:null}<Pressable accessibilityLabel="기존 상품 사진 삭제" onPress={()=>setRetainedUrls(items=>items.filter(value=>value!==uri))} style={s.removeEditPhoto}><Text style={s.removeEditPhotoText}>×</Text></Pressable></View>)}{newImages.map((image,index)=><View key={image.uri} style={s.editPhoto}><Image source={{uri:image.uri}} style={s.editPhotoImage}/><Pressable accessibilityLabel="새 상품 사진 선택 취소" onPress={()=>setNewImages(items=>items.filter((_,i)=>i!==index))} style={s.removeEditPhoto}><Text style={s.removeEditPhotoText}>×</Text></Pressable></View>)}{retainedUrls.length+newImages.length<3?<Pressable accessibilityLabel="상품 사진 추가" onPress={pickImages} style={[s.editPhoto,s.addEditPhoto]}><Text style={s.addEditPhotoText}>＋</Text></Pressable>:null}</View>
+          <Text style={s.photoHelp}>기존 사진을 삭제하거나 새 사진을 추가할 수 있습니다. 사진은 1~3장이 필요합니다.</Text>
         </Field>
         <Field label="상품/자원 이름">
           <TextInput
