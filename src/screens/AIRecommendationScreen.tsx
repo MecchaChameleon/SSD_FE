@@ -47,7 +47,10 @@ export function AIRecommendationScreen(){
   },[refreshProducts]);
 
   useEffect(()=>{void refreshProducts().catch(()=>undefined)},[refreshProducts]);
-  useEffect(()=>{if(!selected){setPrice(null);return}void refreshRecommendation(selected,true);const timer=setInterval(()=>{void refreshProducts().catch(()=>undefined);void refreshRecommendation(selected)},5_000);return()=>clearInterval(timer)},[selected,refreshProducts,refreshRecommendation]);
+  useEffect(()=>{if(!selected){setPrice(null);return}void refreshRecommendation(selected,true);const recommendationTimer=setInterval(()=>{void refreshRecommendation(selected)},600_000);const productTimer=setInterval(()=>{void refreshProducts().catch(()=>undefined)},5_000);return()=>{clearInterval(recommendationTimer);clearInterval(productTimer)}},[selected,refreshProducts,refreshRecommendation]);
+
+  const selectedCurrentPrice=products.find(product=>product.id===selected)?.currentPrice;
+  useEffect(()=>{if(selected&&price?.autoPricingEnabled&&selectedCurrentPrice!==undefined&&selectedCurrentPrice!==price.currentPrice)void refreshRecommendation(selected)},[selected,selectedCurrentPrice,price?.autoPricingEnabled,price?.currentPrice,refreshRecommendation]);
 
   const changeAuto=async(enabled:boolean)=>{
     if(!selected||changing)return;

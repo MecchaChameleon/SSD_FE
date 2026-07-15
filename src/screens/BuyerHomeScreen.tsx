@@ -62,8 +62,6 @@ const sorts = [
   "마감 임박순",
   "낮은 가격순",
   "높은 가격순",
-  "낮은 할인율순",
-  "높은 할인율순",
 ] as const;
 const categoryLabels: Record<ApiProduct["category"], string> = {
   SAME_DAY_INVENTORY: "당일 재고",
@@ -222,6 +220,10 @@ export function BuyerHomeScreen({
         !query.trim() ||
         `${p.title} ${p.shop} ${p.location}`.includes(query.trim()),
     );
+    if (sort === "AI 추천순")
+      list = [...list].sort(
+        (a, b) => (b.discountRate ?? 0) - (a.discountRate ?? 0),
+      );
     if (sort === "낮은 가격순")
       list = [...list].sort((a, b) => money(a.price) - money(b.price));
     if (sort === "높은 가격순")
@@ -237,14 +239,6 @@ export function BuyerHomeScreen({
         (a, b) =>
           (a.deadlineAt ?? Number.MAX_SAFE_INTEGER) -
           (b.deadlineAt ?? Number.MAX_SAFE_INTEGER),
-      );
-    if (sort === "낮은 할인율순")
-      list = [...list].sort(
-        (a, b) => (a.discountRate ?? 0) - (b.discountRate ?? 0),
-      );
-    if (sort === "높은 할인율순")
-      list = [...list].sort(
-        (a, b) => (b.discountRate ?? 0) - (a.discountRate ?? 0),
       );
     return list;
   }, [productItems, query, sort, now,userLocation]);
