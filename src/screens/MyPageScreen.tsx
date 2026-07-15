@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AppHeader, BottomNavigation } from '../components/home';
@@ -18,6 +17,7 @@ import KakaoLogo from '../../icon/kakao_logo.svg';
 import HomeIcon from '../../icon/home.svg';
 import ShoppingIcon from '../../icon/shopping-bag.svg';
 import TrelloIcon from '../../icon/trello.svg';
+import { CachedUser, USER_CACHE_KEY, readCache, readWebCache, writeCache } from '../cache/appCache';
 
 type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessForm' | 'businessDone' | 'notifications' | 'modeDone' | 'withdrawDone';
 type Business = { shop: string; representative:string; number1: string; number2: string; number3: string; openYear:string; openMonth:string; openDay:string; address: string; bank: string; account: string; latitude?:number|null; longitude?:number|null };
@@ -40,14 +40,14 @@ type FavoriteProduct = {
   remaining: string;
 };
 const favoriteProducts: FavoriteProduct[] = mockFavoriteProducts;
-const USER_CACHE_KEY='localtime:user';
-async function cachedNickname(){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);return raw?JSON.parse(raw).nickname??'':''}catch{return''}}
-async function cacheNickname(nickname:string){try{const raw=await AsyncStorage.getItem(USER_CACHE_KEY);if(raw)await AsyncStorage.setItem(USER_CACHE_KEY,JSON.stringify({...JSON.parse(raw),nickname}))}catch{}}
+const initialCachedNickname=()=>readWebCache<CachedUser>(USER_CACHE_KEY)?.nickname??'';
+async function cachedNickname(){return (await readCache<CachedUser>(USER_CACHE_KEY))?.nickname??''}
+async function cacheNickname(nickname:string){const cached=await readCache<CachedUser>(USER_CACHE_KEY);await writeCache(USER_CACHE_KEY,{...cached,nickname})}
 
 export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
   const [page, setPage] = useState<Page>(initialBusinessRegistration?'businessForm':'main');
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initialCachedNickname);
   const [profileImageUrl,setProfileImageUrl]=useState<string|null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [formReturn, setFormReturn] = useState<'main' | 'mode'>('main');
@@ -86,7 +86,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   const [business, setBusiness] = useState<Business>(sampleBusiness);
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initialCachedNickname);
   const [sellerProfileImageUrl,setSellerProfileImageUrl]=useState<string|null>(null);
   useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);setSellerProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile);const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current,application))).catch(()=>undefined); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
   if (page === 'profile') return <ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => setPage('main')} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);setPage('main'); }} />;
@@ -231,7 +231,7 @@ function SelectionSheet({ type, query, onClose, onAddress, onBank }: { type: 'ad
 function BusinessInfo({ value, onBack, onEdit }: { value: Business; onBack: () => void; onEdit: () => void }) { const openDate=value.openYear?`${value.openYear}년 ${value.openMonth}월 ${value.openDay}일`:'-';const businessNumber=[value.number1,value.number2,value.number3].filter(Boolean).join('-')||'-';const rows = [['상호명', value.shop],['대표자명',value.representative||'-'], ['사업자등록번호',businessNumber],['개업 일자',openDate], ['매장 주소', value.address], ['은행명', value.bank], ['정산 계좌번호', value.account]]; return <View style={s.root}><Header title="사업자 정보" onBack={onBack} /><ScrollView contentContainerStyle={s.infoRows} showsVerticalScrollIndicator={false}>{rows.map(([label, text]) => <View key={label} style={s.infoRow}><Text style={s.infoLabel}>{label}</Text><Text style={s.infoValue}>{text}</Text></View>)}</ScrollView><View style={s.businessEdit}><Text style={s.helper}>ⓘ 인증 정보 변경 시 국세청 사업자 진위 확인을 다시 진행합니다.</Text><ActionButton dark onPress={onEdit}>수정하기</ActionButton></View></View>; }
 
 function Completion({ title, body, button, onPress }: { title: string; body: string; button: string; onPress: () => void | Promise<void> }) { return <View style={s.root}><View style={s.completeArt}><LocaltimeCharacter size={112} /></View><View style={s.completeCopy}><Text style={s.completeTitle}>{title}</Text><Text style={s.completeBody}>{body}</Text></View><View style={s.completeButton}><ActionButton onPress={onPress}>{button}</ActionButton></View></View>; }
-function ModeCompletion({ onDone }: { onDone: () => void }) { const [name,setName]=useState(''); useEffect(()=>{authApi.me().then(me=>setName(me.nickname)).catch(()=>undefined)},[]); return <View style={s.root}><Text style={s.modeDoneLabel}>판매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>{name}님, 환영합니다!</Text><Text style={s.completeBody}>매장의 마감 상품 및 자원을 등록하고,{`\n`}AI 가격 제안으로 매출을 극대화해 보세요.</Text></View><View style={s.modeDoneButton}><ActionButton onPress={onDone}>시작하기</ActionButton></View></View>; }
+function ModeCompletion({ onDone }: { onDone: () => void }) { const [name,setName]=useState(initialCachedNickname); useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);void cacheNickname(me.nickname)}).catch(()=>undefined)},[]); return <View style={s.root}><Text style={s.modeDoneLabel}>판매자 모드 전환 완료!</Text><View style={s.modeDoneArt}><LocaltimeCharacter size={124} /></View><View style={s.modeDoneCopy}><Text style={s.completeTitle}>{name}님, 환영합니다!</Text><Text style={s.completeBody}>매장의 마감 상품 및 자원을 등록하고,{`\n`}AI 가격 제안으로 매출을 극대화해 보세요.</Text></View><View style={s.modeDoneButton}><ActionButton onPress={onDone}>시작하기</ActionButton></View></View>; }
 
 function NotificationPage({ onBack }: { onBack: () => void }) { return <SellerNotificationPage onBack={onBack}/>; }
 

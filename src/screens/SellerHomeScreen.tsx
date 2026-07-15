@@ -28,6 +28,7 @@ import ShoppingIcon from "../../icon/shopping-bag.svg";
 import TrelloIcon from "../../icon/trello.svg";
 import UserIcon from "../../icon/user.svg";
 import CloseIcon from "../../icon/x.svg";
+import { CachedSellerDashboard, SELLER_DASHBOARD_CACHE_KEY, readCache, readWebCache, writeCache } from "../cache/appCache";
 
 type SellerPage =
   "dashboard" | "payments" | "products" | "ai" | "mypage";
@@ -80,13 +81,15 @@ export function SellerHomeScreen({
 }) {
   const [page, setPage] = useState<SellerPage>("dashboard");
   const [items, setItems] = useState<Payment[]>([]);
-  const [dashboard, setDashboard] = useState({
-    dailyRevenue: 0,
-    periodRevenue: 0,
-    registeredProductCount: 0,
-    paymentCounts: { pending: 0, accepted: 0, refunded: 0 },
-  });
   const today = dateKey(new Date());
+  const cachedDashboard = readWebCache<CachedSellerDashboard>(SELLER_DASHBOARD_CACHE_KEY);
+  const initialDashboard = cachedDashboard?.date === today ? cachedDashboard : null;
+  const [dashboard, setDashboard] = useState({
+    dailyRevenue: initialDashboard?.dailyRevenue ?? 0,
+    periodRevenue: initialDashboard?.periodRevenue ?? 0,
+    registeredProductCount: initialDashboard?.registeredProductCount ?? 0,
+    paymentCounts: initialDashboard?.paymentCounts ?? { pending: 0, accepted: 0, refunded: 0 },
+  });
   const [rangeOpen, setRangeOpen] = useState(false);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -99,16 +102,19 @@ export function SellerHomeScreen({
           ? sellerApi.salesReport({ startDate, endDate })
           : Promise.resolve(null),
       ]);
-      setDashboard({
+      const nextDashboard = {
         ...value,
         periodRevenue: report?.totalRevenue ?? value.dailyRevenue,
-      });
+      };
+      setDashboard(nextDashboard);
+      void writeCache(SELLER_DASHBOARD_CACHE_KEY,nextDashboard);
       setItems(payments.content.map(toPayment));
     } catch {
       // 다음 주기 또는 사용자 액션 후 다시 조회한다.
     }
   }, [today, startDate, endDate]);
   useEffect(() => {
+    if (!initialDashboard) void readCache<CachedSellerDashboard>(SELLER_DASHBOARD_CACHE_KEY).then(value=>{if(value?.date===today)setDashboard(value)});
     void refresh();
     if (page !== "dashboard" && page !== "payments") return;
     const interval = setInterval(() => void refresh(), 5_000);

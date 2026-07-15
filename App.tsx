@@ -17,6 +17,7 @@ import { LoginUser,useKakaoLogin,withdrawAccount } from './src/auth/kakao';
 import { DeviceFrame } from './src/components/DeviceFrame';
 import { authApi, sellerApi } from './src/api';
 import { warmUpApi } from './src/api/client';
+import { CachedUser, SELLER_DASHBOARD_CACHE_KEY, USER_CACHE_KEY, readCache, readWebCache, removeCaches, writeCache } from './src/cache/appCache';
 
 type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'mode'|'businessRegistration'|'complete'|'home'|'gallery';
 type HomeEntry='buyer'|'seller'|'businessRegistration';
@@ -25,12 +26,13 @@ void warmUpApi();
 
 export default function App(){
   const [route,setRoute]=useState<Route>('loading');
-  const [name,setName]=useState('로컬이');
-  const [profileImageUrl,setProfileImageUrl]=useState<string|null>(null);
+  const initialUser=readWebCache<CachedUser>(USER_CACHE_KEY);
+  const [name,setName]=useState(initialUser?.nickname??'로컬이');
+  const [profileImageUrl,setProfileImageUrl]=useState<string|null>(initialUser?.profileImageUrl??null);
   const [type,setType]=useState<ServiceMode>('buyer');
   const [homeEntry,setHomeEntry]=useState<HomeEntry>('buyer');
 
-  useEffect(()=>{AsyncStorage.getItem('localtime:onboarding-complete').then(v=>setRoute(v==='true'?'login':'splash')).catch(()=>setRoute('splash'))},[]);
+  useEffect(()=>{Promise.all([AsyncStorage.getItem('localtime:onboarding-complete'),readCache<CachedUser>(USER_CACHE_KEY)]).then(([v,user])=>{if(user?.nickname)setName(user.nickname);if(user?.profileImageUrl)setProfileImageUrl(user.profileImageUrl);setRoute(v==='true'?'login':'splash')}).catch(()=>setRoute('splash'))},[]);
   const afterSplash=useCallback(()=>setRoute('onboarding'),[]);
   const finishOnboarding=async()=>{await AsyncStorage.setItem('localtime:onboarding-complete','true');setRoute('login')};
 
@@ -45,6 +47,7 @@ export default function App(){
       const me=await authApi.me();
       setName(me.nickname);
       setProfileImageUrl(me.profileImageUrl);
+      await writeCache(USER_CACHE_KEY,{...user,nickname:me.nickname,profileImageUrl:me.profileImageUrl});
     }catch{}
     setRoute('mode');
   },[]);
@@ -53,8 +56,8 @@ export default function App(){
   const signup=async(nextName:string)=>{
     await authApi.updateMe({nickname:nextName});
     setName(nextName);
-    const raw=await AsyncStorage.getItem('localtime:user');
-    if(raw)await AsyncStorage.setItem('localtime:user',JSON.stringify({...JSON.parse(raw),nickname:nextName}));
+    const cached=await readCache<CachedUser>(USER_CACHE_KEY);
+    await writeCache(USER_CACHE_KEY,{...cached,nickname:nextName,profileImageUrl});
     await AsyncStorage.setItem('localtime:member','true');
     setRoute('mode');
   };
@@ -75,8 +78,8 @@ export default function App(){
   };
   const finishBusinessRegistration=()=>{setType('seller');setHomeEntry('seller');setRoute('complete')};
   const start=()=>setRoute('home');
-  const logout=async()=>{try{await authApi.logout()}catch{}await AsyncStorage.multiRemove(['localtime:access-token','localtime:user','localtime:member','localtime:onboarding-complete']);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
-  const withdraw=async()=>{await withdrawAccount();await AsyncStorage.multiRemove(['localtime:access-token','localtime:user','localtime:member','localtime:onboarding-complete']);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
+  const logout=async()=>{try{await authApi.logout()}catch{}await removeCaches(['localtime:access-token',USER_CACHE_KEY,'localtime:member','localtime:onboarding-complete',SELLER_DASHBOARD_CACHE_KEY]);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
+  const withdraw=async()=>{await withdrawAccount();await removeCaches(['localtime:access-token',USER_CACHE_KEY,'localtime:member','localtime:onboarding-complete',SELLER_DASHBOARD_CACHE_KEY]);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
   const purchase=async(payload:PurchasePayload)=>{await AsyncStorage.setItem('localtime:last-purchase',JSON.stringify({...payload,requestedAt:new Date().toISOString()}))};
 
   const content=route==='loading'?<ActivityIndicator color={colors.primary500}/>
