@@ -6,6 +6,9 @@ export type Dashboard = {date:string;paymentCounts:{pending:number;accepted:numb
 export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[];bankName:string|null;accountNumber:string|null};
 export type Settlement = {id:number;grossAmount:number;platformFee:number;paymentFee:number;settlementAmount:number;status:'REQUESTED';requestedAt:string};
 export type SalesHistoryItem = {purchaseId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
+export type PriceExplanation = {feature:string;label:string;value:number;impact:number;direction:'UP'|'DOWN'|'NEUTRAL'};
+export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
+export type AutoPricing = {enabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 
 let latestDashboard: Dashboard | null = null;
 
@@ -27,7 +30,9 @@ export const sellerApi = {
   updateProductStatus: (id:number,status:ProductStatus) => apiRequest<Product>(`/api/seller/products/${id}/status`, {method:'PATCH',body:{status}}),
   uploadProductImages: (id:number, images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'POST',body:form}); },
   replaceProductImages: (id:number, retainedUrls:string[], images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); retainedUrls.forEach(url=>form.append('retainedUrls',toApiAssetPath(url))); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'PUT',body:form}); },
-  price: (id:number) => apiRequest<{currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[]}>(`/api/seller/products/${id}/price`),
+  price: (id:number) => apiRequest<AiPrice>(`/api/seller/products/${id}/price`),
+  autoPricing: (id:number) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`),
+  setAutoPricing: (id:number,enabled:boolean) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`,{method:'PUT',body:{enabled}}),
   strategy: (id:number) => apiRequest<{message:string}>(`/api/seller/products/${id}/strategy`),
   applyPrice: (id:number,body:{price:number;recommendationId?:number}) => apiRequest<Product>(`/api/seller/products/${id}/price/apply`,{method:'POST',body}),
   payments: (query:{status?:PurchaseStatus;date?:string;page?:number;size?:number}={}) => apiRequest<Page<Purchase>>('/api/seller/payments',{query}),
