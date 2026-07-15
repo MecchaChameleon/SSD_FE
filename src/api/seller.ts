@@ -8,7 +8,8 @@ export type Settlement = {id:number;grossAmount:number;platformFee:number;paymen
 export type SalesHistoryItem = {purchaseId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
 export type PriceExplanation = {feature:string;label:string;value:number;displayValue?:string|null;impact:number;direction:'UP'|'DOWN'|'NEUTRAL'};
 export type AiWeather = {currentTemperature:number;currentPrecipitation:number;currentWindSpeed:number;forecastTemperature:number|null;forecastPrecipitation:number;forecastWindSpeed:number;source:string;observedAt:string|null};
-export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;weather?:AiWeather|null;autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
+export type AiRegionalDemand = {region:string|null;percentile:number;predictedVisitPopulation:number|null;source:string;basisDate:string;trainingStartDate:string|null;trainingEndDate:string|null};
+export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;weather?:AiWeather|null;regionalDemand?:AiRegionalDemand|null;autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 export type AutoPricing = {enabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 
 let latestDashboard: Dashboard | null = null;
