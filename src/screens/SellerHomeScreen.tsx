@@ -29,6 +29,7 @@ import TrelloIcon from "../../icon/trello.svg";
 import UserIcon from "../../icon/user.svg";
 import CloseIcon from "../../icon/x.svg";
 import { CachedSellerDashboard, SELLER_DASHBOARD_CACHE_KEY, readCache, readWebCache, writeCache } from "../cache/appCache";
+import { ScreenTransition } from "../components/ScreenTransition";
 
 type SellerPage =
   "dashboard" | "payments" | "products" | "ai" | "mypage";
@@ -80,6 +81,7 @@ export function SellerHomeScreen({
   onWithdraw?: () => Promise<void>;
 }) {
   const [page, setPage] = useState<SellerPage>("dashboard");
+  const [pageDirection,setPageDirection]=useState<-1|1>(1);
   const [items, setItems] = useState<Payment[]>([]);
   const today = dateKey(new Date());
   const cachedDashboard = readWebCache<CachedSellerDashboard>(SELLER_DASHBOARD_CACHE_KEY);
@@ -93,6 +95,13 @@ export function SellerHomeScreen({
   const [rangeOpen, setRangeOpen] = useState(false);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const navigate=(next:SellerPage,direction?:-1|1)=>{
+    if(next===page)return;
+    const order={dashboard:0,payments:1,products:1,ai:2,mypage:3};
+    setPageDirection(direction??(order[next]>order[page]?1:-1));
+    setPage(next);
+  };
+  const screen=(content:React.ReactNode)=><ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>;
   const refresh = useCallback(async () => {
     try {
       const [value, payments, report] = await Promise.all([
@@ -121,47 +130,47 @@ export function SellerHomeScreen({
     return () => clearInterval(interval);
   }, [page, refresh]);
   if (page === "payments")
-    return (
+    return screen(
       <PaymentStatus
         items={items}
         setItems={setItems}
-        onBack={() => setPage("dashboard")}
+        onBack={() => navigate("dashboard",-1)}
         onChanged={refresh}
       />
     );
   if (page === "products")
-    return (
+    return screen(
       <View style={s.root}>
-        <ProductRegistrationScreen onBack={() => setPage("dashboard")} />
+        <ProductRegistrationScreen onBack={() => navigate("dashboard",-1)} />
         <SellerNavigation
           active="products"
-          onHome={() => setPage("dashboard")}
-          onProducts={() => setPage("products")}
-          onAi={() => setPage("ai")}
-          onMypage={() => setPage("mypage")}
+          onHome={() => navigate("dashboard")}
+          onProducts={() => navigate("products")}
+          onAi={() => navigate("ai")}
+          onMypage={() => navigate("mypage")}
         />
       </View>
     );
   if (page === "ai")
-    return (
+    return screen(
       <View style={s.root}>
         <AppHeader />
         <AIRecommendationScreen />
         <SellerNavigation
           active="ai"
-          onHome={() => setPage("dashboard")}
-          onProducts={() => setPage("products")}
-          onAi={() => setPage("ai")}
-          onMypage={() => setPage("mypage")}
+          onHome={() => navigate("dashboard")}
+          onProducts={() => navigate("products")}
+          onAi={() => navigate("ai")}
+          onMypage={() => navigate("mypage")}
         />
       </View>
     );
   if (page === "mypage")
-    return (
+    return screen(
       <SellerMyPageScreen
-        onBack={() => setPage("dashboard")}
-        onProducts={() => setPage("products")}
-        onAi={() => setPage("ai")}
+        onBack={() => navigate("dashboard")}
+        onProducts={() => navigate("products")}
+        onAi={() => navigate("ai")}
         onBuyerMode={onBuyerMode}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
@@ -169,7 +178,7 @@ export function SellerHomeScreen({
     );
   const counts = dashboard.paymentCounts;
   const hasPayments = counts.pending + counts.accepted + counts.refunded > 0;
-  return (
+  return screen(
     <View style={s.root}>
       <AppHeader />
       <ScrollView contentContainerStyle={s.dashboard} showsVerticalScrollIndicator={false}>
@@ -186,7 +195,7 @@ export function SellerHomeScreen({
         </Pressable>
         <Pressable
           style={s.dashboardCard}
-          onPress={() => setPage("payments")}
+          onPress={() => navigate("payments")}
         >
           <View style={s.cardTop}>
             <Text style={s.cardLabel}>결제 상태 현황</Text>
@@ -274,10 +283,10 @@ export function SellerHomeScreen({
       />
       <SellerNavigation
         active="home"
-        onHome={() => setPage("dashboard")}
-        onProducts={() => setPage("products")}
-        onAi={() => setPage("ai")}
-        onMypage={() => setPage("mypage")}
+        onHome={() => navigate("dashboard")}
+        onProducts={() => navigate("products")}
+        onAi={() => navigate("ai")}
+        onMypage={() => navigate("mypage")}
       />
     </View>
   );

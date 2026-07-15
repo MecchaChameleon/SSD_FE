@@ -18,6 +18,7 @@ import HomeIcon from '../../icon/home.svg';
 import ShoppingIcon from '../../icon/shopping-bag.svg';
 import TrelloIcon from '../../icon/trello.svg';
 import { CachedUser, USER_CACHE_KEY, readCache, readWebCache, writeCache } from '../cache/appCache';
+import { ScreenTransition } from '../components/ScreenTransition';
 
 type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessForm' | 'businessDone' | 'notifications' | 'modeDone' | 'withdrawDone';
 type Business = { shop: string; representative:string; number1: string; number2: string; number3: string; openYear:string; openMonth:string; openDay:string; address: string; bank: string; account: string; latitude?:number|null; longitude?:number|null };
@@ -46,6 +47,8 @@ async function cacheNickname(nickname:string){const cached=await readCache<Cache
 
 export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void> }) {
   const [page, setPage] = useState<Page>(initialBusinessRegistration?'businessForm':'main');
+  const [pageDirection,setPageDirection]=useState<-1|1>(1);
+  const [pageTransitionEnabled,setPageTransitionEnabled]=useState(false);
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [name, setName] = useState(initialCachedNickname);
   const [profileImageUrl,setProfileImageUrl]=useState<string|null>(null);
@@ -53,60 +56,66 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
   const [formReturn, setFormReturn] = useState<'main' | 'mode'>('main');
   useEffect(()=>{cachedNickname().then(value=>{if(value)setName(value)});authApi.me().then(me=>{setName(me.nickname);setProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(()=>undefined);sellerApi.profile().then(profile=>{const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current??next,application))).catch(()=>undefined)}).catch(()=>undefined)},[]);
 
-  const openBusiness = (from: 'main' | 'mode') => { setFormReturn(from); setPage(business ? 'business' : 'businessForm'); };
-  if (page === 'profile') return <ProfilePage name={name} profileImageUrl={profileImageUrl} onBack={() => setPage('main')} onSave={async (nextName,image) => {let url=profileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setProfileImageUrl(url);setPage('main'); }} />;
-  if (page === 'favorites') return <FavoritesPage onBack={() => setPage('main')} />;
-  if (page === 'mode') return <ModePage certified={!!business} onRegister={() => openBusiness('mode')} onComplete={() => setPage('modeDone')} onBack={() => setPage('main')} />;
-  if (page === 'businessForm') return <BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => initialBusinessRegistration?onHome():setPage(formReturn)} onSave={async value => { if(!business){await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:value.representative})}else{await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account})}setBusiness(value);if(initialBusinessRegistration&&onBusinessRegistered){onBusinessRegistered();return}setPage(business ? 'business' : 'businessDone'); }} />;
-  if (page === 'businessDone') return <Completion title="사업자 정보 등록 완료!" body="이제 판매자 모드로 전환하여 상품/자원을 등록할 수 있어요." button="홈 화면으로 이동" onPress={() => setPage(formReturn)} />;
-  if (page === 'business' && business) return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
-  if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
-  if (page === 'modeDone') return <ModeCompletion onDone={onSellerMode} />;
-  if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw} />;
+  const go=(next:Page,direction:-1|1=1)=>{setPageTransitionEnabled(true);setPageDirection(direction);setPage(next)};
+  const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
+  const openBusiness = (from: 'main' | 'mode') => { setFormReturn(from); go(business ? 'business' : 'businessForm'); };
+  if (page === 'profile') return screen(<ProfilePage name={name} profileImageUrl={profileImageUrl} onBack={() => go('main',-1)} onSave={async (nextName,image) => {let url=profileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setProfileImageUrl(url);go('main',-1); }} />);
+  if (page === 'favorites') return screen(<FavoritesPage onBack={() => go('main',-1)} />);
+  if (page === 'mode') return screen(<ModePage certified={!!business} onRegister={() => openBusiness('mode')} onComplete={() => go('modeDone')} onBack={() => go('main',-1)} />);
+  if (page === 'businessForm') return screen(<BusinessForm initial={business ?? initialBusiness} editing={!!business} onBack={() => initialBusinessRegistration?onHome():go(formReturn,-1)} onSave={async value => { if(!business){await sellerApi.apply({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),businessDocumentUrl:''});await sellerApi.createProfile({address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:value.representative})}else{await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account})}setBusiness(value);if(initialBusinessRegistration&&onBusinessRegistered){onBusinessRegistered();return}go(business ? 'business' : 'businessDone'); }} />);
+  if (page === 'businessDone') return screen(<Completion title="사업자 정보 등록 완료!" body="이제 판매자 모드로 전환하여 상품/자원을 등록할 수 있어요." button="홈 화면으로 이동" onPress={() => go(formReturn,-1)} />);
+  if (page === 'business' && business) return screen(<BusinessInfo value={business} onBack={() => go('main',-1)} onEdit={() => go('businessForm')} />);
+  if (page === 'notifications') return screen(<NotificationPage onBack={() => go('main',-1)} />);
+  if (page === 'modeDone') return screen(<ModeCompletion onDone={onSellerMode} />);
+  if (page === 'withdrawDone') return screen(<Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw} />);
 
   const rows: Array<[string, () => void, boolean]> = [
-    ['찜한 상품/자원 관리', () => setPage('favorites'), true],
-    ['앱 모드 전환', () => setPage('mode'), true],
-    ['알림 설정', () => setPage('notifications'), true],
+    ['찜한 상품/자원 관리', () => go('favorites'), true],
+    ['앱 모드 전환', () => go('mode'), true],
+    ['알림 설정', () => go('notifications'), true],
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return <View style={s.root}>
+  return screen(<View style={s.root}>
     <AppHeader />
-    <Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} url={profileImageUrl} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
+    <Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={profileImageUrl} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black} /> : null}</Pressable>)}
     <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'purchases' ? onPurchases() : undefined} />
-    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); setPage('withdrawDone'); } }} />
-  </View>;
+    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); go('withdrawDone'); } }} />
+  </View>);
 }
 
 export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLogout, onWithdraw }: { onBack: () => void; onProducts?: () => void; onAi?:()=>void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void> }) {
   const [page, setPage] = useState<'main' | 'profile' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
+  const [pageDirection,setPageDirection]=useState<-1|1>(1);
+  const [pageTransitionEnabled,setPageTransitionEnabled]=useState(false);
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
   const [business, setBusiness] = useState<Business>(sampleBusiness);
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [name, setName] = useState(initialCachedNickname);
   const [sellerProfileImageUrl,setSellerProfileImageUrl]=useState<string|null>(null);
+  const go=(next:typeof page,direction:-1|1=1)=>{setPageTransitionEnabled(true);setPageDirection(direction);setPage(next)};
+  const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
   useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);setSellerProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile);const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current,application))).catch(()=>undefined); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
-  if (page === 'profile') return <ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => setPage('main')} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);setPage('main'); }} />;
-  if (page === 'business') return <BusinessInfo value={business} onBack={() => setPage('main')} onEdit={() => setPage('businessForm')} />;
-  if (page === 'businessForm') return <BusinessForm initial={business} editing onBack={() => setPage('business')} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness({...profileToBusiness(profile),representative:value.representative,openYear:value.openYear,openMonth:value.openMonth,openDay:value.openDay}); setPage('business'); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />;
-  if (page === 'mode') return <SellerModePage onBack={() => setPage('main')} onBuyerMode={onBuyerMode} />;
-  if (page === 'notifications') return <NotificationPage onBack={() => setPage('main')} />;
-  if (page === 'withdrawDone') return <Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw ?? (async () => {})} />;
+  if (page === 'profile') return screen(<ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => go('main',-1)} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);go('main',-1); }} />);
+  if (page === 'business') return screen(<BusinessInfo value={business} onBack={() => go('main',-1)} onEdit={() => go('businessForm')} />);
+  if (page === 'businessForm') return screen(<BusinessForm initial={business} editing onBack={() => go('business',-1)} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness({...profileToBusiness(profile),representative:value.representative,openYear:value.openYear,openMonth:value.openMonth,openDay:value.openDay}); go('business',-1); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />);
+  if (page === 'mode') return screen(<SellerModePage onBack={() => go('main',-1)} onBuyerMode={onBuyerMode} />);
+  if (page === 'notifications') return screen(<NotificationPage onBack={() => go('main',-1)} />);
+  if (page === 'withdrawDone') return screen(<Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw ?? (async () => {})} />);
   const rows: Array<[string, () => void, boolean]> = [
-    ['사업자 정보', () => setPage('business'), true],
-    ['앱 모드 전환', () => setPage('mode'), true],
-    ['알림 설정', () => setPage('notifications'), true],
+    ['사업자 정보', () => go('business'), true],
+    ['앱 모드 전환', () => go('mode'), true],
+    ['알림 설정', () => go('notifications'), true],
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return <View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => setPage('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
+  return screen(<View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
     <SellerMyNavigation onHome={onBack} onProducts={onProducts} onAi={onAi}/>
-    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); setPage('withdrawDone'); } }} />
-  </View>;
+    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); go('withdrawDone'); } }} />
+  </View>);
 }
 
 function SellerMyNavigation({ onHome, onProducts, onAi }: { onHome: () => void; onProducts?: () => void; onAi?:()=>void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; const onPress = index === 0 ? onHome : index === 1 ? onProducts : index===2?onAi:undefined; return <Pressable key={label} onPress={onPress} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }

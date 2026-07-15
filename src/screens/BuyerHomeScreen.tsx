@@ -32,6 +32,7 @@ import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
 import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
 import { TimeOptionWheel } from "./RegisteredProductsScreen";
 import { buyerApi, BusinessType, Product as ApiProduct, Purchase as ApiPurchase, resolveApiAssetUrl } from "../api";
+import { ScreenTransition } from "../components/ScreenTransition";
 
 export type PurchasePayload = {
   productId: number;
@@ -145,6 +146,7 @@ export function BuyerHomeScreen({
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
+  const [tabDirection,setTabDirection]=useState<-1|1>(1);
   const [sellerMode, setSellerMode] = useState(initialEntry==='seller');
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
@@ -155,6 +157,13 @@ export function BuyerHomeScreen({
   const [quantity, setQuantity] = useState(2);
   const [now, setNow] = useState(Date.now());
   const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
+  const navigateTab=(next:"home"|"map"|"purchases"|"mypage")=>{
+    if(next===tab)return;
+    const order={home:0,map:1,purchases:2,mypage:3};
+    setTabDirection(order[next]>order[tab]?1:-1);
+    setTab(next);
+  };
+  const tabScreen=(content:React.ReactNode)=><ScreenTransition key={tab} direction={tabDirection}>{content}</ScreenTransition>;
   useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);
@@ -289,25 +298,25 @@ export function BuyerHomeScreen({
       />
     );
   if (tab === "mypage")
-    return (
+    return tabScreen(
       <MyPageScreen
         initialBusinessRegistration={initialEntry==='businessRegistration'}
         onBusinessRegistered={onBusinessRegistered}
-        onHome={() => setTab("home")}
-        onMap={() => setTab("map")}
-        onPurchases={() => setTab("purchases")}
+        onHome={() => navigateTab("home")}
+        onMap={() => navigateTab("map")}
+        onPurchases={() => navigateTab("purchases")}
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
       />
     );
   if (tab === "purchases")
-    return (
+    return tabScreen(
       <PurchaseHistoryScreen
         items={purchases}
-        onHome={() => setTab("home")}
-        onMap={() => setTab("map")}
-        onMyPage={() => setTab("mypage")}
+        onHome={() => navigateTab("home")}
+        onMap={() => navigateTab("map")}
+        onMyPage={() => navigateTab("mypage")}
         onDelete={(id) => {
           void buyerApi
             .hidePurchase(id)
@@ -316,11 +325,11 @@ export function BuyerHomeScreen({
       />
     );
   if (tab === "map")
-    return (
+    return tabScreen(
       <BuyerMapScreen
-        onHome={() => setTab("home")}
-        onPurchases={() => setTab("purchases")}
-        onMyPage={() => setTab("mypage")}
+        onHome={() => navigateTab("home")}
+        onPurchases={() => navigateTab("purchases")}
+        onMyPage={() => navigateTab("mypage")}
         onBuy={(item) => {
           setDetailProduct(apiProductToCard(item));
           setTab("home");
@@ -378,7 +387,7 @@ export function BuyerHomeScreen({
         ))}
       </View>
     );
-  return (
+  return tabScreen(
     <View style={s.root}>
       <AppHeader />
       <ScrollView
@@ -478,7 +487,7 @@ export function BuyerHomeScreen({
           <Text style={s.empty}>검색 결과가 없습니다.</Text>
         )}
       </ScrollView>
-      <BottomNavigation active="home" onSelect={setTab} />
+      <BottomNavigation active="home" onSelect={navigateTab} />
     </View>
   );
 }
@@ -500,12 +509,14 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
   const heroCollapse=useRef(new Animated.Value(0)).current;
   const collapseStart=useRef(0);
   const panResponder=useRef(PanResponder.create({
-    onStartShouldSetPanResponder:()=>true,
-    onMoveShouldSetPanResponder:(_,gesture)=>Math.abs(gesture.dy)>4,
+    onStartShouldSetPanResponder:()=>false,
+    onMoveShouldSetPanResponder:(_,gesture)=>Math.abs(gesture.dy)>6&&Math.abs(gesture.dy)>Math.abs(gesture.dx),
+    onMoveShouldSetPanResponderCapture:(_,gesture)=>Math.abs(gesture.dy)>6&&Math.abs(gesture.dy)>Math.abs(gesture.dx),
     onPanResponderGrant:()=>{heroCollapse.stopAnimation(value=>{collapseStart.current=value})},
     onPanResponderMove:(_,gesture)=>heroCollapse.setValue(Math.max(0,Math.min(319,collapseStart.current-gesture.dy))),
     onPanResponderRelease:(_,gesture)=>{
-      const target=gesture.vy<-.35||collapseStart.current-gesture.dy>145?319:0;
+      const position=Math.max(0,Math.min(319,collapseStart.current-gesture.dy));
+      const target=gesture.vy<-.35?319:gesture.vy>.35?0:position>159.5?319:0;
       Animated.spring(heroCollapse,{toValue:target,tension:72,friction:12,useNativeDriver:false}).start();
     },
     onPanResponderTerminate:()=>Animated.spring(heroCollapse,{toValue:collapseStart.current>145?319:0,tension:72,friction:12,useNativeDriver:false}).start(),
@@ -513,10 +524,10 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
   const heroHeight=heroCollapse.interpolate({inputRange:[0,319],outputRange:[319,0],extrapolate:'clamp'});
   const heroOpacity=heroCollapse.interpolate({inputRange:[0,245,319],outputRange:[1,.35,0],extrapolate:'clamp'});
   const heroScale=heroCollapse.interpolate({inputRange:[0,319],outputRange:[1,.78],extrapolate:'clamp'});
-  return <View style={[detailStyles.root,gestureStyles.root,{width:frameWidth,alignSelf:'center'}]}>
+  return <View style={[detailStyles.root,gestureStyles.root,{width:frameWidth,alignSelf:'center'}]} {...panResponder.panHandlers}>
     <Animated.View style={[detailStyles.hero,{height:heroHeight,opacity:heroOpacity,transform:[{scale:heroScale}]}]}>{images.length?<ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={event=>setIndex(Math.round(event.nativeEvent.contentOffset.x/event.nativeEvent.layoutMeasurement.width))}>{images.map((url,i)=><Image key={`${url}-${i}`} source={{uri:url}} resizeMode="cover" style={[detailStyles.heroImage,{width:frameWidth}]}/>)}</ScrollView>:<View style={detailStyles.fallback}/>}<View style={detailStyles.heroActions}><Pressable onPress={onBack} style={detailStyles.circle}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Pressable onPress={onLike} style={detailStyles.circle}><Text style={[detailStyles.heart,liked&&detailStyles.heartLiked]}>♥</Text></Pressable></View>{images.length>1?<View style={detailStyles.dots}>{images.map((_,i)=><View key={i} style={[detailStyles.dot,index===i&&detailStyles.dotOn]}/>)}</View>:null}</Animated.View>
     <View style={[detailStyles.panel,gestureStyles.panel]}>
-      <View style={gestureStyles.dragArea} {...panResponder.panHandlers}><View style={gestureStyles.dragHandle}/></View>
+      <View style={gestureStyles.dragArea}><View style={gestureStyles.dragHandle}/></View>
       <View style={gestureStyles.panelContent}>
       <View style={detailStyles.titleRow}><View style={detailStyles.nameRow}><Text numberOfLines={1} style={detailStyles.name}>{product.title}</Text>{product.urgent?<View style={detailStyles.tag}><Text style={detailStyles.tagText}>마감임박</Text></View>:null}</View><Text style={detailStyles.discount}>{product.discount}</Text></View>
       <View style={detailStyles.locationRow}><Text style={detailStyles.shop}>{product.shop}</Text><Text numberOfLines={1} style={detailStyles.location}>{product.location}</Text></View>
