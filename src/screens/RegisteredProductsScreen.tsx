@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { normalizePickedImages } from "../utils/normalizePickedImage";
 import { ActionButton } from "../components/ui";
 import { colors, radius } from "../theme";
 import { ApiError, Product as ApiProduct, resolveApiAssetUrl, sellerApi } from "../api";
@@ -367,7 +368,7 @@ function EditProduct({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [newImages,setNewImages]=useState<ImagePicker.ImagePickerAsset[]>([]);
   const [retainedUrls,setRetainedUrls]=useState(product.imageUrls);
-  const pickImages=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted){setSaveError("사진 수정을 위해 사진 보관함 접근 권한을 허용해 주세요.");return}const available=3-retainedUrls.length-newImages.length;if(available<=0)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],allowsMultipleSelection:true,selectionLimit:available,quality:.85});if(!result.canceled)setNewImages(current=>[...current,...result.assets].slice(0,3-retainedUrls.length))};
+  const pickImages=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted){setSaveError("사진 수정을 위해 사진 보관함 접근 권한을 허용해 주세요.");return}const available=3-retainedUrls.length-newImages.length;if(available<=0)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],allowsMultipleSelection:true,selectionLimit:available,quality:.85,preferredAssetRepresentationMode:ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible});if(!result.canceled){try{const normalized=await normalizePickedImages(result.assets);setNewImages(current=>[...current,...normalized].slice(0,3-retainedUrls.length))}catch{setSaveError("선택한 사진을 JPEG 형식으로 변환하지 못했습니다. 다른 사진을 선택해 주세요.")}}};
   useEffect(() => {
     sellerApi
       .profile()

@@ -8,6 +8,7 @@ import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 import { TimeWheel } from './RegisteredProductsScreen';
 import { AppHeader } from '../components/home';
+import { normalizePickedImages } from '../utils/normalizePickedImage';
 
 type Category = '음식점' | '숙박' | '체험' | '렌탈/모빌리티';
 type Sheet = 'category' | 'type' | 'start' | 'end' | 'location' | null;
@@ -68,8 +69,11 @@ export function ProductRegistrationScreen({ onBack, onCreated, showHeader=true }
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setRequestError('사진 등록을 위해 사진 보관함 접근 권한을 허용해 주세요.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:true,selectionLimit:3-images.length,quality:.85});
-    if (!result.canceled) setImages(current => [...current, ...result.assets].slice(0,3));
+    const result = await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:true,selectionLimit:3-images.length,quality:.85,preferredAssetRepresentationMode:ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible});
+    if (!result.canceled) {
+      try { const normalized=await normalizePickedImages(result.assets);setImages(current => [...current, ...normalized].slice(0,3)); }
+      catch { setRequestError('선택한 사진을 JPEG 형식으로 변환하지 못했습니다. 다른 사진을 선택해 주세요.'); }
+    }
   };
   const submit = async () => {
     setSubmitted(true);

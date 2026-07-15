@@ -19,6 +19,7 @@ import ShoppingIcon from '../../icon/shopping-bag.svg';
 import TrelloIcon from '../../icon/trello.svg';
 import { CachedUser, USER_CACHE_KEY, readCache, readWebCache, writeCache } from '../cache/appCache';
 import { ScreenTransition } from '../components/ScreenTransition';
+import { normalizePickedImage } from '../utils/normalizePickedImage';
 
 type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessForm' | 'businessDone' | 'notifications' | 'modeDone' | 'withdrawDone';
 type Business = { shop: string; representative:string; number1: string; number2: string; number3: string; openYear:string; openMonth:string; openDay:string; address: string; bank: string; account: string; latitude?:number|null; longitude?:number|null };
@@ -151,13 +152,15 @@ function Avatar({ size,url }: { size: number;url?:string|null }) { return <View 
 function ProfilePage({ name,profileImageUrl,onBack,onSave }: { name: string;profileImageUrl:string|null;onBack: () => void; onSave: (name: string,image?:ImagePicker.ImagePickerAsset) => Promise<void> }) {
   const [value, setValue] = useState(name);
   const [image,setImage]=useState<ImagePicker.ImagePickerAsset|null>(null);
+  const [imageError,setImageError]=useState('');
   const [saving,setSaving]=useState(false);
   const trimmed = value.trim();
   const valid = trimmed.length >= 2 && trimmed.length <= 10;
   const changed = trimmed !== name || !!image;
-  const pick=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:false,quality:.85});if(!result.canceled)setImage(result.assets[0])};
+  const pick=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:false,quality:.85,preferredAssetRepresentationMode:ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible});if(!result.canceled){setImageError('');try{setImage(await normalizePickedImage(result.assets[0]))}catch{setImageError('선택한 사진을 JPEG 형식으로 변환하지 못했습니다.')}}};
   return <View style={s.root}><Header title="프로필 수정" onBack={onBack} />
     <Pressable accessibilityLabel="프로필 사진 선택" onPress={pick} style={s.profileAvatar}><Avatar size={120} url={image?.uri??profileImageUrl} /><View style={s.editBadge}><Text style={s.editBadgeText}>＋</Text></View></Pressable>
+    {imageError?<Text style={[s.invalidText,{position:'absolute',top:292,left:16,right:16,textAlign:'center'}]}>{imageError}</Text>:null}
     <View style={s.profileForm}><Text style={s.fieldLabel}>닉네임</Text><TextInput value={value} onChangeText={setValue} maxLength={10} autoFocus={false} placeholder="닉네임 입력" placeholderTextColor={colors.g400} style={[s.input, value.length > 0 && !valid && s.invalidInput]} />
       <View style={s.nicknameHelp}><Text style={[s.nicknameGuide, value.length > 0 && !valid && s.invalidText]}>{value.length > 0 && !valid ? '닉네임은 2~10자로 입력해 주세요.' : '2~10자 이내로 설정해 주세요.'}</Text><Text style={s.nicknameCount}>{value.length}/10</Text></View>
     </View>
