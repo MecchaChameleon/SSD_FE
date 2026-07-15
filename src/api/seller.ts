@@ -6,7 +6,7 @@ export type Dashboard = {date:string;paymentCounts:{pending:number;accepted:numb
 export type SalesReport = {startDate:string;endDate:string;totalRevenue:number;settlementRevenue:number;totalQuantity:number;items:{productId:number;productName:string;quantity:number;revenue:number}[];bankName:string|null;accountNumber:string|null};
 export type Settlement = {id:number;grossAmount:number;platformFee:number;paymentFee:number;settlementAmount:number;status:'REQUESTED';requestedAt:string};
 export type SalesHistoryItem = {purchaseId:number;productId:number;productName:string;buyerId:number;buyerNickname:string;quantity:number;unitPrice:number;totalAmount:number;soldAt:string};
-export type PriceExplanation = {feature:string;label:string;value:number;impact:number;direction:'UP'|'DOWN'|'NEUTRAL'};
+export type PriceExplanation = {feature:string;label:string;value:number;displayValue?:string|null;impact:number;direction:'UP'|'DOWN'|'NEUTRAL'};
 export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 export type AutoPricing = {enabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 

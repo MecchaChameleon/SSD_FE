@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Modal,
@@ -160,11 +160,16 @@ export function BuyerHomeScreen({
   const [quantity, setQuantity] = useState(2);
   const [now, setNow] = useState(Date.now());
   const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
+  const refreshPurchases=useCallback(async()=>{
+    const page=await buyerApi.purchases({size:50});
+    setPurchases(page.content.map(apiPurchaseToItem));
+  },[]);
   const navigateTab=(next:"home"|"map"|"purchases"|"mypage")=>{
     if(next===tab)return;
     const order={home:0,map:1,purchases:2,mypage:3};
     setTabDirection(order[next]>order[tab]?1:-1);
     setTab(next);
+    if(next==='purchases')void refreshPurchases().catch(()=>undefined);
   };
   const tabScreen=(content:React.ReactNode)=>{
     const chromeVisible=tab!=='mypage'||myPageRoot;
@@ -202,12 +207,9 @@ export function BuyerHomeScreen({
       .wishlist({ size: 50 })
       .then((page) => setLiked(page.content.map((item) => item.id)))
       .catch(() => undefined);
-    buyerApi
-      .purchases({ size: 50 })
-      .then((page) => setPurchases(page.content.map(apiPurchaseToItem)))
-      .catch(() => undefined);
+    void refreshPurchases().catch(() => undefined);
     return()=>clearInterval(productInterval);
-  }, [sellerMode, category]);
+  }, [sellerMode, category, refreshPurchases]);
   const shown = useMemo(() => {
     let list = productItems.map((item) => {const distance=userLocation&&item.lat!=null&&item.lng!=null?Math.round(6371000*2*Math.asin(Math.sqrt(Math.sin((item.lat-userLocation.lat)*Math.PI/360)**2+Math.cos(userLocation.lat*Math.PI/180)*Math.cos(item.lat*Math.PI/180)*Math.sin((item.lng-userLocation.lng)*Math.PI/360)**2))):item.distanceMeters;return ({
       ...item,distanceMeters:distance,location:distance!=null?`${item.location} · ${distance<1000?`${distance}m`:`${(distance/1000).toFixed(1)}km`}`:item.location,
@@ -254,7 +256,9 @@ export function BuyerHomeScreen({
   };
   const confirmPurchase = async () => {
     if (!purchase) return;
-    await buyerApi.purchase({ productId: purchase.id, quantity });
+    const created=await buyerApi.purchase({ productId: purchase.id, quantity });
+    const createdItem=apiPurchaseToItem(created);
+    setPurchases(items=>[createdItem,...items.filter(item=>item.id!==createdItem.id)]);
     const payload = {
       productId: purchase.id,
       productName: purchase.title,
@@ -303,7 +307,7 @@ export function BuyerHomeScreen({
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
-  if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);setTab('purchases');void buyerApi.purchases({size:50}).then(page=>setPurchases(page.content.map(apiPurchaseToItem)))}} onHome={()=>{setPaymentComplete(false);setTab('home')}}/>;
+  if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);navigateTab('purchases')}} onHome={()=>{setPaymentComplete(false);navigateTab('home')}}/>;
   if(buyerModeComplete)return <BuyerModeCompletion ready={buyerHomeReady} onDone={()=>setBuyerModeComplete(false)}/>;
   if (sellerMode)
     return (

@@ -1,11 +1,22 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import { ActivityIndicator,Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';
 import { Product,sellerApi } from '../api';
-import type { AiPrice } from '../api/seller';
+import type { AiPrice,PriceExplanation } from '../api/seller';
 import { Toggle } from '../components/ui';
 import { colors,radius } from '../theme';
 
 const timeText=(value:string|null)=>value?new Date(value).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'-';
+const legacyWeatherFeatures=new Set(['rain_mm','wind_speed','temperature_gap']);
+const normalizePriceExplanation=(value:AiPrice):AiPrice=>{
+  const legacy=value.explanations.filter(item=>legacyWeatherFeatures.has(item.feature));
+  if(!legacy.length)return value;
+  const retained=value.explanations.filter(item=>!legacyWeatherFeatures.has(item.feature)&&item.feature!=='weather');
+  const impact=legacy.reduce((sum,item)=>sum+item.impact,0);
+  const weather:PriceExplanation={feature:'weather',label:'날씨',value:0,displayValue:value.weatherSummary,impact,direction:impact>0?'UP':impact<0?'DOWN':'NEUTRAL'};
+  const explanations=[...retained,weather].sort((a,b)=>Math.abs(b.impact)-Math.abs(a.impact));
+  const reason=explanations.slice(0,3).map(item=>`${item.label}이 가격을 ${item.impact>0?'높이는':'낮추는'} 방향으로 ${Math.abs(Math.round(item.impact)).toLocaleString()}원 작용`).join(' · ');
+  return {...value,explanations,reason};
+};
 
 export function AIRecommendationScreen(){
   const[products,setProducts]=useState<Product[]>([]);
@@ -26,7 +37,7 @@ export function AIRecommendationScreen(){
     if(showLoading)setLoading(true);
     try{
       const[next,plan]=await Promise.all([sellerApi.price(id),sellerApi.strategy(id)]);
-      setPrice(next);setStrategy(plan.message);setMessage('');
+      setPrice(normalizePriceExplanation(next));setStrategy(plan.message);setMessage('');
     }catch{
       setPrice(null);setStrategy('로컬 AI 서버 응답을 기다리고 있습니다.');
     }finally{setLoading(false)}
@@ -52,7 +63,8 @@ export function AIRecommendationScreen(){
     setMessage('추천 가격을 상품에 적용했습니다.');
   };
 
-  const maxImpact=Math.max(1,...(price?.explanations??[]).map(item=>Math.abs(item.impact)));
+  const maxImpact=Math.max(0,...(price?.explanations??[]).map(item=>Math.abs(item.impact)));
+  const normalizedImpact=(impact:number)=>maxImpact===0?0:Math.abs(impact)/maxImpact*100;
   return <ScrollView contentContainerStyle={s.root}>
     <Text style={s.title}>AI 추천가</Text>
     <Text style={s.body}>판매 상황·지역 수요·현재 시간·날씨를 반영해 가격을 계산합니다.</Text>
@@ -64,7 +76,7 @@ export function AIRecommendationScreen(){
         <View style={s.autoRow}><View style={s.autoCopy}><Text style={s.autoTitle}>AI 기반 실시간 가격</Text><Text style={s.autoDescription}>{price?.autoPricingEnabled?`다음 갱신 ${timeText(price.nextUpdateAt)}`:'켜면 즉시 적용 후 10분마다 갱신'}</Text></View><Toggle value={price?.autoPricingEnabled??false} onChange={changeAuto}/></View>
         {changing?<Text style={s.updating}>설정을 반영하는 중...</Text>:null}
         {price?.reason?<Text style={s.reason}>{price.reason}</Text>:null}
-        {price?.explanations?.length?<View style={s.explainBox}><Text style={s.sectionTitle}>이 가격에 영향을 준 요인</Text>{price.explanations.map(item=><View key={item.feature} style={s.factor}><View style={s.factorHeader}><Text style={s.factorLabel}>{item.label}</Text><Text style={[s.impact,item.impact>=0?s.up:s.down]}>{item.impact>=0?'+':''}{Math.round(item.impact).toLocaleString()}원</Text></View><View style={s.track}><View style={[s.bar,{width:`${Math.max(5,Math.abs(item.impact)/maxImpact*100)}%`,backgroundColor:item.impact>=0?colors.info:colors.primary500}]}/></View></View>)}</View>:null}
+        {price?.explanations?.length?<View style={s.explainBox}><Text style={s.sectionTitle}>이 가격에 영향을 준 요인</Text>{price.explanations.map(item=><View key={item.feature} style={s.factor}><View style={s.factorHeader}><Text style={s.factorLabel}>{item.label}{item.displayValue?` (${item.displayValue})`:''}</Text><Text style={[s.impact,item.impact>=0?s.up:s.down]}>{item.impact>=0?'+':''}{Math.round(item.impact).toLocaleString()}원</Text></View><View style={s.track}><View style={[s.bar,{width:`${normalizedImpact(item.impact)}%`,backgroundColor:item.impact>=0?colors.info:colors.primary500}]}/></View></View>)}</View>:null}
         <Text style={s.strategy}>{strategy}</Text>
         <Pressable disabled={!price||price.autoPricingEnabled} onPress={apply} style={[s.button,(!price||price.autoPricingEnabled)&&s.disabled]}><Text style={s.buttonText}>{price?.autoPricingEnabled?'자동 가격 적용 중':'이번 추천가 적용'}</Text></Pressable>
         {price?<Text style={s.meta}>{price.modelVersion} · {price.explanationMethod==='SHAP_PERMUTATION'?'SHAP 설명':'대체 설명'} · 최근 적용 {timeText(price.lastUpdatedAt)}</Text>:null}
