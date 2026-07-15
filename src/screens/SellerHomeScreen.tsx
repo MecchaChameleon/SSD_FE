@@ -361,9 +361,10 @@ function DateRangeSheet({
             {cells.map((cell, index) => {
               const value = cell.current ? dateKey(new Date(month.getFullYear(), month.getMonth(), cell.day)) : "";
               const selected = cell.current && (value === start || value === end);
-              const between = cell.current && !!end && value > start && value < end;
-              const startsRange = value === start && !!end;
-              const endsRange = value === end;
+              const hasDateRange = !!end && end !== start;
+              const between = cell.current && hasDateRange && value > start && value < end;
+              const startsRange = hasDateRange && value === start;
+              const endsRange = hasDateRange && value === end;
               return (
                 <Pressable key={`${cell.day}-${index}`} disabled={!cell.current} onPress={() => choose(value)} style={s.calendarDay}>
                   {between ? <View style={s.calendarRangeFill} /> : null}

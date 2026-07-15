@@ -890,8 +890,8 @@ function MoneyInput({
       <TextInput
         style={[s.input, s.moneyInput]}
         keyboardType="number-pad"
-        value={value}
-        onChangeText={(v) => onChange(v.replace(/[^0-9,]/g, ""))}
+        value={value ? Number(value.replace(/,/g, "")).toLocaleString() : ""}
+        onChangeText={(v) => onChange(v.replace(/\D/g, ""))}
       />
     </View>
   );
