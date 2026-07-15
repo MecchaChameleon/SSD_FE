@@ -7,6 +7,7 @@ import ChevronDown from '../../icon/chevron_down.svg';
 import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 import { TimeWheel } from './RegisteredProductsScreen';
+import { AppHeader } from '../components/home';
 
 type Category = '음식점' | '숙박' | '체험' | '렌탈/모빌리티';
 type Sheet = 'category' | 'type' | 'start' | 'end' | 'location' | null;
@@ -169,7 +170,7 @@ export function ProductRegistrationScreen({ onBack, onCreated, showHeader=true }
 }
 
 function Header() {
-  return <View style={s.header}><View style={{width:24}}/><Text style={s.headerTitle}>상품등록</Text><View style={{ width: 24 }} /></View>;
+  return <AppHeader role="seller"/>;
 }
 function FormField({ label, error, message, children }: { label: string; error?: boolean; message?: string; children: React.ReactNode }) {
   return <View style={s.field}><Text style={s.label}>{label}<Text style={s.required}> *</Text></Text>{children}{error && message ? <Text style={s.errorText}>{message}</Text> : null}</View>;

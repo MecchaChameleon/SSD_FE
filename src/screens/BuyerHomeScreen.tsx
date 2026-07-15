@@ -189,7 +189,11 @@ export function BuyerHomeScreen({
         const all=await buyerApi.products({size:50});
         return all.content.filter(product=>product.businessType===businessType);
       })
-      .then(items => setProductItems(items.map(apiProductToCard)))
+      .then(items => {
+        const cards=items.map(apiProductToCard);
+        cards.forEach(card=>card.imageUrls?.forEach(url=>{void Image.prefetch(url)}));
+        setProductItems(cards);
+      })
       .catch(() => setProductItems([]))
       .finally(()=>setBuyerHomeReady(true));
     void refreshProducts();
@@ -203,7 +207,7 @@ export function BuyerHomeScreen({
       .then((page) => setPurchases(page.content.map(apiPurchaseToItem)))
       .catch(() => undefined);
     return()=>clearInterval(productInterval);
-  }, [tab, sellerMode, category]);
+  }, [sellerMode, category]);
   const shown = useMemo(() => {
     let list = productItems.map((item) => {const distance=userLocation&&item.lat!=null&&item.lng!=null?Math.round(6371000*2*Math.asin(Math.sqrt(Math.sin((item.lat-userLocation.lat)*Math.PI/360)**2+Math.cos(userLocation.lat*Math.PI/180)*Math.cos(item.lat*Math.PI/180)*Math.sin((item.lng-userLocation.lng)*Math.PI/360)**2))):item.distanceMeters;return ({
       ...item,distanceMeters:distance,location:distance!=null?`${item.location} · ${distance<1000?`${distance}m`:`${(distance/1000).toFixed(1)}km`}`:item.location,

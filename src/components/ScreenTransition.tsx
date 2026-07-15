@@ -25,13 +25,12 @@ export function ScreenTransition({
     inputRange: [0, 1],
     outputRange: [direction * Math.min(width, 402), 0],
   });
-  const opacity = progress.interpolate({
-    inputRange: [0, 0.18, 1],
-    outputRange: [0.72, 1, 1],
-  });
-
   return (
-    <Animated.View style={[styles.root, { opacity, transform: [{ translateX }] }]}>
+    <Animated.View
+      renderToHardwareTextureAndroid
+      shouldRasterizeIOS
+      style={[styles.root, { transform: [{ translateX }] }]}
+    >
       {children}
     </Animated.View>
   );

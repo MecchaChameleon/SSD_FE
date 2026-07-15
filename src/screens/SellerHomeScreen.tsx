@@ -108,7 +108,7 @@ export function SellerHomeScreen({
     const active=page==="dashboard"?"home":page;
     return <View style={{flex:1,overflow:"hidden"}}>
       <ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>
-      {chromeVisible?<View style={{position:"absolute",left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}>{page==="products"?<View style={{height:56,borderBottomWidth:1,borderBottomColor:colors.g200,alignItems:"center",justifyContent:"center"}}><Text style={{fontSize:16,fontWeight:"600",color:colors.black}}>상품등록</Text></View>:<AppHeader/>}</View>:null}
+      {chromeVisible?<View style={{position:"absolute",left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader/></View>:null}
       {chromeVisible?<View style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:66}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
     </View>;
   };
