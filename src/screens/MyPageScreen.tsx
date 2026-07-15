@@ -221,7 +221,7 @@ function BusinessForm({ initial, editing, sellerSignup=false, onBack, onSave }: 
     <Labeled label="정산 계좌번호"><TextInput value={value.account} onChangeText={t => set('account', t.replace(/[^0-9-]/g, ''))} keyboardType="number-pad" placeholder="'-' 제외 계좌번호 입력" placeholderTextColor={colors.g400} style={s.input} /></Labeled>
     <View style={s.formButton}><ActionButton disabled={!valid || (editing && !changed)} onPress={() => onSave(value)}>{editing ? '저장하기' : '등록하기'}</ActionButton></View>
   </ScrollView>
-    <SelectionSheet type={sheet} query={value.address} onClose={() => setSheet(null)} onAddress={place => { setValue(v=>({...v,address:place.roadAddress.replace('제주특별자치도 ',''),latitude:place.latitude,longitude:place.longitude})); setSheet(null); }} onBank={bank => { set('bank', bank); setSheet(null); }} />
+    <SelectionSheet type={sheet} query={value.address} onClose={() => setSheet(null)} onAddress={place => { const regionalAddress=place.lotAddress||place.roadAddress;setValue(v=>({...v,address:regionalAddress.replace('제주특별자치도 ',''),latitude:place.latitude,longitude:place.longitude})); setSheet(null); }} onBank={bank => { set('bank', bank); setSheet(null); }} />
   </View>;
 }
 
