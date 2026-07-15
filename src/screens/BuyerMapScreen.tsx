@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { buyerApi, MapPin, Product } from '../api';
 import { BottomNavigation } from '../components/home';
@@ -6,6 +7,7 @@ import { colors, radius } from '../theme';
 import CrosshairIcon from '../../icon/crosshair.svg';
 import HeartIcon from '../../icon/heart.svg';
 import LoaderIcon from '../../icon/loader.svg';
+import LocaltimePinIcon from '../../icon/로컬타임_아이콘 2.svg';
 
 declare global { interface Window { kakao: any; } }
 
@@ -61,8 +63,8 @@ export function BuyerMapScreen({onHome,onPurchases,onMyPage,onBuy}:{onHome:()=>v
         return {id:product.id,name:product.name,businessName:product.businessName??'',category:product.category,originalPrice:product.price,currentPrice:product.currentPrice,discountRate:product.discountRate??0,...coordinate,address:product.address,deadline:product.deadline,urgent:!!product.urgent} as MapPin;
       }));
       pins=[...pins,...geocoded.filter((pin):pin is MapPin=>pin!==null)];
-      const nextOverlays=pins.filter(pin=>Number.isFinite(pin.lat)&&Number.isFinite(pin.lng)).map(pin=>{const content=document.createElement('button');content.type='button';content.style.cssText='max-width:142px;height:32px;padding:4px 9px 4px 4px;border:0;border-radius:80px;background:#fff;box-shadow:2px 2px 3px rgba(0,0,0,.1);display:flex;align-items:center;gap:6px;cursor:pointer;';const clock=document.createElement('span');clock.textContent='◷';clock.style.cssText='width:24px;height:24px;border-radius:12px;background:#f3ab24;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;';const label=document.createElement('span');label.textContent=pin.name;label.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#111;';content.append(clock,label);content.onclick=()=>buyerApi.product(pin.id).then(setSelected);return new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(pin.lat,pin.lng),content,yAnchor:.5})});
-      nextOverlays.forEach(overlay=>overlay.setMap(map));productOverlays.current.forEach(item=>item.setMap(null));productOverlays.current=nextOverlays;
+      const nextOverlays=pins.filter(pin=>Number.isFinite(pin.lat)&&Number.isFinite(pin.lng)).map(pin=>{const content=document.createElement('button');content.type='button';content.style.cssText='max-width:142px;height:32px;padding:4px 9px 4px 4px;border:0;border-radius:80px;background:#fff;box-shadow:2px 2px 3px rgba(0,0,0,.1);display:flex;align-items:center;gap:6px;cursor:pointer;';const icon=document.createElement('span');icon.style.cssText='width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex:0 0 24px;overflow:hidden;';const iconRoot=createRoot(icon);iconRoot.render(<LocaltimePinIcon width={24} height={24}/>);const label=document.createElement('span');label.textContent=pin.name;label.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#111;';content.append(icon,label);content.onclick=()=>buyerApi.product(pin.id).then(setSelected);const overlay=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(pin.lat,pin.lng),content,yAnchor:.5});(overlay as any)._localtimeRoot=iconRoot;return overlay});
+      nextOverlays.forEach(overlay=>overlay.setMap(map));productOverlays.current.forEach(item=>{item.setMap(null);item._localtimeRoot?.unmount()});productOverlays.current=nextOverlays;
       } finally { rendering=false;if(renderAgain&&!disposed){renderAgain=false;void render();} }
     };
     await render();
@@ -76,7 +78,7 @@ export function BuyerMapScreen({onHome,onPurchases,onMyPage,onBuy}:{onHome:()=>v
       currentLocationOverlay.current?.setMap(null);currentLocationOverlay.current=new kakao.maps.CustomOverlay({position:here,content:dot});currentLocationOverlay.current.setMap(map);
     });
   }).catch(cause=>setError(cause instanceof Error?cause.message:'지도를 불러오지 못했습니다.'));
-  return()=>{disposed=true;productOverlays.current.forEach(item=>item.setMap(null));currentLocationOverlay.current?.setMap(null);};
+  return()=>{disposed=true;productOverlays.current.forEach(item=>{item.setMap(null);item._localtimeRoot?.unmount()});currentLocationOverlay.current?.setMap(null);};
   },[]);
   const currentLocation=()=>navigator.geolocation?.getCurrentPosition(position=>mapObject.current?.panTo(new window.kakao.maps.LatLng(position.coords.latitude,position.coords.longitude)));
   return <View style={s.root}><View ref={mapElement} style={s.map}/>{error?<View style={s.error}><Text style={s.errorTitle}>카카오 지도를 표시할 수 없습니다.</Text><Text style={s.errorText}>{error}</Text></View>:null}<Pressable style={[s.locationButton,selected&&s.locationButtonRaised]} onPress={currentLocation}><CrosshairIcon width={24} height={24} color={colors.g500}/></Pressable>{selected?<Animated.View {...sheetPan.panHandlers} style={[s.sheetGesture,{transform:[{translateY:sheetTranslateY}]}]}><ProductSheet product={selected} onClose={closeSheet} onBuy={()=>onBuy(selected)}/></Animated.View>:null}<BottomNavigation active="map" onSelect={tab=>tab==='home'?onHome():tab==='purchases'?onPurchases():tab==='mypage'?onMyPage():undefined}/></View>
