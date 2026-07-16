@@ -82,7 +82,7 @@ export function AIRecommendationScreen(){
     }
     return item.displayValue??null;
   };
-  return <ScrollView contentContainerStyle={s.root}>
+  return <ScrollView contentContainerStyle={s.root} showsVerticalScrollIndicator={false}>
     <Text style={s.title}>AI 추천가</Text>
     <Text style={s.body}>판매 상황·지역 수요·현재 시간·날씨를 반영해 가격을 계산합니다.</Text>
     {products.map(product=><Pressable key={product.id} onPress={()=>setSelected(product.id)} style={[s.product,selected===product.id&&s.selected]}><Text numberOfLines={1} style={s.productName}>{product.name}</Text></Pressable>)}
