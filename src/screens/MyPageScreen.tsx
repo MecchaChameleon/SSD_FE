@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AppHeader, BottomNavigation } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
@@ -21,7 +21,7 @@ import { CachedUser, USER_CACHE_KEY, readCache, readWebCache, writeCache } from 
 import { ScreenTransition } from '../components/ScreenTransition';
 import { normalizePickedImage } from '../utils/normalizePickedImage';
 
-type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessForm' | 'businessDone' | 'notifications' | 'modeDone' | 'withdrawDone';
+type Page = 'main' | 'profile' | 'favorites' | 'mode' | 'business' | 'businessForm' | 'businessDone' | 'notifications' | 'modeDone';
 type Business = { shop: string; representative:string; number1: string; number2: string; number3: string; openYear:string; openMonth:string; openDay:string; address: string; bank: string; account: string; latitude?:number|null; longitude?:number|null };
 
 const initialBusiness: Business = { shop: '', representative:'', number1: '', number2: '', number3: '', openYear:'', openMonth:'', openDay:'', address: '', bank: '', account: '' };
@@ -69,8 +69,6 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
   if (page === 'business' && business) return screen(<BusinessInfo value={business} onBack={() => go('main',-1)} onEdit={() => go('businessForm')} />);
   if (page === 'notifications') return screen(<NotificationPage onBack={() => go('main',-1)} />);
   if (page === 'modeDone') return screen(<ModeCompletion onDone={onSellerMode} />);
-  if (page === 'withdrawDone') return screen(<Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw} />);
-
   const rows: Array<[string, () => void, boolean]> = [
     ['찜한 상품/자원 관리', () => go('favorites'), true],
     ['앱 모드 전환', () => go('mode'), true],
@@ -83,12 +81,12 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
     <Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={profileImageUrl} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black} /> : null}</Pressable>)}
     <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'purchases' ? onPurchases() : undefined} />
-    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout(); else { setDialog(null); go('withdrawDone'); } }} />
+    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={() => dialog === 'logout' ? onLogout() : onWithdraw()} />
   </View>);
 }
 
 export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLogout, onWithdraw, onRootChange }: { onBack: () => void; onProducts?: () => void; onAi?:()=>void; onBuyerMode: () => void; onLogout?: () => Promise<void>; onWithdraw?: () => Promise<void>; onRootChange?:(root:boolean)=>void }) {
-  const [page, setPage] = useState<'main' | 'profile' | 'business' | 'businessForm' | 'mode' | 'notifications' | 'withdrawDone'>('main');
+  const [page, setPage] = useState<'main' | 'profile' | 'business' | 'businessForm' | 'mode' | 'notifications'>('main');
   const [pageDirection,setPageDirection]=useState<-1|1>(1);
   const [pageTransitionEnabled,setPageTransitionEnabled]=useState(false);
   const [dialog, setDialog] = useState<'logout' | 'withdraw' | null>(null);
@@ -106,7 +104,6 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   if (page === 'businessForm') return screen(<BusinessForm initial={business} editing onBack={() => go('business',-1)} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness({...profileToBusiness(profile),representative:value.representative,openYear:value.openYear,openMonth:value.openMonth,openDay:value.openDay}); go('business',-1); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />);
   if (page === 'mode') return screen(<SellerModePage onBack={() => go('main',-1)} onBuyerMode={onBuyerMode} />);
   if (page === 'notifications') return screen(<NotificationPage onBack={() => go('main',-1)} />);
-  if (page === 'withdrawDone') return screen(<Completion title="회원 탈퇴 완료" body={'서비스 이용 기록과 데이터가 모두 삭제되었어요.\n이용해 주셔서 감사합니다.'} button="로그인 화면으로 이동" onPress={onWithdraw ?? (async () => {})} />);
   const rows: Array<[string, () => void, boolean]> = [
     ['사업자 정보', () => go('business'), true],
     ['앱 모드 전환', () => go('mode'), true],
@@ -117,7 +114,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   return screen(<View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
     <SellerMyNavigation onHome={onBack} onProducts={onProducts} onAi={onAi}/>
-    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={async () => { if (dialog === 'logout') await onLogout?.(); else { setDialog(null); go('withdrawDone'); } }} />
+    <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={() => dialog === 'logout' ? onLogout?.() : onWithdraw?.()} />
   </View>);
 }
 
@@ -251,7 +248,20 @@ export function BuyerModeCompletion({ready,onDone}:{ready:boolean;onDone:()=>voi
 
 function NotificationPage({ onBack }: { onBack: () => void }) { return <SellerNotificationPage onBack={onBack}/>; }
 
-function ConfirmDialog({ type, onClose, onConfirm }: { type: 'logout' | 'withdraw' | null; onClose: () => void; onConfirm: () => void | Promise<void> }) { return <Modal transparent visible={!!type} animationType="fade" onRequestClose={onClose}><View style={s.dialogOverlay}><View style={s.dialog}><Text style={s.dialogTitle}>{type === 'logout' ? '로그아웃 하시겠습니까?' : '회원 탈퇴 하시겠습니까?'}</Text><Text style={s.dialogBody}>{type === 'logout' ? '로그아웃 후에는 실시간 결제 및 환불 푸시 알림이 발송되지 않습니다.' : '등록된 매장 정보, 상품 등록 및 구매 이력, AI 매출 리포트 데이터가 즉시 삭제되며 복구되지 않습니다.'}</Text>{type === 'withdraw' && <Text style={s.dialogNotice}>ⓘ 판매자 확인 대기 중인 결제가 있다면 처리 완료 후 탈퇴가 가능합니다.</Text>}<View style={s.dialogButtons}><Pressable onPress={onConfirm} style={[s.dialogButton, s.orange]}><Text style={s.whiteText}>{type === 'logout' ? '로그아웃' : '탈퇴하기'}</Text></Pressable><Pressable onPress={onClose} style={[s.dialogButton, s.gray]}><Text style={s.whiteText}>취소</Text></Pressable></View></View></View></Modal>; }
+function ConfirmDialog({ type, onClose, onConfirm }: { type: 'logout' | 'withdraw' | null; onClose: () => void; onConfirm: () => void | Promise<void> }) {
+  const [submitting,setSubmitting]=useState(false);
+  const [error,setError]=useState<string|null>(null);
+  useEffect(()=>{setSubmitting(false);setError(null)},[type]);
+  const close=()=>{if(!submitting)onClose()};
+  const confirm=async()=>{
+    if(submitting)return;
+    setSubmitting(true);
+    setError(null);
+    try{await onConfirm()}
+    catch(e){setError(e instanceof ApiError?e.message:'요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');setSubmitting(false)}
+  };
+  return <Modal transparent visible={!!type} animationType="fade" onRequestClose={close}><View style={s.dialogOverlay}><View style={s.dialog}><Text style={s.dialogTitle}>{error?(type==='withdraw'?'회원 탈퇴를 완료하지 못했습니다':'로그아웃을 완료하지 못했습니다'):type === 'logout' ? '로그아웃 하시겠습니까?' : '회원 탈퇴 하시겠습니까?'}</Text>{error?<Text style={s.dialogError}>{error}</Text>:<><Text style={s.dialogBody}>{type === 'logout' ? '로그아웃 후에는 실시간 결제 및 환불 푸시 알림이 발송되지 않습니다.' : '등록된 매장 정보, 상품 등록 및 구매 이력, AI 매출 리포트 데이터가 즉시 삭제되며 복구되지 않습니다.'}</Text>{type === 'withdraw' && <Text style={s.dialogNotice}>ⓘ 판매자 확인 대기 중인 결제가 있다면 처리 완료 후 탈퇴가 가능합니다.</Text>}</>}<View style={s.dialogButtons}>{error?<Pressable onPress={close} style={[s.dialogButton,s.gray]}><Text style={s.whiteText}>닫기</Text></Pressable>:<><Pressable disabled={submitting} onPress={confirm} style={[s.dialogButton,s.orange,submitting&&s.disabledButton]}>{submitting?<ActivityIndicator color={colors.white}/>:<Text style={s.whiteText}>{type === 'logout' ? '로그아웃' : '탈퇴하기'}</Text>}</Pressable><Pressable disabled={submitting} onPress={close} style={[s.dialogButton,s.gray,submitting&&s.disabledButton]}><Text style={s.whiteText}>취소</Text></Pressable></>}</View></View></View></Modal>;
+}
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white }, header: { height: 56, borderBottomWidth: 1, borderBottomColor: colors.g200, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, headerTitle: { fontSize: 16, fontWeight: '600', color: colors.black }, headerSide: { width: 24 },
@@ -265,6 +275,6 @@ const s = StyleSheet.create({
   infoRows: { padding:16,paddingBottom:130 }, infoRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center' }, infoLabel: { width: 128, fontSize: 14, color: colors.g600 }, infoValue: { flex: 1, fontSize: 14, fontWeight: '500' }, businessEdit: { position: 'absolute', left: 16, right: 16, bottom: 34, gap: 10 }, helper: { fontSize: 10, color: colors.g400 },
   completeArt: { position: 'absolute', top: 199, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' }, completeCopy: { position: 'absolute', top: 350, left: 16, right: 16, alignItems: 'center', gap: 6 }, completeTitle: { fontSize: 18, fontWeight: '600', textAlign: 'center' }, completeBody: { fontSize: 14, lineHeight: 18, color: colors.g500, textAlign: 'center' }, completeButton: { position: 'absolute', top: 501, left: 16, right: 16 }, modeDoneLabel: { position: 'absolute', top: 76, alignSelf: 'center', fontSize: 16, fontWeight: '600' }, modeDoneArt: { position: 'absolute', top: 177, alignSelf: 'center', backgroundColor: 'transparent' }, modeDoneCopy: { position: 'absolute', top: 335, left: 16, right: 16, alignItems: 'center', gap: 8 }, modeDoneButton: { position: 'absolute', top: 505, left: 16, right: 16 },
   notice: { margin: 16, padding: 14, borderRadius: radius.md, backgroundColor: '#eaf2ff' }, noticeText: { color: colors.info, fontSize: 12, fontWeight: '600' }, notifications: { paddingHorizontal: 16, paddingBottom: 24 }, notifyGroup: { marginBottom: 18 }, notifyGroupTitle: { fontSize: 16, fontWeight: '600', color: colors.black, marginBottom: 4 }, notifyRow: { height: 62, borderBottomWidth: 1, borderBottomColor: colors.g200, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, notifyText: { flex: 1, paddingRight: 12, fontSize: 14, color: colors.g800 },
-  dialogOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,.25)', alignItems: 'center', justifyContent: 'center', padding: 16 }, dialog: { width: '100%', maxWidth: 370, backgroundColor: colors.white, borderRadius: radius.lg, padding: 20, gap: 12 }, dialogTitle: { fontSize: 18, fontWeight: '600' }, dialogBody: { fontSize: 12, lineHeight: 17, color: colors.g600 }, dialogNotice: { marginTop: 8, fontSize: 10, color: colors.info }, dialogButtons: { flexDirection: 'row', gap: 8, marginTop: 8 }, dialogButton: { flex: 1, height: 56, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' }, orange: { backgroundColor: colors.primary500 }, gray: { backgroundColor: colors.g300 },
+  dialogOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,.25)', alignItems: 'center', justifyContent: 'center', padding: 16 }, dialog: { width: '100%', maxWidth: 370, backgroundColor: colors.white, borderRadius: radius.lg, padding: 20, gap: 12 }, dialogTitle: { fontSize: 18, fontWeight: '600' }, dialogBody: { fontSize: 12, lineHeight: 17, color: colors.g600 }, dialogNotice: { marginTop: 8, fontSize: 10, color: colors.info }, dialogError:{fontSize:13,lineHeight:19,color:colors.danger},dialogButtons: { flexDirection: 'row', gap: 8, marginTop: 8 }, dialogButton: { flex: 1, height: 56, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' }, orange: { backgroundColor: colors.primary500 }, gray: { backgroundColor: colors.g300 },disabledButton:{opacity:.6},
   sellerNav:{position:'absolute',left:0,right:0,bottom:0,height:66,borderTopWidth:1,borderTopColor:colors.g200,backgroundColor:colors.white,paddingHorizontal:12,flexDirection:'row'},sellerNavItem:{flex:1,paddingVertical:8,alignItems:'center',gap:8},sellerNavLabel:{fontSize:12,fontWeight:'600'},
 });
