@@ -71,6 +71,20 @@ const categoryLabels: Record<ApiProduct["category"], string> = {
 };
 const money = (v: string) => Number(v.replace(/[^0-9]/g, ""));
 const visitLabel=(date:Date)=>date.toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'});
+const seoulDateKey=(date:Date)=>date.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});
+const deadlineLabel=(deadlineAt:number)=>{
+  const deadline=new Date(deadlineAt);
+  const today=new Date();
+  const tomorrow=new Date(today.getTime()+24*60*60*1000);
+  const deadlineKey=seoulDateKey(deadline);
+  const day=deadlineKey===seoulDateKey(today)
+    ? '오늘'
+    : deadlineKey===seoulDateKey(tomorrow)
+      ? '내일'
+      : deadline.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric',timeZone:'Asia/Seoul'});
+  const time=deadline.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'});
+  return `${day} ${time}`;
+};
 const firstVisitTime=(deadlineAt?:number)=>{const date=new Date();date.setSeconds(0,0);date.setMinutes(Math.ceil(date.getMinutes()/5)*5);if(deadlineAt&&date.getTime()>deadlineAt)return '';return visitLabel(date)};
 const apiProductToCard = (p: ApiProduct): Product => {
   const deadlineAt = new Date(p.deadline).getTime();
@@ -83,7 +97,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     discount: `${discountRate}%`,
     shop: p.businessName ?? "",
     location: p.address ?? "",
-    detail: `${categoryLabels[p.category]} · 마감 ${new Date(deadlineAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" })}`,
+    detail: `${categoryLabels[p.category]} · 마감 ${deadlineLabel(deadlineAt)}`,
     insight: p.aiInsight ?? "",
     original: `${p.price.toLocaleString()}원`,
     price: `${p.currentPrice.toLocaleString()}원`,
@@ -581,7 +595,7 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
       <View style={gestureStyles.panelContent}>
       <View style={detailStyles.titleRow}><View style={detailStyles.nameRow}><Text style={detailStyles.name}>{product.title}</Text>{product.urgent?<View style={detailStyles.tag}><Text style={detailStyles.tagText}>마감임박</Text></View>:null}</View><Text style={detailStyles.discount}>{product.discount}</Text></View>
       <View style={detailStyles.locationRow}><Text style={detailStyles.shop}>{product.shop}</Text><Text numberOfLines={1} style={detailStyles.location}>{product.location}</Text></View>
-      <DetailRow label="상품정보" value={product.detail.split('·')[0].trim()}/><DetailRow label="마감시각" value={product.deadlineAt?new Date(product.deadlineAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'}):'-'}/><DetailRow label="잔여수량" value={product.remaining.replace(/[^0-9]/g,'')||'-'}/>
+      <DetailRow label="상품정보" value={product.detail.split('·')[0].trim()}/><DetailRow label="마감시각" value={product.deadlineAt?deadlineLabel(product.deadlineAt):'-'}/><DetailRow label="잔여수량" value={product.remaining.replace(/[^0-9]/g,'')||'-'}/>
       <View style={detailStyles.priceRow}><Text style={detailStyles.original}>{product.original}</Text><View style={detailStyles.sale}><Text style={detailStyles.saleLabel}>[할인가]</Text><Text style={detailStyles.price}>{product.price}</Text></View></View>
       {product.description?<View style={{marginTop:8,paddingVertical:10,borderTopWidth:1,borderTopColor:colors.g200,gap:6}}><Text style={{fontSize:12,color:colors.g600}}>상품 설명</Text><Text style={{fontSize:14,lineHeight:20,color:colors.black}}>{product.description}</Text></View>:null}
       {product.insight?<View style={detailStyles.insight}><Text style={detailStyles.sun}>☼</Text><Text style={detailStyles.insightText}>{product.insight}</Text></View>:null}
