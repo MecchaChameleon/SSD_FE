@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://jeju-localtime-api.onrender.com').replace(/\/$/, '');
+export const apiUrl = (path:string) => `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 export const resolveApiAssetUrl = (url:string) => /^https?:\/\//i.test(url) ? url : `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
 export const toApiAssetPath = (url:string) => url.startsWith(baseUrl) ? url.slice(baseUrl.length) || '/' : url;
 export const ACCESS_TOKEN_KEY = 'localtime:access-token';
@@ -20,7 +21,7 @@ export class ApiError extends Error {
 }
 
 function makeUrl(path: string, query?: Record<string, QueryValue>) {
-  const url = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+  const url = apiUrl(path);
   const params = Object.entries(query ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== '').map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
   return params.length ? `${url}?${params.join('&')}` : url;
 }
