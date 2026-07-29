@@ -736,6 +736,7 @@ function Wheel({
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastEmitted = useRef(selected);
   const mounted = useRef(false);
+  const isDragging = useRef(false);
 
   const selectOffset = (offset: number, animated: boolean) => {
     const next = Math.max(
@@ -783,10 +784,10 @@ function Wheel({
       showsVerticalScrollIndicator={false}
       snapToOffsets={values.map((_,itemIndex)=>itemIndex*itemHeight)}
       snapToAlignment="start"
-      disableIntervalMomentum
-      decelerationRate="fast"
+      decelerationRate="normal"
       scrollEventThrottle={16}
       onScrollBeginDrag={() => {
+        isDragging.current = true;
         if (settleTimer.current) clearTimeout(settleTimer.current);
         onInteract();
       }}
@@ -802,13 +803,19 @@ function Wheel({
           onSelect(values[next]);
         }
         if (settleTimer.current) clearTimeout(settleTimer.current);
-        settleTimer.current = setTimeout(() => selectOffset(lastOffset.current, true), 80);
+        if (!isDragging.current) {
+          settleTimer.current = setTimeout(() => selectOffset(lastOffset.current, true), 80);
+        }
       }}
       onScrollEndDrag={event => {
+        isDragging.current = false;
         const velocity = event.nativeEvent.velocity?.y ?? 0;
         if (Math.abs(velocity) < 0.01) finish(event);
       }}
-      onMomentumScrollEnd={finish}
+      onMomentumScrollEnd={event => {
+        isDragging.current = false;
+        finish(event);
+      }}
     >
       {values.map((item) => (
         <View key={item} style={s.wheelItem}>
