@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { authApi } from '../api';
@@ -30,7 +31,8 @@ export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
     setError(null);
     setLoading(true);
     try {
-      const result = await WebBrowser.openAuthSessionAsync(authApi.kakaoLoginStartUrl(), redirectUri);
+      const client = Platform.OS === 'web' ? 'web' : 'app';
+      const result = await WebBrowser.openAuthSessionAsync(authApi.kakaoLoginStartUrl(client), redirectUri);
       if (result.type !== 'success') return;
 
       const params = new URL(result.url).searchParams;
