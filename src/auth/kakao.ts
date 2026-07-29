@@ -5,7 +5,10 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { authApi } from '../api';
 
-WebBrowser.maybeCompleteAuthSession();
+// The backend only redirects to the configured, trusted web callback. Expo can
+// otherwise reject that callback when its generated development path differs
+// from /oauth/kakao, leaving the auth popup open and rendering the app again.
+WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
 
 export async function withdrawAccount() {
   await authApi.withdraw();
