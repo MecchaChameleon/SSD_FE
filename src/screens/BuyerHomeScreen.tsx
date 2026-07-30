@@ -15,22 +15,33 @@ import {
 import {
   AppHeader,
   BottomNavigation,
+  NotificationBell,
   Product,
-  ProductCard,
   PaymentDisplayStatus,
 } from "../components/home";
-import { Chip } from "../components/ui";
-import { colors, radius } from "../theme";
+import { colors, fonts, radius } from "../theme";
 import ChevronDownIcon from "../../icon/chevron_down.svg";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import SearchIcon from "../../icon/search.svg";
 import CloseIcon from "../../icon/x.svg";
+import CouponIcon from "../../icon/coupon.svg";
+import ArrowUpIcon from "../../icon/arrow_up.svg";
 import { BuyerModeCompletion, MyPageScreen } from "./MyPageScreen";
 import { SellerHomeScreen } from "./SellerHomeScreen";
 import { BuyerMapScreen } from "./BuyerMapScreen";
 import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
 import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
+import { LikesScreen } from "./LikesScreen";
 import { TimeOptionWheel } from "./RegisteredProductsScreen";
+import {
+  HeroBannerCarousel,
+  NewArrivalsSection,
+  PopularProductsSection,
+  PreferenceSection,
+  PromoBanner,
+  QuickMenuRow,
+  RankedProductCard,
+} from "./BuyerHomeSections";
 import { buyerApi, BusinessType, Product as ApiProduct, Purchase as ApiPurchase, resolveApiAssetUrl } from "../api";
 import { ScreenTransition } from "../components/ScreenTransition";
 
@@ -48,6 +59,7 @@ const categories = [
   "숙박",
   "체험",
   "렌탈 / 모빌리티",
+  "빈 시간대 자원",
 ] as const;
 type BuyerCategory = (typeof categories)[number];
 const businessTypeByCategory: Partial<Record<BuyerCategory, BusinessType>> = {
@@ -86,7 +98,7 @@ const deadlineLabel=(deadlineAt:number)=>{
   return `${day} ${time}`;
 };
 const firstVisitTime=(deadlineAt?:number)=>{const date=new Date();date.setSeconds(0,0);date.setMinutes(Math.ceil(date.getMinutes()/5)*5);if(deadlineAt&&date.getTime()>deadlineAt)return '';return visitLabel(date)};
-const apiProductToCard = (p: ApiProduct): Product => {
+export const apiProductToCard = (p: ApiProduct): Product => {
   const deadlineAt = new Date(p.deadline).getTime();
   const discountRate =
     p.discountRate ?? Math.round((1 - p.currentPrice / p.price) * 100);
@@ -110,6 +122,7 @@ const apiProductToCard = (p: ApiProduct): Product => {
     lng: p.lng,
     discountRate,
     imageUrls: (p.imageUrls ?? []).map(resolveApiAssetUrl),
+    createdAt: p.createdAt,
   };
 };
 const paymentStatus = (status:ApiPurchase['status']):PaymentDisplayStatus => status==='ACCEPTED'?'accepted':status==='REFUNDED'?'refunded':'pending';
@@ -157,7 +170,7 @@ export function BuyerHomeScreen({
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
-  const [tab, setTab] = useState<"home" | "map" | "purchases" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
+  const [tab, setTab] = useState<"home" | "map" | "purchases" | "likes" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
   const [tabDirection,setTabDirection]=useState<-1|1>(1);
   const [myPageRoot,setMyPageRoot]=useState(initialEntry!=='businessRegistration');
   const [sellerMode, setSellerMode] = useState(initialEntry==='seller');
@@ -172,13 +185,16 @@ export function BuyerHomeScreen({
   const [quantity, setQuantity] = useState(2);
   const [now, setNow] = useState(Date.now());
   const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
+  const [preferenceItems, setPreferenceItems] = useState<Product[]>([]);
+  const [newArrivalItems, setNewArrivalItems] = useState<Product[]>([]);
+  const homeScrollRef = useRef<ScrollView>(null);
   const refreshPurchases=useCallback(async()=>{
     const page=await buyerApi.purchases({size:50});
     setPurchases(page.content.map(apiPurchaseToItem));
   },[]);
-  const navigateTab=(next:"home"|"map"|"purchases"|"mypage")=>{
+  const navigateTab=(next:"home"|"map"|"purchases"|"likes"|"mypage")=>{
     if(next===tab)return;
-    const order={home:0,map:1,purchases:2,mypage:3};
+    const order={home:0,map:1,purchases:2,likes:3,mypage:4};
     setTabDirection(order[next]>order[tab]?1:-1);
     setTab(next);
     if(next==='purchases')void refreshPurchases().catch(()=>undefined);
@@ -187,7 +203,7 @@ export function BuyerHomeScreen({
     const chromeVisible=tab!=='mypage'||myPageRoot;
     return <View style={{flex:1,overflow:'hidden'}}>
       <ScreenTransition key={tab} direction={tabDirection}>{content}</ScreenTransition>
-      {tab!=='map'&&chromeVisible?<View style={{position:'absolute',left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader/></View>:null}
+      {tab!=='map'&&chromeVisible?<View style={{position:'absolute',left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader showBell={tab!=='home'}/></View>:null}
       {chromeVisible?<View style={{position:'absolute',left:0,right:0,bottom:0,zIndex:20,height:66}}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
     </View>;
   };
@@ -222,6 +238,22 @@ export function BuyerHomeScreen({
     void refreshPurchases().catch(() => undefined);
     return()=>clearInterval(productInterval);
   }, [sellerMode, category, refreshPurchases]);
+  useEffect(() => {
+    if (sellerMode) return;
+    buyerApi
+      .products({ size: 8, sort: "AI_RECOMMENDED" })
+      .then((page) => setPreferenceItems(page.content.map(apiProductToCard)))
+      .catch(() => setPreferenceItems([]));
+    buyerApi
+      .products({ size: 20 })
+      .then((page) => {
+        const sorted = [...page.content].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setNewArrivalItems(sorted.slice(0, 4).map(apiProductToCard));
+      })
+      .catch(() => setNewArrivalItems([]));
+  }, [sellerMode]);
   const shown = useMemo(() => {
     let list = productItems.map((item) => {const distance=userLocation&&item.lat!=null&&item.lng!=null?Math.round(6371000*2*Math.asin(Math.sqrt(Math.sin((item.lat-userLocation.lat)*Math.PI/360)**2+Math.cos(userLocation.lat*Math.PI/180)*Math.cos(item.lat*Math.PI/180)*Math.sin((item.lng-userLocation.lng)*Math.PI/360)**2))):item.distanceMeters;return ({
       ...item,distanceMeters:distance,location:distance!=null?`${item.location} · ${distance<1000?`${distance}m`:`${(distance/1000).toFixed(1)}km`}`:item.location,
@@ -303,14 +335,8 @@ export function BuyerHomeScreen({
       setLiked((v) => (exists ? [...v, id] : v.filter((x) => x !== id)));
     }
   };
-  const productCards = shown.map((p) => (
-    <ProductCard
-      key={p.id}
-      product={p}
-      liked={liked.includes(p.id)}
-      onLike={() => toggleLike(p.id)}
-      onBuy={() => setDetailProduct(p)}
-    />
+  const productCards = shown.map((p, i) => (
+    <RankedProductCard key={p.id} product={p} rank={i + 1} onPress={() => setDetailProduct(p)} />
   ));
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
@@ -351,6 +377,16 @@ export function BuyerHomeScreen({
             .hidePurchase(id)
             .then(() => setPurchases((v) => v.filter((x) => x.id !== id)));
         }}
+      />
+    );
+  if (tab === "likes")
+    return tabScreen(
+      <LikesScreen
+        onHome={() => navigateTab("home")}
+        onMap={() => navigateTab("map")}
+        onPurchases={() => navigateTab("purchases")}
+        onMyPage={() => navigateTab("mypage")}
+        onSelectProduct={(p) => setDetailProduct(p)}
       />
     );
   if (tab === "map")
@@ -418,104 +454,127 @@ export function BuyerHomeScreen({
     );
   return tabScreen(
     <View style={s.root}>
-      <AppHeader />
+      <AppHeader showBell={false} />
       <ScrollView
+        ref={homeScrollRef}
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={() => setSearching(true)} style={s.searchBar}>
-          <SearchIcon width={20} height={20} color={colors.g500} />
-          <Text style={[s.searchPlaceholder, query && s.searchValue]}>
-            {query || "검색"}
-          </Text>
-        </Pressable>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.chips}
-        >
-          {categories.map((x) => (
-            <Chip
-              key={x}
-              selected={category === x}
-              onPress={() => setCategory(x)}
-            >
-              {x}
-            </Chip>
-          ))}
-        </ScrollView>
-        <View style={s.sortArea}>
-          <Pressable
-            onPress={() => {
-              setSortOpen((v) => !v);
-              setAiInfo(false);
-            }}
-            style={s.sort}
-          >
-            <Text style={s.sortText}>{sort}</Text>
-            <ChevronDownIcon width={20} height={20} color={colors.g500} />
+        <View style={s.searchRow}>
+          <Pressable onPress={() => setSearching(true)} style={[s.searchBar, s.searchBarFlex]}>
+            <Text style={[s.searchPlaceholder, query && s.searchValue]}>
+              {query || "지역명, 가게 이름, 키워드로 검색"}
+            </Text>
+            <SearchIcon width={20} height={20} color={colors.g500} />
           </Pressable>
-          {sortOpen ? (
-            <View style={s.sortMenu}>
-              {sorts.map((x, index) =>
-                index === 0 ? (
-                  <View key={x} style={s.sortOption}>
-                    <Pressable
-                      onPress={() => {
-                        setSort(x);
-                        setSortOpen(false);
-                        setAiInfo(false);
-                      }}
-                    >
-                      <Text
-                        style={[s.sortOptionText, sort === x && s.selectedSort]}
-                      >
-                        {x}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityLabel="AI 추천 기준 안내"
-                      hitSlop={8}
-                      onPress={() => setAiInfo((v) => !v)}
-                    >
-                      <Text style={s.infoIcon}>ⓘ</Text>
-                    </Pressable>
-                  </View>
-                ) : (
-                  <Pressable
-                    key={x}
-                    onPress={() => {
-                      setSort(x);
-                      setSortOpen(false);
-                      setAiInfo(false);
-                    }}
-                    style={s.sortOption}
-                  >
-                    <Text
-                      style={[s.sortOptionText, sort === x && s.selectedSort]}
-                    >
-                      {x}
-                    </Text>
-                  </Pressable>
-                ),
-              )}
-            </View>
-          ) : null}
-          {sortOpen && aiInfo ? (
-            <View style={s.aiTooltip}>
-              <Text style={s.aiText}>
-                현재 날씨, 주변 유동인구, 거리를 기반으로 로컬 AI가 최적의 마감
-                상품을 실시간 추천드려요.
-              </Text>
-            </View>
-          ) : null}
+          <Pressable accessibilityLabel="쿠폰함" style={s.searchIconButton}>
+            <CouponIcon width={22} height={22} color={colors.g700} />
+          </Pressable>
+          <View style={s.searchIconButton}>
+            <NotificationBell role="buyer" />
+          </View>
         </View>
-        {productCards.length > 0 ? (
-          <View style={s.productGrid}>{productCards}</View>
-        ) : (
-          <Text style={s.empty}>검색 결과가 없습니다.</Text>
-        )}
+        <HeroBannerCarousel />
+        <QuickMenuRow
+          onSelect={(label) => {
+            if (label === "AI 추천") setSort("AI 추천순");
+            else if (label === "마감 임박") setSort("마감 임박순");
+            else if (label === "내 근처") setSort("가까운 거리순");
+          }}
+        />
+        <PreferenceSection products={preferenceItems} />
+        <PopularProductsSection
+          categories={categories}
+          category={category}
+          onCategory={setCategory}
+          sortSlot={
+            <View style={s.sortArea}>
+              <Pressable
+                onPress={() => {
+                  setSortOpen((v) => !v);
+                  setAiInfo(false);
+                }}
+                style={s.sort}
+              >
+                <Text style={s.sortText}>{sort}</Text>
+                <ChevronDownIcon width={20} height={20} color={colors.g500} />
+              </Pressable>
+              {sortOpen ? (
+                <View style={s.sortMenu}>
+                  {sorts.map((x, index) =>
+                    index === 0 ? (
+                      <View key={x} style={s.sortOption}>
+                        <Pressable
+                          onPress={() => {
+                            setSort(x);
+                            setSortOpen(false);
+                            setAiInfo(false);
+                          }}
+                        >
+                          <Text
+                            style={[s.sortOptionText, sort === x && s.selectedSort]}
+                          >
+                            {x}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          accessibilityLabel="AI 추천 기준 안내"
+                          hitSlop={8}
+                          onPress={() => setAiInfo((v) => !v)}
+                        >
+                          <Text style={s.infoIcon}>ⓘ</Text>
+                        </Pressable>
+                      </View>
+                    ) : (
+                      <Pressable
+                        key={x}
+                        onPress={() => {
+                          setSort(x);
+                          setSortOpen(false);
+                          setAiInfo(false);
+                        }}
+                        style={s.sortOption}
+                      >
+                        <Text
+                          style={[s.sortOptionText, sort === x && s.selectedSort]}
+                        >
+                          {x}
+                        </Text>
+                      </Pressable>
+                    ),
+                  )}
+                </View>
+              ) : null}
+              {sortOpen && aiInfo ? (
+                <View style={s.aiTooltip}>
+                  <Text style={s.aiText}>
+                    현재 날씨, 주변 유동인구, 거리를 기반으로 로컬 AI가 최적의 마감
+                    상품을 실시간 추천드려요.
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          }
+        >
+          {productCards.length > 0 ? (
+            productCards
+          ) : (
+            <Text style={s.empty}>검색 결과가 없습니다.</Text>
+          )}
+        </PopularProductsSection>
+        <PromoBanner
+          title="SNS에서 뜨는 캠핑 인기템"
+          subtitle="캠핑용품 특가 모음 -72%"
+        />
+        <NewArrivalsSection items={newArrivalItems} />
       </ScrollView>
+      <Pressable
+        accessibilityLabel="맨 위로"
+        style={s.scrollTopButton}
+        onPress={() => homeScrollRef.current?.scrollTo({ y: 0, animated: true })}
+      >
+        <ArrowUpIcon width={24} height={24} color={colors.g700} />
+      </Pressable>
       <BottomNavigation active="home" onSelect={navigateTab} />
     </View>
   );
@@ -696,21 +755,55 @@ function Summary({ label, value }: { label: string; value: string }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
   content: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 92 },
-  searchBar: {
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.g100,
+  searchRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 14,
     marginBottom: 16,
   },
-  searchPlaceholder: { fontSize: 14, color: colors.g500 },
+  searchBarFlex: { flex: 1, marginBottom: 0 },
+  scrollTopButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 100,
+    zIndex: 15,
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.white,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 6,
+  },
+  searchIconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.g100,
+  },
+  searchBar: {
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.g100,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  searchPlaceholder: { fontSize: 14, fontFamily: fonts.regular, color: colors.g500 },
   searchValue: { color: colors.black },
   heading: {
     marginLeft: 2,
     fontSize: 20,
+    fontFamily: fonts.semibold,
     fontWeight: "600",
     lineHeight: 24,
     color: colors.black,
@@ -726,7 +819,7 @@ const s = StyleSheet.create({
     elevation: 20,
   },
   sort: { flexDirection: "row", alignItems: "center", gap: 2 },
-  sortText: { fontSize: 12, color: colors.g500 },
+  sortText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500 },
   sortMenu: {
     position: "absolute",
     right: 0,
@@ -751,8 +844,8 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  sortOptionText: { fontSize: 11, color: colors.g400 },
-  selectedSort: { fontWeight: "600", color: colors.black },
+  sortOptionText: { fontSize: 11, fontFamily: fonts.regular, color: colors.g400 },
+  selectedSort: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
   infoIcon: { fontSize: 12, color: colors.g500 },
   aiTooltip: {
     position: "absolute",
@@ -766,8 +859,8 @@ const s = StyleSheet.create({
     zIndex: 40,
     elevation: 16,
   },
-  aiText: { fontSize: 9, lineHeight: 12, color: colors.white },
-  empty: { paddingVertical: 80, textAlign: "center", color: colors.g500 },
+  aiText: { fontSize: 9, fontFamily: fonts.regular, lineHeight: 12, color: colors.white },
+  empty: { paddingVertical: 80, fontFamily: fonts.regular, textAlign: "center", color: colors.g500 },
   productGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 20 },
   searchHeader: {
     height: 60,
@@ -791,6 +884,7 @@ const s = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
+    fontFamily: fonts.regular,
     color: colors.black,
     paddingVertical: 0,
   },
@@ -801,8 +895,8 @@ const s = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  recentTitle: { fontSize: 16, fontWeight: "600" },
-  clear: { fontSize: 12, color: colors.g500 },
+  recentTitle: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600" },
+  clear: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500 },
   recentItem: {
     height: 48,
     marginHorizontal: 16,
@@ -812,7 +906,7 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.g100,
   },
-  recentText: { fontSize: 14, color: colors.g800 },
+  recentText: { fontSize: 14, fontFamily: fonts.regular, color: colors.g800 },
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,.25)",

@@ -8,3 +8,6 @@ web-build/
 
 *.env
 .env.local
+
+.claude/settings.local.json
+.mcp.json

@@ -32,7 +32,8 @@
           "photosPermission": "상품 사진을 등록하려면 사진 보관함 접근 권한이 필요합니다.",
           "cameraPermission": false
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

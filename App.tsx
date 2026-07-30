@@ -18,6 +18,7 @@ import { DeviceFrame } from './src/components/DeviceFrame';
 import { authApi, sellerApi } from './src/api';
 import { warmUpApi } from './src/api/client';
 import { CachedUser, SELLER_DASHBOARD_CACHE_KEY, USER_CACHE_KEY, readCache, readWebCache, removeCaches, writeCache } from './src/cache/appCache';
+import { useAppFonts } from './src/hooks/useAppFonts';
 
 type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'mode'|'businessRegistration'|'complete'|'home'|'gallery';
 type HomeEntry='buyer'|'seller'|'businessRegistration';
@@ -25,6 +26,7 @@ type HomeEntry='buyer'|'seller'|'businessRegistration';
 void warmUpApi();
 
 export default function App(){
+  const [fontsLoaded]=useAppFonts();
   const [route,setRoute]=useState<Route>('loading');
   const initialUser=readWebCache<CachedUser>(USER_CACHE_KEY);
   const [name,setName]=useState(initialUser?.nickname??'로컬이');
@@ -82,7 +84,7 @@ export default function App(){
   const withdraw=async()=>{await withdrawAccount();await removeCaches(['localtime:access-token',USER_CACHE_KEY,'localtime:member','localtime:onboarding-complete',SELLER_DASHBOARD_CACHE_KEY]);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
   const purchase=async(payload:PurchasePayload)=>{await AsyncStorage.setItem('localtime:last-purchase',JSON.stringify({...payload,requestedAt:new Date().toISOString()}))};
 
-  const content=route==='loading'?<ActivityIndicator color={colors.primary500}/>
+  const content=!fontsLoaded||route==='loading'?<ActivityIndicator color={colors.primary500}/>
     :route==='splash'?<SplashScreen onDone={afterSplash}/>
     :route==='onboarding'?<OnboardingScreen onDone={finishOnboarding}/>
     :route==='login'?<LoginScreen onLogin={kakao.login} loading={kakao.loading} error={kakao.error} disabled={!kakao.ready}/>
