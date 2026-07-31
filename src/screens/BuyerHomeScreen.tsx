@@ -243,11 +243,13 @@ export function BuyerHomeScreen({
   useEffect(() => {
     if (sellerMode) return;
     const businessType=businessTypeByCategory[category];
+    const nearby=sort==="가까운 거리순"&&userLocation;
+    const sortQuery=nearby?{sort:"DISTANCE_ASC" as const,lat:userLocation.lat,lng:userLocation.lng}:{};
     const refreshProducts=()=>buyerApi
-      .products({ size: 50, businessType })
+      .products({ size: 50, businessType, ...sortQuery })
       .then(async page => {
         if(page.content.length||!businessType)return page.content;
-        const all=await buyerApi.products({size:50});
+        const all=await buyerApi.products({size:50, ...sortQuery});
         return all.content.filter(product=>product.businessType===businessType);
       })
       .then(items => {
@@ -265,7 +267,7 @@ export function BuyerHomeScreen({
       .catch(() => undefined);
     void refreshPurchases().catch(() => undefined);
     return()=>clearInterval(productInterval);
-  }, [sellerMode, category, refreshPurchases]);
+  }, [sellerMode, category, refreshPurchases, sort, userLocation]);
   useEffect(() => {
     if (sellerMode) return;
     buyerApi
