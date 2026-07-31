@@ -66,11 +66,24 @@ export function HeroBannerCarousel() {
   );
 }
 
-export function QuickMenuRow({ onSelect }: { onSelect?: (label: string) => void }) {
+export function QuickMenuRow({
+  onAiRecommend,
+  onSelect,
+}: {
+  onAiRecommend: () => void;
+  onSelect?: (label: string) => void;
+}) {
   return (
     <View style={s.quickRow}>
       {quickMenuItems.map(({ label, Glyph, glyphWidth, glyphHeight, glyphLeft, glyphTop }) => (
-        <Pressable key={label} style={s.quickItem} onPress={() => onSelect?.(label)}>
+        <Pressable
+          key={label}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          hitSlop={6}
+          style={({ pressed }) => [s.quickItem, pressed && s.quickItemPressed]}
+          onPress={label === "AI 추천" ? onAiRecommend : () => onSelect?.(label)}
+        >
           <View style={s.quickIconWrap}>
             <QuickMenuBg width={48} height={48} />
             <Glyph width={glyphWidth} height={glyphHeight} style={{ position: "absolute", left: glyphLeft, top: glyphTop }} />
@@ -271,6 +284,7 @@ const s = StyleSheet.create({
   dotOn: { backgroundColor: colors.g700 },
   quickRow: { flexDirection: "row", justifyContent: "space-between", gap: 16, marginBottom: 20 },
   quickItem: { flex: 1, height: 104, borderRadius: radius.lg, backgroundColor: "#f8f8f8", alignItems: "center", justifyContent: "space-between", paddingVertical: 12 },
+  quickItemPressed: { opacity: 0.65, transform: [{ scale: 0.97 }] },
   quickIconWrap: { width: 48, height: 48 },
   quickLabel: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.g700 },
   section: { marginBottom: 24 },

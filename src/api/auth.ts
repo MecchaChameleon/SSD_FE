@@ -3,7 +3,11 @@ import type { LoginResponse, MeResponse } from './types';
 
 export const authApi = {
   kakaoLogin: (accessToken:string) => apiRequest<LoginResponse>('/api/auth/kakao', {method:'POST', body:{accessToken}, auth:false}),
-  kakaoLoginStartUrl: (client: 'app' | 'web') => `${apiUrl('/api/auth/kakao/start')}?client=${client}`,
+  kakaoLoginStartUrl: (client: 'app' | 'web', returnUri?: string) => {
+    const params = new URLSearchParams({ client });
+    if (returnUri) params.set('returnUri', returnUri);
+    return `${apiUrl('/api/auth/kakao/start')}?${params.toString()}`;
+  },
   exchangeKakaoTicket: (ticket:string) => apiRequest<LoginResponse>('/api/auth/kakao/ticket', {method:'POST', body:{ticket}, auth:false}),
   me: () => apiRequest<MeResponse>('/api/auth/me'),
   updateMe: (body:{nickname?:string;profileImageUrl?:string}) => apiRequest<MeResponse>('/api/users/me', {method:'PATCH', body}),

@@ -1,5 +1,5 @@
 import { apiRequest } from './client';
-import type { BusinessType, Page, Product, ProductCategory, Purchase, PurchaseStatus } from './types';
+import type { AiRecommendationResponse, BusinessType, Page, Product, ProductCategory, Purchase, PurchaseStatus } from './types';
 
 export type ProductSearch = {query?:string;businessType?:BusinessType;category?:ProductCategory;lat?:number;lng?:number;radiusKm?:number;sort?:'AI_RECOMMENDED'|'DEADLINE_ASC'|'DISTANCE_ASC'|'DISCOUNT_DESC'|'PRICE_ASC';urgent?:boolean;page?:number;size?:number};
 export type MapPin = {id:number;name:string;businessName:string;category:ProductCategory;originalPrice:number;currentPrice:number;discountRate:number;lat:number;lng:number;address:string|null;deadline:string;urgent:boolean};
@@ -14,4 +14,6 @@ export const buyerApi = {
   wishlist: (query:{page?:number;size?:number}={}) => apiRequest<Page<Product>>('/api/buyer/wishlist', {query}),
   addWishlist: (productId:number) => apiRequest<void>(`/api/buyer/wishlist/${productId}`, {method:'POST'}),
   removeWishlist: (productId:number) => apiRequest<void>(`/api/buyer/wishlist/${productId}`, {method:'DELETE'}),
+  aiRecommendations: (body:{query:string;latitude?:number;longitude?:number}) =>
+    apiRequest<AiRecommendationResponse>('/api/buyer/ai-recommendations', {method:'POST', body}),
 };

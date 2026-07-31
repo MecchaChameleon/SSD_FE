@@ -44,6 +44,7 @@ import {
 } from "./BuyerHomeSections";
 import { buyerApi, BusinessType, Product as ApiProduct, Purchase as ApiPurchase, resolveApiAssetUrl } from "../api";
 import { ScreenTransition } from "../components/ScreenTransition";
+import { BuyerAiRecommendationScreen } from "./BuyerAiRecommendationModal";
 
 export type PurchasePayload = {
   productId: number;
@@ -69,7 +70,7 @@ const businessTypeByCategory: Partial<Record<BuyerCategory, BusinessType>> = {
   "렌탈 / 모빌리티": "RENTAL_MOBILITY",
 };
 const sorts = [
-  "AI 추천순",
+  "할인율 높은순",
   "가까운 거리순",
   "마감 임박순",
   "낮은 가격순",
@@ -179,9 +180,10 @@ export function BuyerHomeScreen({
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
-  const [sort, setSort] = useState<(typeof sorts)[number]>("AI 추천순");
+  const [sort, setSort] = useState<(typeof sorts)[number]>("할인율 높은순");
   const [sortOpen, setSortOpen] = useState(false);
   const [aiInfo, setAiInfo] = useState(false);
+  const [aiRecommendationOpen, setAiRecommendationOpen] = useState(false);
   const [quantity, setQuantity] = useState(2);
   const [now, setNow] = useState(Date.now());
   const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
@@ -266,7 +268,7 @@ export function BuyerHomeScreen({
         !query.trim() ||
         `${p.title} ${p.shop} ${p.location}`.includes(query.trim()),
     );
-    if (sort === "AI 추천순")
+    if (sort === "할인율 높은순")
       list = [...list].sort(
         (a, b) => (b.discountRate ?? 0) - (a.discountRate ?? 0),
       );
@@ -338,6 +340,7 @@ export function BuyerHomeScreen({
   const productCards = shown.map((p, i) => (
     <RankedProductCard key={p.id} product={p} rank={i + 1} onPress={() => setDetailProduct(p)} />
   ));
+  if(aiRecommendationOpen) return <BuyerAiRecommendationScreen location={userLocation} onBack={()=>setAiRecommendationOpen(false)} onSelect={(product)=>{setAiRecommendationOpen(false);setDetailProduct(apiProductToCard(product))}}/>;
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
@@ -476,9 +479,9 @@ export function BuyerHomeScreen({
         </View>
         <HeroBannerCarousel />
         <QuickMenuRow
+          onAiRecommend={() => setAiRecommendationOpen(true)}
           onSelect={(label) => {
-            if (label === "AI 추천") setSort("AI 추천순");
-            else if (label === "마감 임박") setSort("마감 임박순");
+            if (label === "마감 임박") setSort("마감 임박순");
             else if (label === "내 근처") setSort("가까운 거리순");
           }}
         />

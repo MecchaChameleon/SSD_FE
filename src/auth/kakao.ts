@@ -35,7 +35,14 @@ export function useKakaoLogin(onSuccess: (user: LoginUser) => void) {
     setLoading(true);
     try {
       const client = Platform.OS === 'web' ? 'web' : 'app';
-      const result = await WebBrowser.openAuthSessionAsync(authApi.kakaoLoginStartUrl(client), redirectUri);
+      const webReturnUri =
+        Platform.OS === 'web' && typeof window !== 'undefined'
+          ? `${window.location.origin}/oauth/kakao`
+          : undefined;
+      const result = await WebBrowser.openAuthSessionAsync(
+        authApi.kakaoLoginStartUrl(client, webReturnUri),
+        webReturnUri ?? redirectUri,
+      );
       if (result.type !== 'success') return;
 
       const params = new URL(result.url).searchParams;
