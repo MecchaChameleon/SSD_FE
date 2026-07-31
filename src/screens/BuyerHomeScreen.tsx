@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  Easing,
   Modal,
   Image,
   PanResponder,
@@ -184,6 +185,8 @@ export function BuyerHomeScreen({
   const [sortOpen, setSortOpen] = useState(false);
   const [aiInfo, setAiInfo] = useState(false);
   const [aiRecommendationOpen, setAiRecommendationOpen] = useState(false);
+  const aiRecommendationSlide = useRef(new Animated.Value(0)).current;
+  const { width: viewportWidth } = useWindowDimensions();
   const [quantity, setQuantity] = useState(2);
   const [now, setNow] = useState(Date.now());
   const [userLocation,setUserLocation]=useState<{lat:number;lng:number}|null>(null);
@@ -200,6 +203,28 @@ export function BuyerHomeScreen({
     setTabDirection(order[next]>order[tab]?1:-1);
     setTab(next);
     if(next==='purchases')void refreshPurchases().catch(()=>undefined);
+  };
+  const openAiRecommendation=()=>{
+    aiRecommendationSlide.setValue(0);
+    setAiRecommendationOpen(true);
+    requestAnimationFrame(()=>Animated.timing(aiRecommendationSlide,{
+      toValue:1,
+      duration:280,
+      easing:Easing.out(Easing.cubic),
+      useNativeDriver:true,
+    }).start());
+  };
+  const closeAiRecommendation=(product?:ApiProduct)=>{
+    Animated.timing(aiRecommendationSlide,{
+      toValue:0,
+      duration:260,
+      easing:Easing.in(Easing.cubic),
+      useNativeDriver:true,
+    }).start(({finished})=>{
+      if(!finished)return;
+      setAiRecommendationOpen(false);
+      if(product)setDetailProduct(apiProductToCard(product));
+    });
   };
   const tabScreen=(content:React.ReactNode)=>{
     const chromeVisible=tab!=='mypage'||myPageRoot;
@@ -340,7 +365,6 @@ export function BuyerHomeScreen({
   const productCards = shown.map((p, i) => (
     <RankedProductCard key={p.id} product={p} rank={i + 1} onPress={() => setDetailProduct(p)} />
   ));
-  if(aiRecommendationOpen) return <BuyerAiRecommendationScreen location={userLocation} onBack={()=>setAiRecommendationOpen(false)} onSelect={(product)=>{setAiRecommendationOpen(false);setDetailProduct(apiProductToCard(product))}}/>;
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
@@ -455,8 +479,8 @@ export function BuyerHomeScreen({
         ))}
       </View>
     );
-  return tabScreen(
-    <View style={s.root}>
+  return <View style={s.root}>
+    {tabScreen(<View style={s.root}>
       <AppHeader showBell={false} />
       <ScrollView
         ref={homeScrollRef}
@@ -479,7 +503,7 @@ export function BuyerHomeScreen({
         </View>
         <HeroBannerCarousel />
         <QuickMenuRow
-          onAiRecommend={() => setAiRecommendationOpen(true)}
+          onAiRecommend={openAiRecommendation}
           onSelect={(label) => {
             if (label === "마감 임박") setSort("마감 임박순");
             else if (label === "내 근처") setSort("가까운 거리순");
@@ -579,8 +603,24 @@ export function BuyerHomeScreen({
         <ArrowUpIcon width={24} height={24} color={colors.g700} />
       </Pressable>
       <BottomNavigation active="home" onSelect={navigateTab} />
-    </View>
-  );
+    </View>)}
+    {aiRecommendationOpen?<Animated.View
+      style={[
+        StyleSheet.absoluteFillObject,
+        s.aiRecommendationLayer,
+        {transform:[{translateX:aiRecommendationSlide.interpolate({
+          inputRange:[0,1],
+          outputRange:[Math.min(viewportWidth,430),0],
+        })}]},
+      ]}
+    >
+      <BuyerAiRecommendationScreen
+        location={userLocation}
+        onBack={()=>closeAiRecommendation()}
+        onSelect={(product)=>closeAiRecommendation(product)}
+      />
+    </Animated.View>:null}
+  </View>;
 }
 function OrderForm({product,quantity,visitTime,onQuantity,onVisitTime,onBack,onNext}:{product:Product;quantity:number;visitTime:string;onQuantity:(v:number)=>void;onVisitTime:(v:string)=>void;onBack:()=>void;onNext:()=>void}){
   const [picker,setPicker]=useState(false);
@@ -757,6 +797,11 @@ function Summary({ label, value }: { label: string; value: string }) {
 }
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
+  aiRecommendationLayer: {
+    zIndex: 100,
+    elevation: 100,
+    backgroundColor: colors.white,
+  },
   content: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 92 },
   searchRow: {
     flexDirection: "row",
