@@ -111,9 +111,8 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return screen(<View style={s.root}><AppHeader role="seller"/><Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
+  return screen(<View style={[s.root, { paddingTop: 56, paddingBottom: 66 }]}><Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
-    <SellerMyNavigation onHome={onBack} onProducts={onProducts} onAi={onAi}/>
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={() => dialog === 'logout' ? onLogout?.() : onWithdraw?.()} />
   </View>);
 }

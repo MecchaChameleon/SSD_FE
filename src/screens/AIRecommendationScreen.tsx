@@ -128,7 +128,7 @@ export function AIRecommendationScreen(){
 }
 
 const s=StyleSheet.create({
-  root:{padding:16,paddingBottom:110},title:{fontSize:22,fontWeight:'700'},body:{fontSize:13,color:colors.g500,marginTop:6,marginBottom:18},
+  root:{paddingHorizontal:16,paddingTop:72,paddingBottom:82},title:{fontSize:22,fontWeight:'700'},body:{fontSize:13,color:colors.g500,marginTop:6,marginBottom:18},
   product:{height:54,paddingHorizontal:14,borderWidth:1,borderColor:colors.g200,borderRadius:radius.sm,marginBottom:8,justifyContent:'center'},selected:{borderColor:colors.primary500,backgroundColor:colors.primary100},productName:{fontSize:15,fontWeight:'600'},
   card:{marginTop:14,padding:18,borderRadius:radius.lg,backgroundColor:colors.g100},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},label:{fontSize:14,color:colors.g600},price:{fontSize:30,fontWeight:'700',color:colors.primary500,marginTop:6},discount:{fontSize:12,color:colors.g600,marginTop:5},
   optionSection:{marginTop:18},optionSectionTitle:{fontSize:16,fontWeight:'700',color:colors.black},optionNotice:{fontSize:11,lineHeight:16,color:colors.g500,marginTop:4,marginBottom:10},

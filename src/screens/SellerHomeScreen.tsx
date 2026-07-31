@@ -205,27 +205,12 @@ export function SellerHomeScreen({
     return screen(
       <View style={s.root}>
         <ProductRegistrationScreen showHeader={false} onBack={() => navigate("dashboard",-1)} />
-        <SellerNavigation
-          active="products"
-          onHome={() => navigate("dashboard")}
-          onProducts={() => navigate("products")}
-          onAi={() => navigate("ai")}
-          onMypage={() => navigate("mypage")}
-        />
       </View>
     );
   if (page === "ai")
     return screen(
       <View style={s.root}>
-        <AppHeader />
         <AIRecommendationScreen />
-        <SellerNavigation
-          active="ai"
-          onHome={() => navigate("dashboard")}
-          onProducts={() => navigate("products")}
-          onAi={() => navigate("ai")}
-          onMypage={() => navigate("mypage")}
-        />
       </View>
     );
   if (page === "mypage")
