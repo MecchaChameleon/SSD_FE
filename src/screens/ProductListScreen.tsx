@@ -4,10 +4,12 @@ import { colors, fonts } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
 import { CategoryTabs, ProductListRow, SortDropdown } from "./BuyerHomeSections";
-import { apiProductToCard, BuyerCategory, businessTypeByCategory, categories, money, sorts } from "./BuyerHomeScreen";
+import { apiProductToCard, BuyerCategory, businessTypeByCategory, money, sorts } from "./BuyerHomeScreen";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 
 export type ProductListMode = "preference" | "popular" | "new";
+
+const listCategories: readonly BuyerCategory[] = ["전체", "음식점", "숙박", "체험", "렌탈 / 모빌리티"];
 
 export function ProductListScreen({
   title,
@@ -74,9 +76,7 @@ export function ProductListScreen({
         <Text style={s.headerTitle}>{title}</Text>
         <View style={s.headerSide} />
       </View>
-      <View style={s.tabRow}>
-        <CategoryTabs categories={categories} category={category} onCategory={setCategory} />
-      </View>
+      <CategoryTabs categories={listCategories} category={category} onCategory={setCategory} />
       {!rankMode ? (
         <View style={s.sortRow}>
           <SortDropdown value={sort} options={sorts} onChange={setSort} />
@@ -105,8 +105,7 @@ const s = StyleSheet.create({
   header: { height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
   headerSide: { width: 24 },
   headerTitle: { fontSize: 17, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  tabRow: { paddingHorizontal: 16 },
-  sortRow: { paddingHorizontal: 16, paddingVertical: 10, alignItems: "flex-end" },
-  content: { paddingHorizontal: 16, paddingBottom: 40 },
+  sortRow: { paddingHorizontal: 16, paddingTop: 10, alignItems: "flex-end" },
+  content: { paddingHorizontal: 16, paddingBottom: 40, gap: 8 },
   empty: { paddingVertical: 80, textAlign: "center", fontFamily: fonts.regular, color: colors.g500 },
 });

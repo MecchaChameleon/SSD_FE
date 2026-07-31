@@ -119,34 +119,7 @@ export function PreferenceSection({ products, onSelect, onSeeAll }: { products: 
         {pages.map((page, i) => (
           <View key={i} style={{ width: frameWidth, gap: 8 }}>
             {page.map((item) => (
-              <Pressable key={item.id} onPress={() => onSelect(item)} style={s.prefRow}>
-                {item.imageUrls?.[0] ? (
-                  <Image source={{ uri: item.imageUrls[0] }} style={s.prefThumb} />
-                ) : (
-                  <View style={s.prefThumb} />
-                )}
-                <View style={s.prefInfo}>
-                  <View style={s.prefNameRow}>
-                    <Text numberOfLines={1} style={s.prefTitle}>{item.title}</Text>
-                    {item.urgent ? (
-                      <View style={s.prefTag}>
-                        <Text style={s.prefTagText}>마감임박</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <View style={s.prefStoreRow}>
-                    <MapPinIcon width={14} height={14} color={colors.g600} />
-                    <Text numberOfLines={1} style={s.prefShop}>{item.shop}</Text>
-                  </View>
-                  <View style={s.prefPriceRow}>
-                    <View style={s.percentBadge}>
-                      <Text style={s.percentBadgeText}>{item.discountRate ?? 0}%</Text>
-                    </View>
-                    <Text style={s.prefDiscountLabel}>{item.price}</Text>
-                    <Text style={s.prefOriginalLabel}>{item.original}</Text>
-                  </View>
-                </View>
-              </Pressable>
+              <ProductListRow key={item.id} product={item} onPress={() => onSelect(item)} />
             ))}
           </View>
         ))}
@@ -301,8 +274,8 @@ export function CategoryTabs<T extends string>({ categories, category, onCategor
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
       {categories.map((c) => (
         <Pressable key={c} onPress={() => onCategory(c)} style={s.tab}>
-          <Text style={[s.tabText, category === c && s.tabTextOn]}>{c}</Text>
-          {category === c ? <View style={s.tabUnderline} /> : null}
+          <Text numberOfLines={1} style={[s.tabText, category === c && s.tabTextOn]}>{c}</Text>
+          <View style={[s.tabUnderline, category === c && s.tabUnderlineOn]} />
         </Pressable>
       ))}
     </ScrollView>
@@ -311,12 +284,12 @@ export function CategoryTabs<T extends string>({ categories, category, onCategor
 
 export function ProductListRow({ product, rank, onPress }: { product: Product; rank?: number; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={s.listRow}>
+    <Pressable onPress={onPress} style={s.prefRow}>
       <View style={s.listThumbWrap}>
         {product.imageUrls?.[0] ? (
-          <Image source={{ uri: product.imageUrls[0] }} style={s.listThumb} />
+          <Image source={{ uri: product.imageUrls[0] }} style={s.prefThumb} />
         ) : (
-          <View style={s.listThumb} />
+          <View style={s.prefThumb} />
         )}
         {rank != null ? (
           <View style={s.listRankBadge}>
@@ -324,25 +297,27 @@ export function ProductListRow({ product, rank, onPress }: { product: Product; r
           </View>
         ) : null}
       </View>
-      <View style={s.listInfo}>
-        <Text numberOfLines={1} style={s.listTitle}>{product.title}</Text>
-        <View style={s.listStoreRow}>
-          <MapPinIcon width={14} height={14} color={colors.g600} />
-          <Text numberOfLines={1} style={s.listShop}>{product.shop}</Text>
+      <View style={s.prefInfo}>
+        <View style={s.prefNameRow}>
+          <Text numberOfLines={1} style={s.prefTitle}>{product.title}</Text>
+          {product.urgent ? (
+            <View style={s.prefTag}>
+              <Text style={s.prefTagText}>마감임박</Text>
+            </View>
+          ) : null}
         </View>
-        <View style={s.listPriceRow}>
+        <View style={s.prefStoreRow}>
+          <MapPinIcon width={14} height={14} color={colors.g600} />
+          <Text numberOfLines={1} style={s.prefShop}>{product.shop}</Text>
+        </View>
+        <View style={s.prefPriceRow}>
           <View style={s.percentBadge}>
             <Text style={s.percentBadgeText}>{product.discountRate ?? 0}%</Text>
           </View>
-          <Text style={s.listPrice}>{product.price}</Text>
-          <Text style={s.listOriginal}>{product.original}</Text>
+          <Text style={s.prefDiscountLabel}>{product.price}</Text>
+          <Text style={s.prefOriginalLabel}>{product.original}</Text>
         </View>
       </View>
-      {product.urgent ? (
-        <View style={s.listUrgentTag}>
-          <Text style={s.listUrgentText}>마감임박</Text>
-        </View>
-      ) : null}
     </Pressable>
   );
 }
@@ -424,23 +399,13 @@ const s = StyleSheet.create({
   sortOption: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center" },
   sortOptionText: { fontSize: 11, fontFamily: fonts.regular, color: colors.g400 },
   selectedSort: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  tabs: { gap: 20, paddingRight: 14, borderBottomWidth: 1, borderBottomColor: colors.g100 },
-  tab: { alignItems: "center", paddingBottom: 12 },
-  tabText: { fontSize: 15, fontFamily: fonts.regular, color: colors.g500 },
+  tabs: { alignItems: "flex-end", gap: 12, paddingHorizontal: 16, height: 49, borderBottomWidth: 1, borderBottomColor: colors.g100 },
+  tab: { alignItems: "center" },
+  tabText: { fontSize: 15, fontFamily: fonts.regular, color: colors.g500, paddingBottom: 12 },
   tabTextOn: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  tabUnderline: { marginTop: 12, height: 2, width: "100%", backgroundColor: colors.primary500 },
-  listRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.g100, position: "relative" },
+  tabUnderline: { height: 2, width: "100%", backgroundColor: "transparent" },
+  tabUnderlineOn: { backgroundColor: colors.primary500 },
   listThumbWrap: { width: 112, height: 112 },
-  listThumb: { width: 112, height: 112, borderRadius: radius.sm, backgroundColor: colors.g100 },
   listRankBadge: { position: "absolute", left: 0, top: 0, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.g800 },
   listRankBadgeText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
-  listInfo: { flex: 1, gap: 4 },
-  listTitle: { fontSize: 14, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  listStoreRow: { flexDirection: "row", alignItems: "center", gap: 2 },
-  listShop: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600 },
-  listPriceRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
-  listPrice: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },
-  listOriginal: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600, textDecorationLine: "line-through" },
-  listUrgentTag: { position: "absolute", right: 0, top: 14, paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4, backgroundColor: colors.primary500 },
-  listUrgentText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
 });
