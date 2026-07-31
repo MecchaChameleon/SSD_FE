@@ -3,12 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
-import { CategoryTabs, ProductListRow, SortDropdown } from "./BuyerHomeSections";
+import { CategoryTabs, ProductListRow, RankedProductCard, SortDropdown } from "./BuyerHomeSections";
 import { apiProductToCard, BuyerCategory, businessTypeByCategory, money, sorts } from "./BuyerHomeScreen";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import ArrowUpIcon from "../../icon/arrow_up.svg";
 
-export type ProductListMode = "preference" | "popular" | "new";
+export type ProductListMode = "preference" | "popular" | "new" | "nearby" | "deadline";
 
 const listCategories: readonly BuyerCategory[] = ["전체", "음식점", "숙박", "체험", "렌탈 / 모빌리티"];
 
@@ -33,11 +33,16 @@ export function ProductListScreen({
   const [sort, setSort] = useState<(typeof sorts)[number]>(initialSort);
   const [items, setItems] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const rankMode = mode === "popular";
+  const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
+  const heroMode = mode === "nearby" || mode === "deadline";
 
   useEffect(() => {
     const businessType = businessTypeByCategory[category];
-    const query = mode === "preference" ? { sort: "AI_RECOMMENDED" as const } : {};
+    const query =
+      mode === "preference" ? { sort: "AI_RECOMMENDED" as const }
+      : mode === "deadline" ? { sort: "DEADLINE_ASC" as const }
+      : mode === "nearby" && userLocation ? { sort: "DISTANCE_ASC" as const, lat: userLocation.lat, lng: userLocation.lng }
+      : {};
     setLoaded(false);
     buyerApi
       .products({ size: 50, businessType, ...query })
@@ -53,7 +58,7 @@ export function ProductListScreen({
       })
       .catch(() => setItems([]))
       .finally(() => setLoaded(true));
-  }, [mode, category]);
+  }, [mode, category, userLocation]);
 
   const sorted = React.useMemo(() => {
     let list = items;
@@ -103,23 +108,39 @@ export function ProductListScreen({
         {!loaded ? null : sorted.length === 0 ? (
           <Text style={s.empty}>상품이 없습니다.</Text>
         ) : (
-          groups.map((group, gi) => (
-            <View key={gi} style={s.group}>
-              {group.map(({ item, index }) => (
-                <ProductListRow
-                  key={item.id}
-                  product={item}
-                  rank={rankMode ? index + 1 : undefined}
-                  onPress={() => onSelectProduct(item)}
-                />
-              ))}
-              {group[group.length - 1].item.insight ? (
-                <View style={s.insightBox}>
-                  <Text numberOfLines={1} style={s.insightText}>{group[group.length - 1].item.insight}</Text>
-                </View>
-              ) : null}
-            </View>
-          ))
+          <>
+            {heroMode ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.heroRow}>
+                {sorted.slice(0, 4).map((item, index) => (
+                  <RankedProductCard
+                    key={item.id}
+                    product={item}
+                    rank={index + 1}
+                    width={224}
+                    height={235}
+                    onPress={() => onSelectProduct(item)}
+                  />
+                ))}
+              </ScrollView>
+            ) : null}
+            {groups.map((group, gi) => (
+              <View key={gi} style={s.group}>
+                {group.map(({ item, index }) => (
+                  <ProductListRow
+                    key={item.id}
+                    product={item}
+                    rank={rankMode && !heroMode ? index + 1 : undefined}
+                    onPress={() => onSelectProduct(item)}
+                  />
+                ))}
+                {group[group.length - 1].item.insight ? (
+                  <View style={s.insightBox}>
+                    <Text numberOfLines={1} style={s.insightText}>{group[group.length - 1].item.insight}</Text>
+                  </View>
+                ) : null}
+              </View>
+            ))}
+          </>
         )}
       </ScrollView>
       <Pressable
@@ -141,6 +162,7 @@ const s = StyleSheet.create({
   headerTitleMedium: { fontFamily: fonts.medium, fontWeight: "500" },
   sortRow: { paddingHorizontal: 16, paddingTop: 10, alignItems: "flex-end" },
   content: { paddingHorizontal: 16, paddingBottom: 40 },
+  heroRow: { gap: 8, paddingBottom: 16 },
   group: { gap: 8, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.g200 },
   insightBox: { alignItems: "center", justifyContent: "center", paddingHorizontal: 10, paddingVertical: 8, borderRadius: radius.sm, backgroundColor: "rgba(162,206,250,0.25)" },
   insightText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500, textAlign: "center" },

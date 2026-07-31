@@ -135,7 +135,7 @@ export function PreferenceSection({ products, onSelect, onSeeAll }: { products: 
   );
 }
 
-export function RankedProductCard({ product, rank, onPress }: { product: Product; rank: number; onPress: () => void }) {
+export function RankedProductCard({ product, rank, onPress, width = 200, height = 180 }: { product: Product; rank: number; onPress: () => void; width?: number; height?: number }) {
   const contents = (
     <>
       <View style={s.rankOverlay} />
@@ -155,7 +155,7 @@ export function RankedProductCard({ product, rank, onPress }: { product: Product
     </>
   );
   return (
-    <Pressable onPress={onPress} style={s.rankCard}>
+    <Pressable onPress={onPress} style={[s.rankCard, { width, height }]}>
       {product.imageUrls?.[0] ? (
         <ImageBackground source={{ uri: product.imageUrls[0] }} style={s.rankCardImage} imageStyle={{ borderRadius: radius.sm }}>
           {contents}

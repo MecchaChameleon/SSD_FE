@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Animated,
   Easing,
-  findNodeHandle,
   Modal,
   Image,
   PanResponder,
@@ -194,16 +193,6 @@ export function BuyerHomeScreen({
   const [preferenceItems, setPreferenceItems] = useState<Product[]>([]);
   const [newArrivalItems, setNewArrivalItems] = useState<Product[]>([]);
   const homeScrollRef = useRef<ScrollView>(null);
-  const popularSectionRef = useRef<View>(null);
-  const scrollToPopularSection = () => {
-    const scrollHandle = findNodeHandle(homeScrollRef.current);
-    if (scrollHandle == null) return;
-    popularSectionRef.current?.measureLayout(
-      scrollHandle,
-      (_left, top) => homeScrollRef.current?.scrollTo({ y: Math.max(0, top - 12), animated: true }),
-      () => undefined,
-    );
-  };
   const refreshPurchases=useCallback(async()=>{
     const page=await buyerApi.purchases({size:50});
     setPurchases(page.content.map(apiPurchaseToItem));
@@ -519,9 +508,8 @@ export function BuyerHomeScreen({
         <QuickMenuRow
           onAiRecommend={openAiRecommendation}
           onSelect={(label) => {
-            if (label === "마감 임박") setSort("마감 임박순");
-            else if (label === "내 근처") setSort("가까운 거리순");
-            requestAnimationFrame(scrollToPopularSection);
+            if (label === "마감 임박") setListView({ title: "마감 임박", mode: "deadline", category: "전체", sort: "마감 임박순" });
+            else if (label === "내 근처") setListView({ title: "내 근처", mode: "nearby", category: "전체", sort: "가까운 거리순" });
           }}
         />
         <PreferenceSection
@@ -529,7 +517,6 @@ export function BuyerHomeScreen({
           onSelect={(item) => setDetailProduct(item)}
           onSeeAll={() => setListView({ title: "내 취향 상품", mode: "preference", category: "전체", sort: "할인율 높은순" })}
         />
-        <View ref={popularSectionRef}>
         <PopularProductsSection
           categories={categories}
           category={category}
@@ -542,7 +529,6 @@ export function BuyerHomeScreen({
             <Text style={s.empty}>검색 결과가 없습니다.</Text>
           )}
         </PopularProductsSection>
-        </View>
         <PromoBanner
           title="SNS에서 뜨는 캠핑 인기템"
           subtitle="캠핑용품 특가 모음 -72%"
