@@ -193,6 +193,7 @@ export function BuyerHomeScreen({
   const [preferenceItems, setPreferenceItems] = useState<Product[]>([]);
   const [newArrivalItems, setNewArrivalItems] = useState<Product[]>([]);
   const homeScrollRef = useRef<ScrollView>(null);
+  const popularSectionY = useRef(0);
   const refreshPurchases=useCallback(async()=>{
     const page=await buyerApi.purchases({size:50});
     setPurchases(page.content.map(apiPurchaseToItem));
@@ -507,9 +508,11 @@ export function BuyerHomeScreen({
           onSelect={(label) => {
             if (label === "마감 임박") setSort("마감 임박순");
             else if (label === "내 근처") setSort("가까운 거리순");
+            homeScrollRef.current?.scrollTo({ y: Math.max(0, popularSectionY.current - 12), animated: true });
           }}
         />
-        <PreferenceSection products={preferenceItems} />
+        <PreferenceSection products={preferenceItems} onSelect={(item) => setDetailProduct(item)} />
+        <View onLayout={(event) => { popularSectionY.current = event.nativeEvent.layout.y; }}>
         <PopularProductsSection
           categories={categories}
           category={category}
@@ -589,11 +592,12 @@ export function BuyerHomeScreen({
             <Text style={s.empty}>검색 결과가 없습니다.</Text>
           )}
         </PopularProductsSection>
+        </View>
         <PromoBanner
           title="SNS에서 뜨는 캠핑 인기템"
           subtitle="캠핑용품 특가 모음 -72%"
         />
-        <NewArrivalsSection items={newArrivalItems} />
+        <NewArrivalsSection items={newArrivalItems} onSelect={(item) => setDetailProduct(item)} />
       </ScrollView>
       <Pressable
         accessibilityLabel="맨 위로"

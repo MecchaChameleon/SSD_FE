@@ -95,7 +95,7 @@ export function QuickMenuRow({
   );
 }
 
-export function PreferenceSection({ products }: { products: Product[] }) {
+export function PreferenceSection({ products, onSelect }: { products: Product[]; onSelect: (product: Product) => void }) {
   const [index, setIndex] = useState(0);
   const { width } = useWindowDimensions();
   const frameWidth = Math.min(width, screen.designWidth) - 28;
@@ -118,7 +118,7 @@ export function PreferenceSection({ products }: { products: Product[] }) {
         {pages.map((page, i) => (
           <View key={i} style={{ width: frameWidth, gap: 8 }}>
             {page.map((item) => (
-              <View key={item.id} style={s.prefRow}>
+              <Pressable key={item.id} onPress={() => onSelect(item)} style={s.prefRow}>
                 {item.imageUrls?.[0] ? (
                   <Image source={{ uri: item.imageUrls[0] }} style={s.prefThumb} />
                 ) : (
@@ -145,7 +145,7 @@ export function PreferenceSection({ products }: { products: Product[] }) {
                     <Text style={s.prefOriginalLabel}>{item.original}</Text>
                   </View>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
         ))}
@@ -245,7 +245,7 @@ export function PromoBanner({ title, subtitle, imageUrl }: { title: string; subt
   );
 }
 
-export function NewArrivalsSection({ items }: { items: Product[] }) {
+export function NewArrivalsSection({ items, onSelect }: { items: Product[]; onSelect: (product: Product) => void }) {
   if (!items.length) return null;
   return (
     <View style={s.section}>
@@ -255,7 +255,7 @@ export function NewArrivalsSection({ items }: { items: Product[] }) {
       </View>
       <View style={s.newGrid}>
         {items.map((item) => (
-          <View key={item.id} style={s.newCard}>
+          <Pressable key={item.id} onPress={() => onSelect(item)} style={s.newCard}>
             {item.imageUrls?.[0] ? (
               <Image source={{ uri: item.imageUrls[0] }} style={s.newImage} />
             ) : (
@@ -267,7 +267,7 @@ export function NewArrivalsSection({ items }: { items: Product[] }) {
               <Text numberOfLines={1} style={s.newShop}>{item.shop}</Text>
             </View>
             <Text style={s.newPrice}>{item.price}</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
     </View>
