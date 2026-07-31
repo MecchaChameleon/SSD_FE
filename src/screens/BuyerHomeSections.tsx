@@ -14,6 +14,7 @@ import { Chip } from "../components/ui";
 import { Product } from "../components/home";
 import MapPinIcon from "../../icon/map_pin_solid.svg";
 import ChevronRightIcon from "../../icon/chevron_right.svg";
+import ChevronDownIcon from "../../icon/chevron_down.svg";
 import QuickMenuBg from "../../icon/quick_menu_bg.svg";
 import QuickMenuAi from "../../icon/quick_menu_ai.svg";
 import QuickMenuNearby from "../../icon/quick_menu_nearby.svg";
@@ -95,7 +96,7 @@ export function QuickMenuRow({
   );
 }
 
-export function PreferenceSection({ products, onSelect }: { products: Product[]; onSelect: (product: Product) => void }) {
+export function PreferenceSection({ products, onSelect, onSeeAll }: { products: Product[]; onSelect: (product: Product) => void; onSeeAll: () => void }) {
   const [index, setIndex] = useState(0);
   const { width } = useWindowDimensions();
   const frameWidth = Math.min(width, screen.designWidth) - 28;
@@ -103,10 +104,10 @@ export function PreferenceSection({ products, onSelect }: { products: Product[];
   if (!products.length) return null;
   return (
     <View style={s.section}>
-      <View style={s.sectionHeaderRow}>
+      <Pressable onPress={onSeeAll} style={s.sectionHeaderRow}>
         <Text style={s.sectionTitle}>내 취향 상품</Text>
         <ChevronRightIcon width={20} height={20} color={colors.g700} />
-      </View>
+      </Pressable>
       <ScrollView
         horizontal
         pagingEnabled
@@ -197,22 +198,22 @@ export function PopularProductsSection<T extends string>({
   categories,
   category,
   onCategory,
-  sortSlot,
+  onSeeAll,
   children,
 }: {
   categories: readonly T[];
   category: T;
   onCategory: (category: T) => void;
-  sortSlot?: React.ReactNode;
+  onSeeAll: () => void;
   children: React.ReactNode;
 }) {
   const rows = chunk(React.Children.toArray(children), 4);
   return (
     <View style={s.section}>
-      <View style={s.sectionHeaderRow}>
+      <Pressable onPress={onSeeAll} style={s.sectionHeaderRow}>
         <Text style={s.sectionTitle}>현재 인기 상품</Text>
-        {sortSlot}
-      </View>
+        <ChevronRightIcon width={20} height={20} color={colors.g700} />
+      </Pressable>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chips}>
         {categories.map((c) => (
           <Chip key={c} selected={category === c} onPress={() => onCategory(c)}>
@@ -245,14 +246,14 @@ export function PromoBanner({ title, subtitle, imageUrl }: { title: string; subt
   );
 }
 
-export function NewArrivalsSection({ items, onSelect }: { items: Product[]; onSelect: (product: Product) => void }) {
+export function NewArrivalsSection({ items, onSelect, onSeeAll }: { items: Product[]; onSelect: (product: Product) => void; onSeeAll: () => void }) {
   if (!items.length) return null;
   return (
     <View style={s.section}>
-      <View style={s.sectionHeaderRow}>
+      <Pressable onPress={onSeeAll} style={s.sectionHeaderRow}>
         <Text style={s.sectionTitle}>신규 상품 · 자원을 확인해 보세요</Text>
         <ChevronRightIcon width={20} height={20} color={colors.g700} />
-      </View>
+      </Pressable>
       <View style={s.newGrid}>
         {items.map((item) => (
           <Pressable key={item.id} onPress={() => onSelect(item)} style={s.newCard}>
@@ -271,6 +272,78 @@ export function NewArrivalsSection({ items, onSelect }: { items: Product[]; onSe
         ))}
       </View>
     </View>
+  );
+}
+
+export function SortDropdown<T extends string>({ value, options, onChange }: { value: T; options: readonly T[]; onChange: (value: T) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View style={s.sortArea}>
+      <Pressable onPress={() => setOpen((v) => !v)} style={s.sort}>
+        <Text style={s.sortText}>{value}</Text>
+        <ChevronDownIcon width={20} height={20} color={colors.g500} />
+      </Pressable>
+      {open ? (
+        <View style={s.sortMenu}>
+          {options.map((x) => (
+            <Pressable key={x} onPress={() => { onChange(x); setOpen(false); }} style={s.sortOption}>
+              <Text style={[s.sortOptionText, value === x && s.selectedSort]}>{x}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+export function CategoryTabs<T extends string>({ categories, category, onCategory }: { categories: readonly T[]; category: T; onCategory: (category: T) => void }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
+      {categories.map((c) => (
+        <Pressable key={c} onPress={() => onCategory(c)} style={s.tab}>
+          <Text style={[s.tabText, category === c && s.tabTextOn]}>{c}</Text>
+          {category === c ? <View style={s.tabUnderline} /> : null}
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+}
+
+export function ProductListRow({ product, rank, onPress }: { product: Product; rank?: number; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={s.listRow}>
+      <View style={s.listThumbWrap}>
+        {product.imageUrls?.[0] ? (
+          <Image source={{ uri: product.imageUrls[0] }} style={s.listThumb} />
+        ) : (
+          <View style={s.listThumb} />
+        )}
+        {rank != null ? (
+          <View style={s.listRankBadge}>
+            <Text style={s.listRankBadgeText}>{rank}</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={s.listInfo}>
+        <Text numberOfLines={1} style={s.listTitle}>{product.title}</Text>
+        <View style={s.listStoreRow}>
+          <MapPinIcon width={14} height={14} color={colors.g600} />
+          <Text numberOfLines={1} style={s.listShop}>{product.shop}</Text>
+        </View>
+        <View style={s.listPriceRow}>
+          <View style={s.percentBadge}>
+            <Text style={s.percentBadgeText}>{product.discountRate ?? 0}%</Text>
+          </View>
+          <Text style={s.listPrice}>{product.price}</Text>
+          <Text style={s.listOriginal}>{product.original}</Text>
+        </View>
+      </View>
+      {product.urgent ? (
+        <View style={s.listUrgentTag}>
+          <Text style={s.listUrgentText}>마감임박</Text>
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -328,4 +401,46 @@ const s = StyleSheet.create({
   newStoreRow: { flexDirection: "row", alignItems: "center", gap: 2 },
   newShop: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600 },
   newPrice: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },
+  sortArea: { position: "relative" },
+  sort: { flexDirection: "row", alignItems: "center", gap: 2 },
+  sortText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500 },
+  sortMenu: {
+    position: "absolute",
+    right: 0,
+    top: 28,
+    width: 108,
+    borderWidth: 1,
+    borderColor: colors.g200,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    paddingVertical: 2,
+    zIndex: 30,
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+  sortOption: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center" },
+  sortOptionText: { fontSize: 11, fontFamily: fonts.regular, color: colors.g400 },
+  selectedSort: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
+  tabs: { gap: 20, paddingRight: 14, borderBottomWidth: 1, borderBottomColor: colors.g100 },
+  tab: { alignItems: "center", paddingBottom: 12 },
+  tabText: { fontSize: 15, fontFamily: fonts.regular, color: colors.g500 },
+  tabTextOn: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
+  tabUnderline: { marginTop: 12, height: 2, width: "100%", backgroundColor: colors.primary500 },
+  listRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.g100, position: "relative" },
+  listThumbWrap: { width: 112, height: 112 },
+  listThumb: { width: 112, height: 112, borderRadius: radius.sm, backgroundColor: colors.g100 },
+  listRankBadge: { position: "absolute", left: 0, top: 0, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.g800 },
+  listRankBadgeText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
+  listInfo: { flex: 1, gap: 4 },
+  listTitle: { fontSize: 14, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
+  listStoreRow: { flexDirection: "row", alignItems: "center", gap: 2 },
+  listShop: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600 },
+  listPriceRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
+  listPrice: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },
+  listOriginal: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600, textDecorationLine: "line-through" },
+  listUrgentTag: { position: "absolute", right: 0, top: 14, paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4, backgroundColor: colors.primary500 },
+  listUrgentText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
 });

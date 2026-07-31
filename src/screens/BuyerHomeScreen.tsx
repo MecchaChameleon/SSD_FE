@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Animated,
   Easing,
+  findNodeHandle,
   Modal,
   Image,
   PanResponder,
@@ -33,6 +34,7 @@ import { BuyerMapScreen } from "./BuyerMapScreen";
 import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
 import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
 import { LikesScreen } from "./LikesScreen";
+import { ProductListMode, ProductListScreen } from "./ProductListScreen";
 import { TimeOptionWheel } from "./RegisteredProductsScreen";
 import {
   HeroBannerCarousel,
@@ -55,7 +57,7 @@ export type PurchasePayload = {
   quantity: number;
   totalPrice: number;
 };
-const categories = [
+export const categories = [
   "전체",
   "음식점",
   "숙박",
@@ -63,14 +65,14 @@ const categories = [
   "렌탈 / 모빌리티",
   "빈 시간대 자원",
 ] as const;
-type BuyerCategory = (typeof categories)[number];
-const businessTypeByCategory: Partial<Record<BuyerCategory, BusinessType>> = {
+export type BuyerCategory = (typeof categories)[number];
+export const businessTypeByCategory: Partial<Record<BuyerCategory, BusinessType>> = {
   음식점: "RESTAURANT",
   숙박: "LODGING",
   체험: "EXPERIENCE",
   "렌탈 / 모빌리티": "RENTAL_MOBILITY",
 };
-const sorts = [
+export const sorts = [
   "할인율 높은순",
   "가까운 거리순",
   "마감 임박순",
@@ -83,7 +85,7 @@ const categoryLabels: Record<ApiProduct["category"], string> = {
   SAME_DAY_ROOM: "당일 공실",
   TOUR_REMAINDER: "이동/관광 잔여 상품",
 };
-const money = (v: string) => Number(v.replace(/[^0-9]/g, ""));
+export const money = (v: string) => Number(v.replace(/[^0-9]/g, ""));
 const visitLabel=(date:Date)=>date.toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'});
 const seoulDateKey=(date:Date)=>date.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});
 const deadlineLabel=(deadlineAt:number)=>{
@@ -182,8 +184,7 @@ export function BuyerHomeScreen({
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
   const [sort, setSort] = useState<(typeof sorts)[number]>("할인율 높은순");
-  const [sortOpen, setSortOpen] = useState(false);
-  const [aiInfo, setAiInfo] = useState(false);
+  const [listView, setListView] = useState<{ title: string; mode: ProductListMode; category: BuyerCategory; sort: (typeof sorts)[number] } | null>(null);
   const [aiRecommendationOpen, setAiRecommendationOpen] = useState(false);
   const aiRecommendationSlide = useRef(new Animated.Value(0)).current;
   const { width: viewportWidth } = useWindowDimensions();
@@ -193,7 +194,16 @@ export function BuyerHomeScreen({
   const [preferenceItems, setPreferenceItems] = useState<Product[]>([]);
   const [newArrivalItems, setNewArrivalItems] = useState<Product[]>([]);
   const homeScrollRef = useRef<ScrollView>(null);
-  const popularSectionY = useRef(0);
+  const popularSectionRef = useRef<View>(null);
+  const scrollToPopularSection = () => {
+    const scrollHandle = findNodeHandle(homeScrollRef.current);
+    if (scrollHandle == null) return;
+    popularSectionRef.current?.measureLayout(
+      scrollHandle,
+      (_left, top) => homeScrollRef.current?.scrollTo({ y: Math.max(0, top - 12), animated: true }),
+      () => undefined,
+    );
+  };
   const refreshPurchases=useCallback(async()=>{
     const page=await buyerApi.purchases({size:50});
     setPurchases(page.content.map(apiPurchaseToItem));
@@ -369,6 +379,7 @@ export function BuyerHomeScreen({
     <RankedProductCard key={p.id} product={p} rank={i + 1} onPress={() => setDetailProduct(p)} />
   ));
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
+  if(listView) return <ProductListScreen title={listView.title} mode={listView.mode} initialCategory={listView.category} initialSort={listView.sort} userLocation={userLocation} onBack={()=>setListView(null)} onSelectProduct={(p)=>{setListView(null);setDetailProduct(p)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
   if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);navigateTab('purchases')}} onHome={()=>{setPaymentComplete(false);navigateTab('home')}}/>;
@@ -510,83 +521,20 @@ export function BuyerHomeScreen({
           onSelect={(label) => {
             if (label === "마감 임박") setSort("마감 임박순");
             else if (label === "내 근처") setSort("가까운 거리순");
-            homeScrollRef.current?.scrollTo({ y: Math.max(0, popularSectionY.current - 12), animated: true });
+            requestAnimationFrame(scrollToPopularSection);
           }}
         />
-        <PreferenceSection products={preferenceItems} onSelect={(item) => setDetailProduct(item)} />
-        <View onLayout={(event) => { popularSectionY.current = event.nativeEvent.layout.y; }}>
+        <PreferenceSection
+          products={preferenceItems}
+          onSelect={(item) => setDetailProduct(item)}
+          onSeeAll={() => setListView({ title: "내 취향 상품", mode: "preference", category: "전체", sort: "할인율 높은순" })}
+        />
+        <View ref={popularSectionRef}>
         <PopularProductsSection
           categories={categories}
           category={category}
           onCategory={setCategory}
-          sortSlot={
-            <View style={s.sortArea}>
-              <Pressable
-                onPress={() => {
-                  setSortOpen((v) => !v);
-                  setAiInfo(false);
-                }}
-                style={s.sort}
-              >
-                <Text style={s.sortText}>{sort}</Text>
-                <ChevronDownIcon width={20} height={20} color={colors.g500} />
-              </Pressable>
-              {sortOpen ? (
-                <View style={s.sortMenu}>
-                  {sorts.map((x, index) =>
-                    index === 0 ? (
-                      <View key={x} style={s.sortOption}>
-                        <Pressable
-                          onPress={() => {
-                            setSort(x);
-                            setSortOpen(false);
-                            setAiInfo(false);
-                          }}
-                        >
-                          <Text
-                            style={[s.sortOptionText, sort === x && s.selectedSort]}
-                          >
-                            {x}
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          accessibilityLabel="AI 추천 기준 안내"
-                          hitSlop={8}
-                          onPress={() => setAiInfo((v) => !v)}
-                        >
-                          <Text style={s.infoIcon}>ⓘ</Text>
-                        </Pressable>
-                      </View>
-                    ) : (
-                      <Pressable
-                        key={x}
-                        onPress={() => {
-                          setSort(x);
-                          setSortOpen(false);
-                          setAiInfo(false);
-                        }}
-                        style={s.sortOption}
-                      >
-                        <Text
-                          style={[s.sortOptionText, sort === x && s.selectedSort]}
-                        >
-                          {x}
-                        </Text>
-                      </Pressable>
-                    ),
-                  )}
-                </View>
-              ) : null}
-              {sortOpen && aiInfo ? (
-                <View style={s.aiTooltip}>
-                  <Text style={s.aiText}>
-                    현재 날씨, 주변 유동인구, 거리를 기반으로 로컬 AI가 최적의 마감
-                    상품을 실시간 추천드려요.
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          }
+          onSeeAll={() => setListView({ title: "현재 인기 상품", mode: "popular", category, sort })}
         >
           {productCards.length > 0 ? (
             productCards
@@ -599,7 +547,11 @@ export function BuyerHomeScreen({
           title="SNS에서 뜨는 캠핑 인기템"
           subtitle="캠핑용품 특가 모음 -72%"
         />
-        <NewArrivalsSection items={newArrivalItems} onSelect={(item) => setDetailProduct(item)} />
+        <NewArrivalsSection
+          items={newArrivalItems}
+          onSelect={(item) => setDetailProduct(item)}
+          onSeeAll={() => setListView({ title: "신규 상품 · 자원", mode: "new", category: "전체", sort: "할인율 높은순" })}
+        />
       </ScrollView>
       <Pressable
         accessibilityLabel="맨 위로"
@@ -864,56 +816,6 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   chips: { gap: 8, paddingRight: 14 },
-  sortArea: {
-    height: 48,
-    alignItems: "flex-end",
-    justifyContent: "center",
-    position: "relative",
-    zIndex: 20,
-    elevation: 20,
-  },
-  sort: { flexDirection: "row", alignItems: "center", gap: 2 },
-  sortText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500 },
-  sortMenu: {
-    position: "absolute",
-    right: 0,
-    top: 40,
-    width: 108,
-    borderWidth: 1,
-    borderColor: colors.g200,
-    borderRadius: 8,
-    backgroundColor: colors.white,
-    paddingVertical: 2,
-    zIndex: 30,
-    elevation: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-  },
-  sortOption: {
-    minHeight: 42,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sortOptionText: { fontSize: 11, fontFamily: fonts.regular, color: colors.g400 },
-  selectedSort: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  infoIcon: { fontSize: 12, color: colors.g500 },
-  aiTooltip: {
-    position: "absolute",
-    right: 112,
-    top: 4,
-    width: 178,
-    paddingHorizontal: 9,
-    paddingVertical: 7,
-    borderRadius: 4,
-    backgroundColor: colors.g800,
-    zIndex: 40,
-    elevation: 16,
-  },
-  aiText: { fontSize: 9, fontFamily: fonts.regular, lineHeight: 12, color: colors.white },
   empty: { paddingVertical: 80, fontFamily: fonts.regular, textAlign: "center", color: colors.g500 },
   productGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 20 },
   searchHeader: {
