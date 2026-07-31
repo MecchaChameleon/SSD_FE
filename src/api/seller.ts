@@ -9,7 +9,9 @@ export type SalesHistoryItem = {purchaseId:number;productId:number;productName:s
 export type PriceExplanation = {feature:string;label:string;value:number;displayValue?:string|null;impact:number;direction:'UP'|'DOWN'|'NEUTRAL'};
 export type AiWeather = {currentTemperature:number;currentPrecipitation:number;currentWindSpeed:number;forecastTemperature:number|null;forecastPrecipitation:number;forecastWindSpeed:number;source:string;observedAt:string|null};
 export type AiRegionalDemand = {region:string|null;percentile:number;predictedVisitPopulation:number|null;source:string;basisDate:string;trainingStartDate:string|null;trainingEndDate:string|null};
-export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;weather?:AiWeather|null;regionalDemand?:AiRegionalDemand|null;autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
+export type PricePurpose = 'PROFIT'|'BALANCED'|'SELL_THROUGH';
+export type AiPriceOption = {purpose:PricePurpose;label:string;price:number;discountPct:number;salesLikelihoodIndex:number;expectedRevenue:number;majorFactors:string[]};
+export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;weather?:AiWeather|null;regionalDemand?:AiRegionalDemand|null;priceOptions?:AiPriceOption[];autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 export type AutoPricing = {enabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 
 let latestDashboard: Dashboard | null = null;

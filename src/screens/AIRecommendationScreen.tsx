@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import { ActivityIndicator,Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';
 import { Product,sellerApi } from '../api';
-import type { AiPrice,PriceExplanation } from '../api/seller';
+import type { AiPrice,AiPriceOption,PriceExplanation,PricePurpose } from '../api/seller';
 import { Toggle } from '../components/ui';
 import { colors,radius } from '../theme';
 
@@ -24,6 +24,7 @@ export function AIRecommendationScreen(){
   const[message,setMessage]=useState('');
   const[loading,setLoading]=useState(false);
   const[changing,setChanging]=useState(false);
+  const[selectedPurpose,setSelectedPurpose]=useState<PricePurpose>('BALANCED');
   const recommendationRequest=useRef(0);
 
   const refreshProducts=useCallback(async()=>{
@@ -64,15 +65,22 @@ export function AIRecommendationScreen(){
 
   const apply=async()=>{
     if(!selected||!price)return;
-    await sellerApi.applyPrice(selected,{price:price.currentPrice});
+    const option=price.priceOptions?.find(item=>item.purpose===selectedPurpose);
+    await sellerApi.applyPrice(selected,{price:option?.price??price.currentPrice});
     await refreshProducts();
-    setMessage('추천 가격을 상품에 적용했습니다.');
+    setMessage(`${option?.label??'균형'} 가격안을 상품에 적용했습니다.`);
   };
 
   const maxImpact=Math.max(0,...(price?.explanations??[]).map(item=>Math.abs(item.impact)));
   const normalizedImpact=(impact:number)=>maxImpact===0?0:Math.abs(impact)/maxImpact*100;
   const neutralPrice=price?Math.round((price.currentPrice-price.explanations.reduce((sum,item)=>sum+item.impact,0))/100)*100:null;
   const selectedProduct=products.find(product=>product.id===selected);
+  const priceOptions:AiPriceOption[]=price?.priceOptions?.length?price.priceOptions:[{
+    purpose:'BALANCED',label:'균형',price:price?.currentPrice??0,discountPct:price?.discountPct??0,
+    salesLikelihoodIndex:Math.round((price?.confidence??0)*100),expectedRevenue:0,
+    majorFactors:['기존 AI 추천가'],
+  }];
+  const selectedOption=priceOptions.find(item=>item.purpose===selectedPurpose)??priceOptions.find(item=>item.purpose==='BALANCED')??priceOptions[0];
   const explanationDisplay=(item:PriceExplanation)=>{
     if(item.feature==='elapsed_ratio'&&selectedProduct?.openTime){
       const start=new Date(selectedProduct.openTime).getTime();
@@ -88,21 +96,49 @@ export function AIRecommendationScreen(){
     {products.map(product=><Pressable key={product.id} onPress={()=>setSelected(product.id)} style={[s.product,selected===product.id&&s.selected]}><Text numberOfLines={1} style={s.productName}>{product.name}</Text></Pressable>)}
     {selected?<View style={s.card}>
       {loading?<ActivityIndicator color={colors.primary500}/>:<>
-        <View style={s.row}><View><Text style={s.label}>현재 AI 추천가</Text><Text style={s.price}>{price?`${price.currentPrice.toLocaleString()}원`:'계산 대기 중'}</Text></View></View>
-        {price?<Text style={s.discount}>{price.discountPct}% 할인 · 마감 {price.minutesLeft}분 전</Text>:null}
+        <View style={s.row}><View><Text style={s.label}>선택한 추천 가격안</Text><Text style={s.price}>{price?`${selectedOption.price.toLocaleString()}원`:'계산 대기 중'}</Text></View></View>
+        {price?<Text style={s.discount}>{selectedOption.discountPct}% 할인 · 마감 {price.minutesLeft}분 전</Text>:null}
+        {price?<View style={s.optionSection}>
+          <Text style={s.optionSectionTitle}>판매 목적에 맞는 가격을 선택하세요</Text>
+          <Text style={s.optionNotice}>판매 가능성은 실제 확률이 아닌 현재 데이터 기반 추정 지수입니다.</Text>
+          {priceOptions.map(option=><Pressable
+            key={option.purpose}
+            disabled={price.autoPricingEnabled}
+            onPress={()=>setSelectedPurpose(option.purpose)}
+            style={[s.optionCard,selectedOption.purpose===option.purpose&&s.optionSelected]}
+          >
+            <View style={s.optionHeader}><View style={s.optionTitleRow}><View style={[s.radio,selectedOption.purpose===option.purpose&&s.radioOn]}/><Text style={s.optionLabel}>{option.label}</Text></View><Text style={s.optionPrice}>{option.price.toLocaleString()}원</Text></View>
+            <View style={s.metricRow}><View style={s.metric}><Text style={s.metricCaption}>추정 판매 지수</Text><Text style={s.metricValue}>{option.salesLikelihoodIndex}<Text style={s.metricUnit}>/100</Text></Text></View><View style={s.metricDivider}/><View style={s.metric}><Text style={s.metricCaption}>기대매출(추정)</Text><Text style={s.metricValue}>{option.expectedRevenue.toLocaleString()}<Text style={s.metricUnit}>원</Text></Text></View></View>
+            <View style={s.optionFactors}>{option.majorFactors.slice(0,3).map((factor,index)=><Text key={`${option.purpose}-${index}`} style={s.optionFactor}>• {factor}</Text>)}</View>
+          </Pressable>)}
+        </View>:null}
         {price?.regionalDemand?<View style={s.demandCard}>
           <View style={s.weatherHeader}><Text style={s.weatherTitle}>지역 수요</Text><Text style={s.weatherSource}>{price.regionalDemand.basisDate} 기준 예측</Text></View>
           <View style={s.demandRow}><View><Text style={s.weatherCaption}>{price.regionalDemand.region??'제주 지역'}</Text><Text style={s.demandValue}>{price.regionalDemand.predictedVisitPopulation==null?'-':`${price.regionalDemand.predictedVisitPopulation.toLocaleString()}명`}</Text></View><View style={s.demandRank}><Text style={s.demandRankValue}>오늘 예측 · 상위 {Math.max(1,Math.round((1-price.regionalDemand.percentile)*100))}%</Text><Text style={s.weatherCaption}>과거 3년 동일 지역·날짜 기준</Text></View></View>
           {price.regionalDemand.trainingStartDate&&price.regionalDemand.trainingEndDate?<Text style={s.trainingPeriod}>EBM 학습 기간 {price.regionalDemand.trainingStartDate} ~ {price.regionalDemand.trainingEndDate} · 날짜·요일·공휴일·읍면동</Text>:null}
         </View>:null}
-        <View style={s.autoRow}><View style={s.autoCopy}><Text style={s.autoTitle}>AI 기반 실시간 가격</Text><Text style={s.autoDescription}>{price?.autoPricingEnabled?'추천가 변경 감지 시 판매가에 즉시 반영':'켜면 추천가 변경을 감지해 자동 반영'}</Text></View><Toggle value={price?.autoPricingEnabled??false} onChange={changeAuto}/></View>
+        <View style={s.autoRow}><View style={s.autoCopy}><Text style={s.autoTitle}>AI 기반 실시간 가격</Text><Text style={s.autoDescription}>{price?.autoPricingEnabled?'균형 가격안 변경 감지 시 판매가에 즉시 반영':'켜면 균형 가격안을 자동 반영'}</Text></View><Toggle value={price?.autoPricingEnabled??false} onChange={changeAuto}/></View>
         {changing?<Text style={s.updating}>설정을 반영하는 중...</Text>:null}
         {price?.explanations?.length?<View style={s.explainBox}><View style={s.sectionHeader}><Text style={s.sectionTitle}>이 가격에 영향을 준 요인</Text>{neutralPrice!==null?<Text style={s.neutralPrice}>중립 기준 {neutralPrice.toLocaleString()}원</Text>:null}</View>{price.explanations.map(item=>{const display=explanationDisplay(item);return <View key={item.feature} style={s.factor}><View style={s.factorHeader}><Text style={s.factorLabel}>{item.label}{item.feature!=='demand_percentile'&&display?` (${display})`:''}</Text><Text style={[s.impact,item.impact>=0?s.up:s.down]}>{item.impact>=0?'+':''}{Math.round(item.impact).toLocaleString()}원</Text></View><View style={s.track}><View style={[s.bar,{width:`${normalizedImpact(item.impact)}%`,backgroundColor:item.impact>=0?colors.info:colors.primary500}]}/></View></View>})}</View>:null}
-        <Pressable disabled={!price||price.autoPricingEnabled} onPress={apply} style={[s.button,(!price||price.autoPricingEnabled)&&s.disabled]}><Text style={s.buttonText}>{price?.autoPricingEnabled?'자동 가격 적용 중':'이번 추천가 적용'}</Text></Pressable>
+        <Pressable disabled={!price||price.autoPricingEnabled} onPress={apply} style={[s.button,(!price||price.autoPricingEnabled)&&s.disabled]}><Text style={s.buttonText}>{price?.autoPricingEnabled?'균형 가격안 자동 적용 중':`${selectedOption.label} 가격안 적용`}</Text></Pressable>
         {message?<Text style={s.message}>{message}</Text>:null}
       </>}
     </View>:<Text style={s.empty}>등록 상품이 없습니다.</Text>}
   </ScrollView>;
 }
 
-const s=StyleSheet.create({root:{padding:16,paddingBottom:110},title:{fontSize:22,fontWeight:'700'},body:{fontSize:13,color:colors.g500,marginTop:6,marginBottom:18},product:{height:54,paddingHorizontal:14,borderWidth:1,borderColor:colors.g200,borderRadius:radius.sm,marginBottom:8,justifyContent:'center'},selected:{borderColor:colors.primary500,backgroundColor:colors.primary100},productName:{fontSize:15,fontWeight:'600'},card:{marginTop:14,padding:18,borderRadius:radius.lg,backgroundColor:colors.g100},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},label:{fontSize:14,color:colors.g600},price:{fontSize:30,fontWeight:'700',color:colors.primary500,marginTop:6},discount:{fontSize:12,color:colors.g600,marginTop:5},weatherCard:{backgroundColor:colors.white,borderRadius:radius.md,padding:14,marginTop:14},weatherHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},weatherTitle:{fontSize:14,fontWeight:'700'},weatherSource:{fontSize:10,color:colors.g500},weatherRows:{flexDirection:'row',alignItems:'stretch',marginTop:12},weatherColumn:{flex:1},weatherDivider:{width:1,backgroundColor:colors.g200,marginHorizontal:14},weatherCaption:{fontSize:11,color:colors.g500},weatherTemperature:{fontSize:23,fontWeight:'700',color:colors.info,marginVertical:4},weatherDetail:{fontSize:11,color:colors.g600,lineHeight:17},demandCard:{backgroundColor:colors.white,borderRadius:radius.md,padding:14,marginTop:10},demandRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:12},demandValue:{fontSize:22,fontWeight:'700',color:colors.primary700,marginTop:4},demandRank:{alignItems:'flex-end'},demandRankValue:{fontSize:15,fontWeight:'700',color:colors.info,marginBottom:3},trainingPeriod:{fontSize:10,lineHeight:15,color:colors.g500,marginTop:12,paddingTop:10,borderTopWidth:1,borderTopColor:colors.g200},autoRow:{flexDirection:'row',alignItems:'center',marginTop:18,paddingVertical:14,borderTopWidth:1,borderBottomWidth:1,borderColor:colors.g200},autoCopy:{flex:1,paddingRight:12},autoTitle:{fontSize:15,fontWeight:'700'},autoDescription:{fontSize:12,color:colors.g500,marginTop:4},updating:{fontSize:11,color:colors.info,marginTop:6},reason:{fontSize:13,lineHeight:20,color:colors.g800,marginTop:16},explainBox:{backgroundColor:colors.white,borderRadius:radius.md,padding:14,marginTop:14},sectionHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12},sectionTitle:{fontSize:14,fontWeight:'700',flexShrink:1},neutralPrice:{fontSize:11,fontWeight:'600',color:colors.g500,textAlign:'right'},factor:{marginBottom:10},factorHeader:{flexDirection:'row',justifyContent:'space-between',marginBottom:5},factorLabel:{fontSize:12,color:colors.g800},impact:{fontSize:12,fontWeight:'700'},up:{color:colors.info},down:{color:colors.primary700},track:{height:5,borderRadius:3,backgroundColor:colors.g200,overflow:'hidden'},bar:{height:5,borderRadius:3},button:{height:52,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:16},disabled:{backgroundColor:colors.g300},buttonText:{fontSize:15,fontWeight:'600',color:colors.white},message:{fontSize:12,color:colors.success,textAlign:'center',marginTop:10},empty:{textAlign:'center',color:colors.g500,marginTop:80}});
+const s=StyleSheet.create({
+  root:{padding:16,paddingBottom:110},title:{fontSize:22,fontWeight:'700'},body:{fontSize:13,color:colors.g500,marginTop:6,marginBottom:18},
+  product:{height:54,paddingHorizontal:14,borderWidth:1,borderColor:colors.g200,borderRadius:radius.sm,marginBottom:8,justifyContent:'center'},selected:{borderColor:colors.primary500,backgroundColor:colors.primary100},productName:{fontSize:15,fontWeight:'600'},
+  card:{marginTop:14,padding:18,borderRadius:radius.lg,backgroundColor:colors.g100},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},label:{fontSize:14,color:colors.g600},price:{fontSize:30,fontWeight:'700',color:colors.primary500,marginTop:6},discount:{fontSize:12,color:colors.g600,marginTop:5},
+  optionSection:{marginTop:18},optionSectionTitle:{fontSize:16,fontWeight:'700',color:colors.black},optionNotice:{fontSize:11,lineHeight:16,color:colors.g500,marginTop:4,marginBottom:10},
+  optionCard:{backgroundColor:colors.white,borderWidth:1,borderColor:colors.g200,borderRadius:radius.md,padding:14,marginBottom:10},optionSelected:{borderWidth:2,borderColor:colors.primary500,backgroundColor:'#fffaf0'},
+  optionHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},optionTitleRow:{flexDirection:'row',alignItems:'center',gap:8},radio:{width:18,height:18,borderRadius:9,borderWidth:2,borderColor:colors.g300},radioOn:{borderWidth:5,borderColor:colors.primary500},optionLabel:{fontSize:15,fontWeight:'700',color:colors.g800},optionPrice:{fontSize:20,fontWeight:'700',color:colors.primary500},
+  metricRow:{flexDirection:'row',alignItems:'stretch',marginTop:14,paddingVertical:10,borderTopWidth:1,borderBottomWidth:1,borderColor:colors.g200},metric:{flex:1},metricDivider:{width:1,backgroundColor:colors.g200,marginHorizontal:12},metricCaption:{fontSize:10,color:colors.g500},metricValue:{fontSize:16,fontWeight:'700',color:colors.g800,marginTop:4},metricUnit:{fontSize:10,fontWeight:'500',color:colors.g500},
+  optionFactors:{marginTop:10,gap:4},optionFactor:{fontSize:11,lineHeight:16,color:colors.g600},
+  weatherCard:{backgroundColor:colors.white,borderRadius:radius.md,padding:14,marginTop:14},weatherHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},weatherTitle:{fontSize:14,fontWeight:'700'},weatherSource:{fontSize:10,color:colors.g500},weatherRows:{flexDirection:'row',alignItems:'stretch',marginTop:12},weatherColumn:{flex:1},weatherDivider:{width:1,backgroundColor:colors.g200,marginHorizontal:14},weatherCaption:{fontSize:11,color:colors.g500},weatherTemperature:{fontSize:23,fontWeight:'700',color:colors.info,marginVertical:4},weatherDetail:{fontSize:11,color:colors.g600,lineHeight:17},
+  demandCard:{backgroundColor:colors.white,borderRadius:radius.md,padding:14,marginTop:10},demandRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:12},demandValue:{fontSize:22,fontWeight:'700',color:colors.primary700,marginTop:4},demandRank:{alignItems:'flex-end'},demandRankValue:{fontSize:15,fontWeight:'700',color:colors.info,marginBottom:3},trainingPeriod:{fontSize:10,lineHeight:15,color:colors.g500,marginTop:12,paddingTop:10,borderTopWidth:1,borderTopColor:colors.g200},
+  autoRow:{flexDirection:'row',alignItems:'center',marginTop:18,paddingVertical:14,borderTopWidth:1,borderBottomWidth:1,borderColor:colors.g200},autoCopy:{flex:1,paddingRight:12},autoTitle:{fontSize:15,fontWeight:'700'},autoDescription:{fontSize:12,color:colors.g500,marginTop:4},updating:{fontSize:11,color:colors.info,marginTop:6},reason:{fontSize:13,lineHeight:20,color:colors.g800,marginTop:16},
+  explainBox:{backgroundColor:colors.white,borderRadius:radius.md,padding:14,marginTop:14},sectionHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12},sectionTitle:{fontSize:14,fontWeight:'700',flexShrink:1},neutralPrice:{fontSize:11,fontWeight:'600',color:colors.g500,textAlign:'right'},factor:{marginBottom:10},factorHeader:{flexDirection:'row',justifyContent:'space-between',marginBottom:5},factorLabel:{fontSize:12,color:colors.g800},impact:{fontSize:12,fontWeight:'700'},up:{color:colors.info},down:{color:colors.primary700},track:{height:5,borderRadius:3,backgroundColor:colors.g200,overflow:'hidden'},bar:{height:5,borderRadius:3},
+  button:{height:52,borderRadius:radius.md,backgroundColor:colors.primary500,alignItems:'center',justifyContent:'center',marginTop:16},disabled:{backgroundColor:colors.g300},buttonText:{fontSize:15,fontWeight:'600',color:colors.white},message:{fontSize:12,color:colors.success,textAlign:'center',marginTop:10},empty:{textAlign:'center',color:colors.g500,marginTop:80}
+});
