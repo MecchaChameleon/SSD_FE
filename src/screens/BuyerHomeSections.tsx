@@ -254,7 +254,7 @@ export function SortDropdown<T extends string>({ value, options, onChange }: { v
     <View style={s.sortArea}>
       <Pressable onPress={() => setOpen((v) => !v)} style={s.sort}>
         <Text style={s.sortText}>{value}</Text>
-        <ChevronDownIcon width={20} height={20} color={colors.g500} />
+        <ChevronDownIcon width={16} height={16} color={colors.g500} />
       </Pressable>
       {open ? (
         <View style={s.sortMenu}>
@@ -271,14 +271,13 @@ export function SortDropdown<T extends string>({ value, options, onChange }: { v
 
 export function CategoryTabs<T extends string>({ categories, category, onCategory }: { categories: readonly T[]; category: T; onCategory: (category: T) => void }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
+    <View style={s.tabs}>
       {categories.map((c) => (
-        <Pressable key={c} onPress={() => onCategory(c)} style={s.tab}>
+        <Pressable key={c} onPress={() => onCategory(c)} style={[s.tab, category === c && s.tabOn]}>
           <Text numberOfLines={1} style={[s.tabText, category === c && s.tabTextOn]}>{c}</Text>
-          <View style={[s.tabUnderline, category === c && s.tabUnderlineOn]} />
         </Pressable>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -349,7 +348,7 @@ const s = StyleSheet.create({
   prefShop: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600 },
   prefPriceRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
   percentBadge: { paddingHorizontal: 4, paddingVertical: 2, borderRadius: radius.sm, backgroundColor: colors.info },
-  percentBadgeText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
+  percentBadgeText: { fontSize: 10, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
   prefDiscountLabel: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },
   prefOriginalLabel: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600, textDecorationLine: "line-through" },
   chips: { gap: 8, paddingRight: 14, marginBottom: 12 },
@@ -399,13 +398,12 @@ const s = StyleSheet.create({
   sortOption: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center" },
   sortOptionText: { fontSize: 11, fontFamily: fonts.regular, color: colors.g400 },
   selectedSort: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  tabs: { alignItems: "flex-end", gap: 12, paddingHorizontal: 16, height: 49, borderBottomWidth: 1, borderBottomColor: colors.g100 },
-  tab: { alignItems: "center" },
-  tabText: { fontSize: 15, fontFamily: fonts.regular, color: colors.g500, paddingBottom: 12 },
-  tabTextOn: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  tabUnderline: { height: 2, width: "100%", backgroundColor: "transparent" },
-  tabUnderlineOn: { backgroundColor: colors.primary500 },
+  tabs: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.g200 },
+  tab: { alignItems: "center", paddingHorizontal: 12, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "transparent", marginBottom: -1 },
+  tabOn: { borderBottomWidth: 2, borderBottomColor: colors.g900 },
+  tabText: { fontSize: 14, fontFamily: fonts.regular, color: colors.g500 },
+  tabTextOn: { color: colors.g900 },
   listThumbWrap: { width: 112, height: 112 },
-  listRankBadge: { position: "absolute", left: 0, top: 0, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.g800 },
+  listRankBadge: { position: "absolute", left: 12, top: 12, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.g800 },
   listRankBadgeText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
 });

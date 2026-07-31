@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { colors, fonts } from "../theme";
+import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
 import { CategoryTabs, ProductListRow, SortDropdown } from "./BuyerHomeSections";
 import { apiProductToCard, BuyerCategory, businessTypeByCategory, money, sorts } from "./BuyerHomeScreen";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
+import ArrowUpIcon from "../../icon/arrow_up.svg";
 
 export type ProductListMode = "preference" | "popular" | "new";
 
@@ -65,6 +66,22 @@ export function ProductListScreen({
     return list;
   }, [items, sort, userLocation]);
 
+  const groups = React.useMemo(() => {
+    const result: { item: Product; index: number }[][] = [];
+    let current: { item: Product; index: number }[] = [];
+    sorted.forEach((item, index) => {
+      current.push({ item, index });
+      if (item.insight) {
+        result.push(current);
+        current = [];
+      }
+    });
+    if (current.length) result.push(current);
+    return result;
+  }, [sorted]);
+
+  const scrollRef = useRef<ScrollView>(null);
+
   return (
     <View style={s.root}>
       <View style={s.header}>
@@ -73,7 +90,7 @@ export function ProductListScreen({
             <ChevronLeftIcon width={24} height={24} color={colors.black} />
           </Pressable>
         </View>
-        <Text style={s.headerTitle}>{title}</Text>
+        <Text style={[s.headerTitle, rankMode && s.headerTitleMedium]}>{title}</Text>
         <View style={s.headerSide} />
       </View>
       <CategoryTabs categories={listCategories} category={category} onCategory={setCategory} />
@@ -82,20 +99,36 @@ export function ProductListScreen({
           <SortDropdown value={sort} options={sorts} onChange={setSort} />
         </View>
       ) : null}
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {!loaded ? null : sorted.length === 0 ? (
           <Text style={s.empty}>상품이 없습니다.</Text>
         ) : (
-          sorted.map((item, index) => (
-            <ProductListRow
-              key={item.id}
-              product={item}
-              rank={rankMode ? index + 1 : undefined}
-              onPress={() => onSelectProduct(item)}
-            />
+          groups.map((group, gi) => (
+            <View key={gi} style={s.group}>
+              {group.map(({ item, index }) => (
+                <ProductListRow
+                  key={item.id}
+                  product={item}
+                  rank={rankMode ? index + 1 : undefined}
+                  onPress={() => onSelectProduct(item)}
+                />
+              ))}
+              {group[group.length - 1].item.insight ? (
+                <View style={s.insightBox}>
+                  <Text numberOfLines={1} style={s.insightText}>{group[group.length - 1].item.insight}</Text>
+                </View>
+              ) : null}
+            </View>
           ))
         )}
       </ScrollView>
+      <Pressable
+        accessibilityLabel="맨 위로"
+        style={s.scrollTopButton}
+        onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
+      >
+        <ArrowUpIcon width={24} height={24} color={colors.g700} />
+      </Pressable>
     </View>
   );
 }
@@ -104,8 +137,28 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
   header: { height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
   headerSide: { width: 24 },
-  headerTitle: { fontSize: 17, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
+  headerTitle: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
+  headerTitleMedium: { fontFamily: fonts.medium, fontWeight: "500" },
   sortRow: { paddingHorizontal: 16, paddingTop: 10, alignItems: "flex-end" },
-  content: { paddingHorizontal: 16, paddingBottom: 40, gap: 8 },
+  content: { paddingHorizontal: 16, paddingBottom: 40 },
+  group: { gap: 8, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.g200 },
+  insightBox: { alignItems: "center", justifyContent: "center", paddingHorizontal: 10, paddingVertical: 8, borderRadius: radius.sm, backgroundColor: "rgba(162,206,250,0.25)" },
+  insightText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500, textAlign: "center" },
   empty: { paddingVertical: 80, textAlign: "center", fontFamily: fonts.regular, color: colors.g500 },
+  scrollTopButton: {
+    position: "absolute",
+    right: 16,
+    bottom: 24,
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.white,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 6,
+  },
 });
