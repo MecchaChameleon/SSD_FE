@@ -162,7 +162,7 @@ const s = StyleSheet.create({
   headerTitleMedium: { fontFamily: fonts.medium, fontWeight: "500" },
   sortRow: { paddingHorizontal: 16, paddingTop: 10, alignItems: "flex-end" },
   content: { paddingHorizontal: 16, paddingBottom: 40 },
-  heroRow: { gap: 8, paddingBottom: 16 },
+  heroRow: { gap: 8, paddingTop: 32, paddingBottom: 16 },
   group: { gap: 8, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.g200 },
   insightBox: { alignItems: "center", justifyContent: "center", paddingHorizontal: 10, paddingVertical: 8, borderRadius: radius.sm, backgroundColor: "rgba(162,206,250,0.25)" },
   insightText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500, textAlign: "center" },
