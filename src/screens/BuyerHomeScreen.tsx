@@ -742,6 +742,7 @@ function Summary({ label, value }: { label: string; value: string }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
   aiRecommendationLayer: {
+    top: 56,
     zIndex: 100,
     elevation: 100,
     backgroundColor: colors.white,

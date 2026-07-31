@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { AiRecommendationResponse, ApiError, buyerApi, Product } from "../api";
-import { AppHeader } from "../components/home";
 import { colors, radius } from "../theme";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 
@@ -40,7 +39,6 @@ export function BuyerAiRecommendationScreen({
 
   return (
     <View style={s.root}>
-      <AppHeader showBell={false} />
       <View style={s.pageHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="뒤로가기" onPress={onBack} hitSlop={10} style={s.back}>
           <ChevronLeftIcon width={24} height={24} color={colors.black} />
@@ -137,7 +135,7 @@ export function BuyerAiRecommendationScreen({
 
 const s = StyleSheet.create({
   root:{flex:1,backgroundColor:colors.white},
-  pageHeader:{height:52,flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:14,borderBottomWidth:1,borderBottomColor:colors.g200},
+  pageHeader:{height:52,flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:14},
   back:{width:36,height:36,alignItems:"center",justifyContent:"center"},
   pageTitle:{fontSize:17,fontWeight:"700",color:colors.black},
   content:{paddingHorizontal:14,paddingTop:18,paddingBottom:48},
