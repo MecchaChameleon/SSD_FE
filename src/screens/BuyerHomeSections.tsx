@@ -135,13 +135,15 @@ export function PreferenceSection({ products, onSelect, onSeeAll }: { products: 
   );
 }
 
-export function RankedProductCard({ product, rank, onPress, width = 200, height = 180 }: { product: Product; rank: number; onPress: () => void; width?: number; height?: number }) {
+export function RankedProductCard({ product, rank, onPress, width = 200, height = 180 }: { product: Product; rank?: number; onPress: () => void; width?: number; height?: number }) {
   const contents = (
     <>
       <View style={s.rankOverlay} />
-      <View style={s.rankBadge}>
-        <Text style={s.rankBadgeText}>{rank}</Text>
-      </View>
+      {rank != null ? (
+        <View style={s.rankBadge}>
+          <Text style={s.rankBadgeText}>{rank}</Text>
+        </View>
+      ) : null}
       <View style={s.rankContents}>
         <Text numberOfLines={1} style={s.rankTitle}>{product.title}</Text>
         <View style={s.rankPriceRow}>
@@ -354,11 +356,11 @@ const s = StyleSheet.create({
   chips: { gap: 8, paddingRight: 14, marginBottom: 12 },
   rankRow: { gap: 8, paddingRight: 14 },
   rankCard: { width: 200, height: 180, paddingBottom: 12, borderRadius: radius.lg },
-  rankCardImage: { flex: 1, padding: 12, borderRadius: radius.sm, overflow: "hidden", justifyContent: "space-between" },
+  rankCardImage: { flex: 1, padding: 12, borderRadius: radius.sm, overflow: "hidden" },
   rankOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.15)" },
   rankBadge: { alignSelf: "flex-start", paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.g800 },
   rankBadgeText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
-  rankContents: { gap: 8 },
+  rankContents: { gap: 8, marginTop: "auto" },
   rankTitle: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
   rankPriceRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   rankPrice: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },

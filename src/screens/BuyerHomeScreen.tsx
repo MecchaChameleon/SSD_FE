@@ -364,8 +364,8 @@ export function BuyerHomeScreen({
       setLiked((v) => (exists ? [...v, id] : v.filter((x) => x !== id)));
     }
   };
-  const productCards = shown.map((p, i) => (
-    <RankedProductCard key={p.id} product={p} rank={i + 1} onPress={() => setDetailProduct(p)} />
+  const productCards = shown.slice(0, 8).map((p) => (
+    <RankedProductCard key={p.id} product={p} onPress={() => setDetailProduct(p)} />
   ));
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
   if(listView) return <ProductListScreen title={listView.title} mode={listView.mode} initialCategory={listView.category} initialSort={listView.sort} userLocation={userLocation} onBack={()=>setListView(null)} onSelectProduct={(p)=>{setListView(null);setDetailProduct(p)}}/>;
