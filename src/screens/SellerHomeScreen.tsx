@@ -147,9 +147,15 @@ export function SellerHomeScreen({
           : Promise.resolve(null),
         sellerApi.salesReport({ startDate: lastWeekDate, endDate: lastWeekDate }).catch(() => null),
       ]);
+      const acceptedTodayRevenue = payments.content
+        .filter((p) => p.status === "ACCEPTED")
+        .reduce((sum, p) => sum + p.totalAmount, 0);
+      const effectiveDailyRevenue = Math.max(value.dailyRevenue, acceptedTodayRevenue);
+
       const nextDashboard = {
         ...value,
-        periodRevenue: report?.totalRevenue ?? value.dailyRevenue,
+        dailyRevenue: effectiveDailyRevenue,
+        periodRevenue: isCustomDate ? (report?.totalRevenue ?? effectiveDailyRevenue) : effectiveDailyRevenue,
       };
       setDashboard(nextDashboard);
       void writeCache(SELLER_DASHBOARD_CACHE_KEY,nextDashboard);
@@ -163,13 +169,14 @@ export function SellerHomeScreen({
           const dateStr = item.soldAt.slice(0, 10);
           map[dateStr] = (map[dateStr] ?? 0) + item.totalAmount;
         });
+      } else {
+        payments.content.forEach((p) => {
+          if (p.status === "ACCEPTED") {
+            const dateStr = p.requestedAt ? p.requestedAt.slice(0, 10) : today;
+            map[dateStr] = (map[dateStr] ?? 0) + p.totalAmount;
+          }
+        });
       }
-      payments.content.forEach((p) => {
-        if (p.status === "ACCEPTED") {
-          const dateStr = p.requestedAt ? p.requestedAt.slice(0, 10) : today;
-          map[dateStr] = Math.max(map[dateStr] ?? 0, p.totalAmount);
-        }
-      });
       if (isCustomDate && report?.totalRevenue && Object.keys(map).length === 0) {
         map[startDate] = report.totalRevenue;
       }
