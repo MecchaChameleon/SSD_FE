@@ -1,0 +1,14 @@
+<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Box body -->
+  <rect x="9" y="16" width="26" height="18" rx="2" fill="#D6A56E" />
+  <!-- Side shadow/depth -->
+  <path d="M29 16H33C34.1046 16 35 16.8954 35 18V32C35 33.1046 34.1046 34 33 34H29V16Z" fill="#C49158" />
+  <!-- Front panel -->
+  <rect x="9" y="16" width="20" height="18" rx="2" fill="#E2B47D" />
+  <!-- Top open left flap -->
+  <path d="M5 16L12 11H20L13 16H5Z" fill="#EFC38E" />
+  <!-- Top right flap fold -->
+  <path d="M13 16L20 11H33L29 16H13Z" fill="#DDB079" />
+  <!-- White shipping label tag -->
+  <rect x="22" y="27" width="5" height="4" rx="1" fill="#FFFFFF" opacity="0.9" />
+</svg>
