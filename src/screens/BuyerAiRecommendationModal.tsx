@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { AiRecommendationResponse, ApiError, buyerApi, Product } from "../api";
 import { colors, fonts, radius } from "../theme";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
+import AiBrainIcon from "../../icon/ai-brain.svg";
 
 export function BuyerAiRecommendationScreen({
   location,
@@ -49,7 +50,7 @@ export function BuyerAiRecommendationScreen({
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
         <View style={s.hero}>
-          <View style={s.aiBadge}><Text style={s.aiBadgeText}>AI</Text></View>
+          <View style={s.aiBadge}><AiBrainIcon width={46} height={46}/></View>
           <Text style={s.title}>나에게 딱 맞는 마감딜</Text>
           <Text style={s.subtitle}>위치, 시간, 예산과 날씨까지 한 번에 비교해 드려요.</Text>
         </View>
@@ -140,8 +141,7 @@ const s = StyleSheet.create({
   pageTitle:{fontSize:16,fontFamily:fonts.semibold,fontWeight:"600",color:colors.black},
   content:{paddingHorizontal:14,paddingTop:18,paddingBottom:48},
   hero:{borderRadius:radius.lg,backgroundColor:colors.primary100,padding:22,alignItems:"center"},
-  aiBadge:{width:46,height:46,borderRadius:23,backgroundColor:colors.primary500,alignItems:"center",justifyContent:"center",marginBottom:12},
-  aiBadgeText:{fontSize:15,fontWeight:"800",color:colors.white},
+  aiBadge:{width:46,height:46,alignItems:"center",justifyContent:"center",marginBottom:12},
   title:{fontSize:21,fontWeight:"700",color:colors.black},
   subtitle:{fontSize:13,lineHeight:19,color:colors.g600,marginTop:6,textAlign:"center"},
   section:{marginTop:24},

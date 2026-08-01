@@ -11,8 +11,8 @@ export type AiWeather = {currentTemperature:number;currentPrecipitation:number;c
 export type AiRegionalDemand = {region:string|null;percentile:number;predictedVisitPopulation:number|null;source:string;basisDate:string;trainingStartDate:string|null;trainingEndDate:string|null};
 export type PricePurpose = 'PROFIT'|'BALANCED'|'SELL_THROUGH';
 export type AiPriceOption = {purpose:PricePurpose;label:string;price:number;discountPct:number;salesLikelihoodIndex:number;expectedRevenue:number;majorFactors:string[]};
-export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;weather?:AiWeather|null;regionalDemand?:AiRegionalDemand|null;priceOptions?:AiPriceOption[];autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
-export type AutoPricing = {enabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
+export type AiPrice = {currentPrice:number;discountPct:number;minutesLeft:number;priceTimeline:{time:string;price:number}[];confidence:number;modelVersion:string;reason:string;explanationMethod:string;explanations:PriceExplanation[];weatherSummary:string;weather?:AiWeather|null;regionalDemand?:AiRegionalDemand|null;priceOptions?:AiPriceOption[];selectedPurpose?:PricePurpose;autoPricingEnabled:boolean;lastUpdatedAt:string|null;nextUpdateAt:string|null};
+export type AutoPricing = {enabled:boolean;purpose:PricePurpose;lastUpdatedAt:string|null;nextUpdateAt:string|null};
 
 let latestDashboard: Dashboard | null = null;
 
@@ -36,7 +36,7 @@ export const sellerApi = {
   replaceProductImages: (id:number, retainedUrls:string[], images:{uri:string;name:string;type:string;file?:Blob|null}[]) => { const form=new FormData(); retainedUrls.forEach(url=>form.append('retainedUrls',toApiAssetPath(url))); images.forEach(image=>form.append('images',image.file??image as unknown as Blob,image.name)); return apiRequest<{imageUrls:string[]}>(`/api/seller/products/${id}/images`,{method:'PUT',body:form}); },
   price: (id:number) => apiRequest<AiPrice>(`/api/seller/products/${id}/price`,{cache:'no-store',query:{_t:Date.now()}}),
   autoPricing: (id:number) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`),
-  setAutoPricing: (id:number,enabled:boolean) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`,{method:'PUT',body:{enabled}}),
+  setAutoPricing: (id:number,enabled:boolean,purpose:PricePurpose) => apiRequest<AutoPricing>(`/api/seller/products/${id}/auto-pricing`,{method:'PUT',body:{enabled,purpose}}),
   strategy: (id:number) => apiRequest<{message:string}>(`/api/seller/products/${id}/strategy`),
   applyPrice: (id:number,body:{price:number;recommendationId?:number}) => apiRequest<Product>(`/api/seller/products/${id}/price/apply`,{method:'POST',body}),
   payments: (query:{status?:PurchaseStatus;date?:string;page?:number;size?:number}={}) => apiRequest<Page<Purchase>>('/api/seller/payments',{query}),

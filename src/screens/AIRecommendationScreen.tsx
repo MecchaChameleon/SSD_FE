@@ -39,7 +39,7 @@ export function AIRecommendationScreen(){
     try{
       const next=await sellerApi.price(id);
       if(requestNumber!==recommendationRequest.current)return;
-      setPrice(normalizePriceExplanation(next));setMessage('');
+      setPrice(normalizePriceExplanation(next));setSelectedPurpose(next.selectedPurpose??'BALANCED');setMessage('');
       if(next.autoPricingEnabled)await refreshProducts().catch(()=>undefined);
     }catch{
       if(requestNumber!==recommendationRequest.current)return;
@@ -57,9 +57,10 @@ export function AIRecommendationScreen(){
     if(!selected||changing)return;
     setChanging(true);
     try{
-      await sellerApi.setAutoPricing(selected,enabled);
+      await sellerApi.setAutoPricing(selected,enabled,selectedPurpose);
       await Promise.all([refreshRecommendation(selected),refreshProducts()]);
-      setMessage(enabled?'AI가 추천가 변경을 감지하면 판매가에 즉시 반영합니다.':'AI 실시간 가격 설정을 해제했습니다.');
+      const label=price?.priceOptions?.find(option=>option.purpose===selectedPurpose)?.label??'균형';
+      setMessage(enabled?`${label} 가격안 변경을 감지하면 판매가에 즉시 반영합니다.`:'AI 실시간 가격 설정을 해제했습니다.');
     }catch{setMessage('자동 가격 설정을 변경하지 못했습니다. 로컬 AI 연결을 확인해 주세요.')}finally{setChanging(false)}
   };
 
@@ -117,10 +118,10 @@ export function AIRecommendationScreen(){
           <View style={s.demandRow}><View><Text style={s.weatherCaption}>{price.regionalDemand.region??'제주 지역'}</Text><Text style={s.demandValue}>{price.regionalDemand.predictedVisitPopulation==null?'-':`${price.regionalDemand.predictedVisitPopulation.toLocaleString()}명`}</Text></View><View style={s.demandRank}><Text style={s.demandRankValue}>오늘 예측 · 상위 {Math.max(1,Math.round((1-price.regionalDemand.percentile)*100))}%</Text><Text style={s.weatherCaption}>과거 3년 동일 지역·날짜 기준</Text></View></View>
           {price.regionalDemand.trainingStartDate&&price.regionalDemand.trainingEndDate?<Text style={s.trainingPeriod}>EBM 학습 기간 {price.regionalDemand.trainingStartDate} ~ {price.regionalDemand.trainingEndDate} · 날짜·요일·공휴일·읍면동</Text>:null}
         </View>:null}
-        <View style={s.autoRow}><View style={s.autoCopy}><Text style={s.autoTitle}>AI 기반 실시간 가격</Text><Text style={s.autoDescription}>{price?.autoPricingEnabled?'균형 가격안 변경 감지 시 판매가에 즉시 반영':'켜면 균형 가격안을 자동 반영'}</Text></View><Toggle value={price?.autoPricingEnabled??false} onChange={changeAuto}/></View>
+        <View style={s.autoRow}><View style={s.autoCopy}><Text style={s.autoTitle}>AI 기반 실시간 가격</Text><Text style={s.autoDescription}>{price?.autoPricingEnabled?`${selectedOption.label} 가격안 변경 감지 시 판매가에 즉시 반영`:`켜면 ${selectedOption.label} 가격안을 자동 반영`}</Text></View><Toggle value={price?.autoPricingEnabled??false} onChange={changeAuto}/></View>
         {changing?<Text style={s.updating}>설정을 반영하는 중...</Text>:null}
         {price?.explanations?.length?<View style={s.explainBox}><View style={s.sectionHeader}><Text style={s.sectionTitle}>이 가격에 영향을 준 요인</Text>{neutralPrice!==null?<Text style={s.neutralPrice}>중립 기준 {neutralPrice.toLocaleString()}원</Text>:null}</View>{price.explanations.map(item=>{const display=explanationDisplay(item);return <View key={item.feature} style={s.factor}><View style={s.factorHeader}><Text style={s.factorLabel}>{item.label}{item.feature!=='demand_percentile'&&display?` (${display})`:''}</Text><Text style={[s.impact,item.impact>=0?s.up:s.down]}>{item.impact>=0?'+':''}{Math.round(item.impact).toLocaleString()}원</Text></View><View style={s.track}><View style={[s.bar,{width:`${normalizedImpact(item.impact)}%`,backgroundColor:item.impact>=0?colors.info:colors.primary500}]}/></View></View>})}</View>:null}
-        <Pressable disabled={!price||price.autoPricingEnabled} onPress={apply} style={[s.button,(!price||price.autoPricingEnabled)&&s.disabled]}><Text style={s.buttonText}>{price?.autoPricingEnabled?'균형 가격안 자동 적용 중':`${selectedOption.label} 가격안 적용`}</Text></Pressable>
+        <Pressable disabled={!price||price.autoPricingEnabled} onPress={apply} style={[s.button,(!price||price.autoPricingEnabled)&&s.disabled]}><Text style={s.buttonText}>{price?.autoPricingEnabled?`${selectedOption.label} 가격안 자동 적용 중`:`${selectedOption.label} 가격안 적용`}</Text></Pressable>
         {message?<Text style={s.message}>{message}</Text>:null}
       </>}
     </View>:<Text style={s.empty}>등록 상품이 없습니다.</Text>}
