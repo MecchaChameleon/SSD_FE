@@ -105,11 +105,19 @@ export function SearchResultScreen({
   onBack,
   onSelectProduct,
   onHome,
+  onMap,
+  onPurchases,
+  onLikes,
+  onMyPage,
 }: {
   initialQuery?: string;
   onBack: () => void;
   onSelectProduct: (product: Product) => void;
   onHome?: () => void;
+  onMap?: () => void;
+  onPurchases?: () => void;
+  onLikes?: () => void;
+  onMyPage?: () => void;
 }) {
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState<SearchCategory>("전체");
@@ -405,7 +413,11 @@ export function SearchResultScreen({
       <BottomNavigation
         active="home"
         onSelect={(t) => {
-          if (t === "home" && onHome) onHome();
+          if (t === "home") onHome?.();
+          else if (t === "map") onMap?.();
+          else if (t === "purchases") onPurchases?.();
+          else if (t === "likes") onLikes?.();
+          else if (t === "mypage") onMyPage?.();
         }}
       />
     </View>

@@ -248,7 +248,7 @@ export function BuyerHomeScreen({
     return () => clearInterval(interval);
   }, []);
   useEffect(() => {
-    if (sellerMode) return;
+    if (sellerMode || tab !== "home") return;
     const businessType=businessTypeByCategory[category];
     const nearby=sort==="가까운 거리순"&&userLocation;
     const sortQuery=nearby?{sort:"DISTANCE_ASC" as const,lat:userLocation.lat,lng:userLocation.lng}:{};
@@ -274,7 +274,7 @@ export function BuyerHomeScreen({
       .catch(() => undefined);
     void refreshPurchases().catch(() => undefined);
     return()=>clearInterval(productInterval);
-  }, [sellerMode, category, refreshPurchases, sort, userLocation]);
+  }, [sellerMode, tab, category, refreshPurchases, sort, userLocation]);
   useEffect(() => {
     if (sellerMode) return;
     buyerApi
@@ -456,6 +456,26 @@ export function BuyerHomeScreen({
           setQuery("");
           setSearchResultView(null);
           setTab("home");
+        }}
+        onMap={() => {
+          setQuery("");
+          setSearchResultView(null);
+          navigateTab("map");
+        }}
+        onPurchases={() => {
+          setQuery("");
+          setSearchResultView(null);
+          navigateTab("purchases");
+        }}
+        onLikes={() => {
+          setQuery("");
+          setSearchResultView(null);
+          navigateTab("likes");
+        }}
+        onMyPage={() => {
+          setQuery("");
+          setSearchResultView(null);
+          navigateTab("mypage");
         }}
       />
     );
