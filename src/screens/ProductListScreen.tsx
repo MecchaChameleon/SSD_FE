@@ -55,20 +55,48 @@ export function ProductListScreen({
   const categorySwipe = React.useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, gesture) =>
       Math.abs(gesture.dx) > 14 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.35,
+    onPanResponderGrant: () => categorySlide.stopAnimation(),
+    onPanResponderMove: (_, gesture) => {
+      categorySlide.setValue(Math.max(-56, Math.min(56, gesture.dx * 0.55)));
+    },
     onPanResponderRelease: (_, gesture) => {
-      if (Math.abs(gesture.dx) < 48 && Math.abs(gesture.vx) < 0.35) return;
       const currentIndex = listCategories.indexOf(category);
       const nextIndex = gesture.dx < 0 ? currentIndex + 1 : currentIndex - 1;
       const next = listCategories[nextIndex];
-      if (next) changeCategory(next);
+      const shouldChange = Math.abs(gesture.dx) >= 48 || Math.abs(gesture.vx) >= 0.35;
+      if (!next || !shouldChange) {
+        Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }).start();
+        return;
+      }
+      const direction = gesture.dx < 0 ? 1 : -1;
+      if (!categoryCache.current.has(next)) {
+        Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }).start();
+        changeCategory(next);
+        return;
+      }
+      Animated.timing(categorySlide, {
+        toValue: -direction * 96,
+        duration: 130,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => { if (finished) changeCategory(next); });
     },
-  }), [category]);
+    onPanResponderTerminate: () => {
+      Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }).start();
+    },
+  }), [category, categorySlide]);
   useLayoutEffect(() => {
     if (!categoryContentVersion) return;
     categorySlide.stopAnimation();
     categorySlide.setValue(categoryDirection.current * 72);
     requestAnimationFrame(() => {
-      Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+      Animated.spring(categorySlide, {
+        toValue: 0,
+        damping: 20,
+        stiffness: 190,
+        mass: 0.8,
+        useNativeDriver: true,
+      }).start();
     });
   }, [categoryContentVersion, categorySlide]);
 
