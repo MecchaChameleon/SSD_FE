@@ -36,6 +36,7 @@ import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
 import { LikesScreen } from "./LikesScreen";
 import { ProductListMode, ProductListScreen } from "./ProductListScreen";
 import { CouponScreen } from "./CouponScreen";
+import { SearchResultScreen } from "./SearchResultScreen";
 import { TimeOptionWheel } from "./RegisteredProductsScreen";
 import {
   HeroBannerCarousel,
@@ -192,6 +193,7 @@ export function BuyerHomeScreen({
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
+  const [searchResultView, setSearchResultView] = useState<{ query?: string; tag?: string } | null>(null);
   const [sort, setSort] = useState<(typeof sorts)[number]>("할인율 높은순");
   const [listView, setListView] = useState<{ title: string; mode: ProductListMode; category: BuyerCategory; sort: (typeof sorts)[number] } | null>(null);
   const [couponView, setCouponView] = useState(false);
@@ -328,11 +330,13 @@ export function BuyerHomeScreen({
       );
     return list;
   }, [productItems, query, sort, now,userLocation]);
-  const submitSearch = () => {
-    const value = query.trim();
+  const submitSearch = (q?: string) => {
+    const value = (q ?? query).trim() || "바다";
     if (value)
-      setRecent((v) => [value, ...v.filter((x) => x !== value)].slice(0, 5));
+      setRecent((v) => [value, ...v.filter((x) => x !== value)].slice(0, 10));
     setSearching(false);
+    setQuery("");
+    setSearchResultView({ query: value });
   };
   const confirmPurchase = async () => {
     if (!purchase) return;
@@ -443,11 +447,30 @@ export function BuyerHomeScreen({
         }}
       />
     );
+
+
+  if (searchResultView)
+    return (
+      <SearchResultScreen
+        initialQuery={searchResultView.query ?? "바다"}
+        onBack={() => {
+          setQuery("");
+          setSearchResultView(null);
+        }}
+        onSelectProduct={(p) => setDetailProduct(p)}
+        onHome={() => {
+          setQuery("");
+          setSearchResultView(null);
+          setTab("home");
+        }}
+      />
+    );
+
   if (searching)
     return (
       <View style={s.root}>
         <View style={s.searchHeader}>
-          <Pressable onPress={() => setSearching(false)}>
+          <Pressable onPress={() => { setSearching(false); setQuery(""); }}>
             <ChevronLeftIcon width={24} height={24} color={colors.black} />
           </Pressable>
           <View style={s.searchBox}>
@@ -456,7 +479,7 @@ export function BuyerHomeScreen({
               autoFocus
               value={query}
               onChangeText={setQuery}
-              onSubmitEditing={submitSearch}
+              onSubmitEditing={() => submitSearch()}
               returnKeyType="search"
               placeholder="검색"
               placeholderTextColor={colors.g500}
@@ -470,6 +493,21 @@ export function BuyerHomeScreen({
           </View>
         </View>
         <View style={s.recentHead}>
+          <Text style={s.recentTitle}>추천 키워드</Text>
+        </View>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, marginBottom: 16 }}>
+          {["마감임박", "매진임박", "최대할인"].map((kw) => (
+            <Pressable
+              key={kw}
+              onPress={() => submitSearch(kw)}
+              style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill, backgroundColor: colors.g100 }}
+            >
+              <Text style={{ fontSize: 12, fontFamily: fonts.medium, color: colors.g700 }}>{kw}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={s.recentHead}>
           <Text style={s.recentTitle}>최근 검색</Text>
           <Pressable onPress={() => setRecent([])}>
             <Text style={s.clear}>모두 삭제</Text>
@@ -478,10 +516,7 @@ export function BuyerHomeScreen({
         {recent.map((x) => (
           <Pressable
             key={x}
-            onPress={() => {
-              setQuery(x);
-              setSearching(false);
-            }}
+            onPress={() => submitSearch(x)}
             style={s.recentItem}
           >
             <Text style={s.recentText}>{x}</Text>
