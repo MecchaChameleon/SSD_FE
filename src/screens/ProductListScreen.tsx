@@ -37,15 +37,35 @@ export function ProductListScreen({
   const [pageWidth, setPageWidth] = useState(viewportWidth);
   const pagerRef = useRef<ScrollView>(null);
   const pageScrollRefs = useRef(new Map<BuyerCategory, ScrollView>());
+  const activeCategoryRef = useRef<BuyerCategory>(initialCategory);
+  const swipeStartIndex = useRef<number | null>(null);
+  const programmaticTarget = useRef<number | null>(null);
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
   const changeCategory = (next:BuyerCategory, scrollToPage = true) => {
-    if (next === category) return;
+    if (next === activeCategoryRef.current) return;
     if (scrollToPage) {
-      pagerRef.current?.scrollTo({ x: listCategories.indexOf(next) * pageWidth, animated: true });
+      const nextIndex = listCategories.indexOf(next);
+      programmaticTarget.current = nextIndex;
+      activeCategoryRef.current = next;
+      setCategory(next);
+      pagerRef.current?.scrollTo({ x: nextIndex * pageWidth, animated: true });
       return;
     }
+    activeCategoryRef.current = next;
     setCategory(next);
+  };
+  const categoryIndexAt = (offsetX:number) => {
+    let index = Math.round(offsetX / Math.max(1, pageWidth));
+    if (swipeStartIndex.current != null) {
+      index = Math.max(swipeStartIndex.current - 1, Math.min(swipeStartIndex.current + 1, index));
+    }
+    return Math.max(0, Math.min(listCategories.length - 1, index));
+  };
+  const syncCategoryAt = (offsetX:number) => {
+    if (programmaticTarget.current != null) return;
+    const next = listCategories[categoryIndexAt(offsetX)];
+    if (next !== activeCategoryRef.current) changeCategory(next, false);
   };
 
   useEffect(() => {
@@ -155,6 +175,9 @@ export function ProductListScreen({
         ref={pagerRef}
         horizontal
         pagingEnabled
+        snapToInterval={pageWidth}
+        disableIntervalMomentum
+        decelerationRate="fast"
         bounces={false}
         showsHorizontalScrollIndicator={false}
         style={s.categoryContent}
@@ -163,11 +186,22 @@ export function ProductListScreen({
           const nextWidth = event.nativeEvent.layout.width;
           if (nextWidth > 0 && nextWidth !== pageWidth) setPageWidth(nextWidth);
         }}
+        onScrollBeginDrag={(event) => {
+          programmaticTarget.current = null;
+          swipeStartIndex.current = Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth));
+        }}
+        onScroll={(event) => syncCategoryAt(event.nativeEvent.contentOffset.x)}
+        onScrollEndDrag={(event) => syncCategoryAt(event.nativeEvent.contentOffset.x)}
         onMomentumScrollEnd={(event) => {
-          const nextIndex = Math.max(0, Math.min(listCategories.length - 1,
-            Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth))));
+          const nextIndex = programmaticTarget.current ?? categoryIndexAt(event.nativeEvent.contentOffset.x);
+          const expectedOffset = nextIndex * pageWidth;
+          if (Math.abs(event.nativeEvent.contentOffset.x - expectedOffset) > 1) {
+            pagerRef.current?.scrollTo({ x: expectedOffset, animated: true });
+          }
+          programmaticTarget.current = null;
+          swipeStartIndex.current = null;
           const next = listCategories[nextIndex];
-          if (next !== category) changeCategory(next, false);
+          if (next !== activeCategoryRef.current) changeCategory(next, false);
         }}
       >
         {listCategories.map((pageCategory) => {
