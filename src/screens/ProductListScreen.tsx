@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Animated, Easing, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, PanResponder, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
@@ -34,7 +34,9 @@ export function ProductListScreen({
   const [items, setItems] = useState<Product[]>([]);
   const categoryCache = useRef(new Map<BuyerCategory, Product[]>());
   const [loaded, setLoaded] = useState(false);
+  const { width: viewportWidth } = useWindowDimensions();
   const categorySlide = useRef(new Animated.Value(0)).current;
+  const categoryOpacity = useRef(new Animated.Value(1)).current;
   const categoryDirection = useRef(1);
   const categoryTransitionPending = useRef(false);
   const [categoryContentVersion, setCategoryContentVersion] = useState(0);
@@ -55,9 +57,13 @@ export function ProductListScreen({
   const categorySwipe = React.useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, gesture) =>
       Math.abs(gesture.dx) > 14 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.35,
-    onPanResponderGrant: () => categorySlide.stopAnimation(),
+    onPanResponderGrant: () => {
+      categorySlide.stopAnimation();
+      categoryOpacity.stopAnimation();
+    },
     onPanResponderMove: (_, gesture) => {
       categorySlide.setValue(Math.max(-56, Math.min(56, gesture.dx * 0.55)));
+      categoryOpacity.setValue(1 - Math.min(0.28, Math.abs(gesture.dx) / Math.max(1, viewportWidth) * 0.55));
     },
     onPanResponderRelease: (_, gesture) => {
       const currentIndex = listCategories.indexOf(category);
@@ -65,40 +71,67 @@ export function ProductListScreen({
       const next = listCategories[nextIndex];
       const shouldChange = Math.abs(gesture.dx) >= 48 || Math.abs(gesture.vx) >= 0.35;
       if (!next || !shouldChange) {
-        Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }).start();
+        Animated.parallel([
+          Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }),
+          Animated.timing(categoryOpacity, { toValue: 1, duration: 140, useNativeDriver: true }),
+        ]).start();
         return;
       }
       const direction = gesture.dx < 0 ? 1 : -1;
       if (!categoryCache.current.has(next)) {
-        Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }).start();
+        Animated.parallel([
+          Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }),
+          Animated.timing(categoryOpacity, { toValue: 1, duration: 140, useNativeDriver: true }),
+        ]).start();
         changeCategory(next);
         return;
       }
-      Animated.timing(categorySlide, {
-        toValue: -direction * 96,
-        duration: 130,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }).start(({ finished }) => { if (finished) changeCategory(next); });
+      Animated.parallel([
+        Animated.timing(categorySlide, {
+          toValue: -direction * Math.max(320, viewportWidth),
+          duration: 220,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(categoryOpacity, {
+          toValue: 0,
+          duration: 220,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => { if (finished) changeCategory(next); });
     },
     onPanResponderTerminate: () => {
-      Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }).start();
+      Animated.parallel([
+        Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }),
+        Animated.timing(categoryOpacity, { toValue: 1, duration: 140, useNativeDriver: true }),
+      ]).start();
     },
-  }), [category, categorySlide]);
+  }), [category, categoryOpacity, categorySlide, viewportWidth]);
   useLayoutEffect(() => {
     if (!categoryContentVersion) return;
     categorySlide.stopAnimation();
-    categorySlide.setValue(categoryDirection.current * 72);
+    categoryOpacity.stopAnimation();
+    categorySlide.setValue(categoryDirection.current * Math.max(320, viewportWidth));
+    categoryOpacity.setValue(0);
     requestAnimationFrame(() => {
-      Animated.spring(categorySlide, {
-        toValue: 0,
-        damping: 20,
-        stiffness: 190,
-        mass: 0.8,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.spring(categorySlide, {
+          toValue: 0,
+          damping: 20,
+          stiffness: 190,
+          mass: 0.8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(categoryOpacity, {
+          toValue: 1,
+          duration: 240,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
     });
-  }, [categoryContentVersion, categorySlide]);
+  }, [categoryContentVersion, categoryOpacity, categorySlide, viewportWidth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -205,7 +238,7 @@ export function ProductListScreen({
       <CategoryTabs categories={listCategories} category={category} onCategory={changeCategory} />
       <Animated.View
         {...categorySwipe.panHandlers}
-        style={[s.categoryContent,{transform:[{translateX:categorySlide}]}]}
+        style={[s.categoryContent,{opacity:categoryOpacity,transform:[{translateX:categorySlide}]}]}
       >
       {!rankMode ? (
         <View style={s.sortRow}>
