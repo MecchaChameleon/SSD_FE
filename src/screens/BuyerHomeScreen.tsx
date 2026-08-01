@@ -34,6 +34,7 @@ import { PaymentCompleteScreen } from "./PaymentCompleteScreen";
 import { PurchaseHistoryScreen, PurchaseItem } from "./PurchaseHistoryScreen";
 import { LikesScreen } from "./LikesScreen";
 import { ProductListMode, ProductListScreen } from "./ProductListScreen";
+import { CouponScreen } from "./CouponScreen";
 import { TimeOptionWheel } from "./RegisteredProductsScreen";
 import {
   HeroBannerCarousel,
@@ -184,6 +185,7 @@ export function BuyerHomeScreen({
   const [recent, setRecent] = useState<string[]>([]);
   const [sort, setSort] = useState<(typeof sorts)[number]>("할인율 높은순");
   const [listView, setListView] = useState<{ title: string; mode: ProductListMode; category: BuyerCategory; sort: (typeof sorts)[number] } | null>(null);
+  const [couponView, setCouponView] = useState(false);
   const [aiRecommendationOpen, setAiRecommendationOpen] = useState(false);
   const aiRecommendationSlide = useRef(new Animated.Value(0)).current;
   const { width: viewportWidth } = useWindowDimensions();
@@ -368,6 +370,7 @@ export function BuyerHomeScreen({
     <RankedProductCard key={p.id} product={p} onPress={() => setDetailProduct(p)} />
   ));
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
+  if(couponView) return <CouponScreen onBack={() => setCouponView(false)} />;
   if(listView) return <ProductListScreen title={listView.title} mode={listView.mode} initialCategory={listView.category} initialSort={listView.sort} userLocation={userLocation} onBack={()=>setListView(null)} onSelectProduct={(p)=>{setListView(null);setDetailProduct(p)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
@@ -497,11 +500,11 @@ export function BuyerHomeScreen({
             </Text>
             <SearchIcon width={20} height={20} color={colors.g500} />
           </Pressable>
-          <Pressable accessibilityLabel="쿠폰함" style={s.searchIconButton}>
-            <CouponIcon width={22} height={22} color={colors.g700} />
+          <Pressable accessibilityLabel="쿠폰함" style={s.searchIconButton} onPress={() => setCouponView(true)}>
+            <CouponIcon width={20} height={20} color={colors.g700} />
           </Pressable>
           <View style={s.searchIconButton}>
-            <NotificationBell role="buyer" />
+            <NotificationBell role="buyer" size={20} />
           </View>
         </View>
         <HeroBannerCarousel />
@@ -529,10 +532,7 @@ export function BuyerHomeScreen({
             <Text style={s.empty}>검색 결과가 없습니다.</Text>
           )}
         </PopularProductsSection>
-        <PromoBanner
-          title="SNS에서 뜨는 캠핑 인기템"
-          subtitle="캠핑용품 특가 모음 -72%"
-        />
+        <PromoBanner />
         <NewArrivalsSection
           items={newArrivalItems}
           onSelect={(item) => setDetailProduct(item)}

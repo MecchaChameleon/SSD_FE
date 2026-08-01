@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -20,9 +20,13 @@ import QuickMenuAi from "../../icon/quick_menu_ai.svg";
 import QuickMenuNearby from "../../icon/quick_menu_nearby.svg";
 import QuickMenuDeadline from "../../icon/quick_menu_deadline.svg";
 
-// 배너/프로모는 연결된 API가 없어 더미 이미지로 채움 - imageUrl을 주면 그대로 렌더링됨
-export type HeroBanner = { id: string; imageUrl?: string };
-export const heroBanners: HeroBanner[] = [{ id: "b1" }, { id: "b2" }, { id: "b3" }];
+// 배너/프로모는 연결된 API가 없어 로컬 이미지로 채움 - imageUrl 또는 imageSource를 주면 그대로 렌더링됨
+export type HeroBanner = { id: string; imageUrl?: string; imageSource?: any };
+export const heroBanners: HeroBanner[] = [
+  { id: "b1", imageSource: require("../../assets/images/hero_banner_1.jpg") },
+  { id: "b2", imageSource: require("../../assets/images/hero_banner_2.jpg") },
+  { id: "b3", imageSource: require("../../assets/images/hero_banner_3.jpg") },
+];
 
 const quickMenuItems = [
   { label: "AI 추천", Glyph: QuickMenuAi, glyphWidth: 28.17, glyphHeight: 24.81, glyphLeft: 9.74, glyphTop: 10.5 },
@@ -36,27 +40,49 @@ const chunk = <T,>(items: T[], size: number) => {
   return out;
 };
 
-export function HeroBannerCarousel() {
+export function HeroBannerCarousel({ autoPlayInterval = 3500 }: { autoPlayInterval?: number }) {
   const [index, setIndex] = useState(0);
   const { width } = useWindowDimensions();
   const frameWidth = Math.min(width, screen.designWidth) - 28;
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (heroBanners.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % heroBanners.length;
+        scrollRef.current?.scrollTo({
+          x: nextIndex * frameWidth,
+          animated: true,
+        });
+        return nextIndex;
+      });
+    }, autoPlayInterval);
+
+    return () => clearInterval(timer);
+  }, [frameWidth, autoPlayInterval]);
+
   return (
     <View style={s.heroWrap}>
       <ScrollView
+        ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(event) =>
-          setIndex(Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width))
-        }
+        onMomentumScrollEnd={(event) => {
+          const nextIndex = Math.round(event.nativeEvent.contentOffset.x / (event.nativeEvent.layoutMeasurement.width || frameWidth));
+          setIndex(nextIndex);
+        }}
       >
-        {heroBanners.map((banner) =>
-          banner.imageUrl ? (
-            <Image key={banner.id} source={{ uri: banner.imageUrl }} style={[s.heroSlide, { width: frameWidth }]} />
+        {heroBanners.map((banner) => {
+          const source = banner.imageSource || (banner.imageUrl ? { uri: banner.imageUrl } : null);
+          return source ? (
+            <Image key={banner.id} source={source} style={[s.heroSlide, { width: frameWidth }]} resizeMode="cover" />
           ) : (
             <View key={banner.id} style={[s.heroSlide, { width: frameWidth }]} />
-          ),
-        )}
+          );
+        })}
       </ScrollView>
       {heroBanners.length > 1 ? (
         <View style={s.heroPageBadge}>
@@ -209,13 +235,33 @@ export function PopularProductsSection<T extends string>({
   );
 }
 
-export function PromoBanner({ title, subtitle, imageUrl }: { title: string; subtitle: string; imageUrl?: string }) {
+export function PromoBanner({
+  title,
+  subtitle,
+  imageUrl,
+  imageSource = require("../../assets/images/promo_camping.png"),
+}: {
+  title?: string;
+  subtitle?: string;
+  imageUrl?: string;
+  imageSource?: any;
+}) {
+  const source = imageSource || (imageUrl ? { uri: imageUrl } : null);
+
+  if (source) {
+    return (
+      <View style={s.promoFullWrap}>
+        <Image source={source} style={s.promoFullImage} resizeMode="cover" />
+      </View>
+    );
+  }
+
   return (
     <View style={s.promoBanner}>
-      {imageUrl ? <Image source={{ uri: imageUrl }} style={s.promoFallback} /> : <View style={s.promoFallback} />}
+      <View style={s.promoFallback} />
       <View style={s.promoText}>
-        <Text style={s.promoTitle}>{title}</Text>
-        <Text style={s.promoSubtitle}>{subtitle}</Text>
+        {title ? <Text style={s.promoTitle}>{title}</Text> : null}
+        {subtitle ? <Text style={s.promoSubtitle}>{subtitle}</Text> : null}
       </View>
     </View>
   );
@@ -365,6 +411,8 @@ const s = StyleSheet.create({
   rankPriceRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   rankPrice: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },
   rankOriginal: { fontSize: 10, fontFamily: fonts.regular, color: colors.white },
+  promoFullWrap: { marginHorizontal: -14, height: 96, marginBottom: 24, overflow: "hidden" },
+  promoFullImage: { width: "100%", height: "100%" },
   promoBanner: { height: 96, borderRadius: radius.lg, overflow: "hidden", backgroundColor: colors.g100, flexDirection: "row", alignItems: "center", marginBottom: 24 },
   promoFallback: { width: 96, height: "100%", backgroundColor: colors.g200 },
   promoText: { flex: 1, paddingHorizontal: 16, gap: 4 },
