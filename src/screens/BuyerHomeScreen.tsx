@@ -195,6 +195,7 @@ export function BuyerHomeScreen({
   const [searchResultView, setSearchResultView] = useState<{ query?: string; tag?: string } | null>(null);
   const [sort, setSort] = useState<(typeof sorts)[number]>("할인율 높은순");
   const [listView, setListView] = useState<{ title: string; mode: ProductListMode; category: BuyerCategory; sort: (typeof sorts)[number] } | null>(null);
+  const listViewSlide = useRef(new Animated.Value(0)).current;
   const [couponView, setCouponView] = useState(false);
   const [aiRecommendationOpen, setAiRecommendationOpen] = useState(false);
   const aiRecommendationSlide = useRef(new Animated.Value(0)).current;
@@ -238,9 +239,31 @@ export function BuyerHomeScreen({
       if(product)setDetailProduct(apiProductToCard(product));
     });
   };
+  const openListView=(next:{ title:string; mode:ProductListMode; category:BuyerCategory; sort:(typeof sorts)[number] })=>{
+    listViewSlide.setValue(0);
+    setListView(next);
+    requestAnimationFrame(()=>Animated.timing(listViewSlide,{
+      toValue:1,
+      duration:280,
+      easing:Easing.out(Easing.cubic),
+      useNativeDriver:true,
+    }).start());
+  };
+  const closeListView=(product?:Product)=>{
+    Animated.timing(listViewSlide,{
+      toValue:0,
+      duration:260,
+      easing:Easing.in(Easing.cubic),
+      useNativeDriver:true,
+    }).start(({finished})=>{
+      if(!finished)return;
+      setListView(null);
+      if(product)setDetailProduct(product);
+    });
+  };
   const tabScreen=(content:React.ReactNode)=>
     <View style={{flex:1,overflow:'hidden'}}>
-      <ScreenTransition key={tab} direction={tabDirection}>{content}</ScreenTransition>
+      <ScreenTransition screenKey={tab} direction={tabDirection}>{content}</ScreenTransition>
     </View>;
   useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
@@ -379,7 +402,6 @@ export function BuyerHomeScreen({
   ));
   if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
   if(couponView) return <CouponScreen onBack={() => setCouponView(false)} />;
-  if(listView) return <ProductListScreen title={listView.title} mode={listView.mode} initialCategory={listView.category} initialSort={listView.sort} userLocation={userLocation} onBack={()=>setListView(null)} onSelectProduct={(p)=>{setListView(null);setDetailProduct(p)}}/>;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
   if(paymentComplete) return <PaymentCompleteScreen onPurchases={()=>{setPaymentComplete(false);navigateTab('purchases')}} onHome={()=>{setPaymentComplete(false);navigateTab('home')}}/>;
@@ -572,20 +594,20 @@ export function BuyerHomeScreen({
         <QuickMenuRow
           onAiRecommend={openAiRecommendation}
           onSelect={(label) => {
-            if (label === "마감 임박") setListView({ title: "마감 임박", mode: "deadline", category: "전체", sort: "마감 임박순" });
-            else if (label === "내 근처") setListView({ title: "내 근처", mode: "nearby", category: "전체", sort: "가까운 거리순" });
+            if (label === "마감 임박") openListView({ title: "마감 임박", mode: "deadline", category: "전체", sort: "마감 임박순" });
+            else if (label === "내 근처") openListView({ title: "내 근처", mode: "nearby", category: "전체", sort: "가까운 거리순" });
           }}
         />
         <PreferenceSection
           products={preferenceItems}
           onSelect={(item) => setDetailProduct(item)}
-          onSeeAll={() => setListView({ title: "내 취향 상품", mode: "preference", category: "전체", sort: "할인율 높은순" })}
+          onSeeAll={() => openListView({ title: "내 취향 상품", mode: "preference", category: "전체", sort: "할인율 높은순" })}
         />
         <PopularProductsSection
           categories={categories}
           category={category}
           onCategory={setCategory}
-          onSeeAll={() => setListView({ title: "현재 인기 상품", mode: "popular", category, sort })}
+          onSeeAll={() => openListView({ title: "현재 인기 상품", mode: "popular", category, sort })}
         >
           {productCards.length > 0 ? (
             productCards
@@ -597,7 +619,7 @@ export function BuyerHomeScreen({
         <NewArrivalsSection
           items={newArrivalItems}
           onSelect={(item) => setDetailProduct(item)}
-          onSeeAll={() => setListView({ title: "신규 상품 · 자원", mode: "new", category: "전체", sort: "할인율 높은순" })}
+          onSeeAll={() => openListView({ title: "신규 상품 · 자원", mode: "new", category: "전체", sort: "할인율 높은순" })}
         />
       </ScrollView>
       <Pressable
@@ -609,6 +631,26 @@ export function BuyerHomeScreen({
       </Pressable>
       <BottomNavigation active="home" onSelect={navigateTab} />
     </View>)}
+    {listView?<Animated.View
+      style={[
+        StyleSheet.absoluteFillObject,
+        s.fullScreenLayer,
+        {transform:[{translateX:listViewSlide.interpolate({
+          inputRange:[0,1],
+          outputRange:[Math.min(viewportWidth,430),0],
+        })}]},
+      ]}
+    >
+      <ProductListScreen
+        title={listView.title}
+        mode={listView.mode}
+        initialCategory={listView.category}
+        initialSort={listView.sort}
+        userLocation={userLocation}
+        onBack={()=>closeListView()}
+        onSelectProduct={product=>closeListView(product)}
+      />
+    </Animated.View>:null}
     {aiRecommendationOpen?<Animated.View
       style={[
         StyleSheet.absoluteFillObject,
@@ -818,7 +860,12 @@ function Summary({ label, value }: { label: string; value: string }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
   aiRecommendationLayer: {
-    top: 56,
+    top: 0,
+    zIndex: 100,
+    elevation: 100,
+    backgroundColor: colors.white,
+  },
+  fullScreenLayer: {
     zIndex: 100,
     elevation: 100,
     backgroundColor: colors.white,

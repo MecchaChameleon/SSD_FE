@@ -59,7 +59,7 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
   useEffect(()=>onRootChange?.(page==='main'),[page,onRootChange]);
 
   const go=(next:Page,direction:-1|1=1)=>{setPageTransitionEnabled(true);setPageDirection(direction);setPage(next)};
-  const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
+  const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition screenKey={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
   const openBusiness = (from: 'main' | 'mode') => { setFormReturn(from); go(business ? 'business' : 'businessForm'); };
   if (page === 'profile') return screen(<ProfilePage name={name} profileImageUrl={profileImageUrl} onBack={() => go('main',-1)} onSave={async (nextName,image) => {let url=profileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setProfileImageUrl(url);go('main',-1); }} />);
   if (page === 'favorites') return screen(<FavoritesPage onBack={() => go('main',-1)} />);
@@ -96,7 +96,7 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   const [name, setName] = useState(initialCachedNickname);
   const [sellerProfileImageUrl,setSellerProfileImageUrl]=useState<string|null>(null);
   const go=(next:typeof page,direction:-1|1=1)=>{setPageTransitionEnabled(true);setPageDirection(direction);setPage(next)};
-  const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
+  const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition screenKey={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
   useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);setSellerProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile);const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current,application))).catch(()=>undefined); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
   useEffect(()=>onRootChange?.(page==='main'),[page,onRootChange]);
   if (page === 'profile') return screen(<ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => go('main',-1)} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);go('main',-1); }} />);

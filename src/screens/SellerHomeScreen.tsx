@@ -126,7 +126,7 @@ export function SellerHomeScreen({
     const chromeVisible=tabPage&&(page!=="mypage"||myPageRoot);
     const active=page==="dashboard"?"home":page;
     return <View style={{flex:1,overflow:"hidden"}}>
-      <ScreenTransition key={page} direction={pageDirection}>{content}</ScreenTransition>
+      <ScreenTransition screenKey={page} direction={pageDirection}>{content}</ScreenTransition>
       {chromeVisible?<View style={{position:"absolute",left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader/></View>:null}
       {chromeVisible?<View style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:66}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
     </View>;
@@ -203,13 +203,13 @@ export function SellerHomeScreen({
     );
   if (page === "products")
     return screen(
-      <View style={s.root}>
+      <View style={s.chromeContent}>
         <ProductRegistrationScreen showHeader={false} onBack={() => navigate("dashboard",-1)} />
       </View>
     );
   if (page === "ai")
     return screen(
-      <View style={s.root}>
+      <View style={s.chromeContent}>
         <AIRecommendationScreen />
       </View>
     );
@@ -248,8 +248,7 @@ export function SellerHomeScreen({
   }
 
   return screen(
-    <View style={s.root}>
-      <AppHeader />
+    <View style={s.chromeContent}>
       <ScrollView contentContainerStyle={s.dashboard} showsVerticalScrollIndicator={false}>
         {/* 타이틀 */}
         <Text style={s.dashboardTitle}>판매 · 결제 현황</Text>
@@ -1384,6 +1383,7 @@ function SellerNavigation({
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
+  chromeContent: { flex: 1, paddingTop: 56, paddingBottom: 66, backgroundColor: colors.white },
   dashboard: { paddingTop: 16, paddingHorizontal: 16, paddingBottom: 100 },
   dashboardTitle: { fontSize: 20, fontWeight: "600", marginBottom: 16 },
   dashboardBody: { fontSize: 14, color: colors.g500, marginBottom: 16 },
