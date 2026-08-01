@@ -14,18 +14,19 @@ export type PurchaseItem = {
   rejectReason?: string | null;
 };
 
-export function PurchaseHistoryScreen({ items, onHome, onMap, onLikes, onMyPage, onDelete }: {
+export function PurchaseHistoryScreen({ items, onHome, onMap, onLikes, onMyPage, onDelete, showChrome=true }: {
   items: PurchaseItem[];
   onHome: () => void;
   onMap: () => void;
   onLikes: () => void;
   onMyPage: () => void;
   onDelete: (id: number) => void;
+  showChrome?: boolean;
 }) {
   const [refunded, setRefunded] = useState<PurchaseItem | null>(null);
   const purchaseDate=(iso:string)=>new Date(iso).toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Asia/Seoul"});
   return <View style={s.root}>
-    <AppHeader />
+    {showChrome?<AppHeader />:null}
     <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
       <Text style={s.title}>나의 결제 내역</Text>
       <Text style={s.description}>판매자 수락 전에는 결제 확인 대기 상태이며, 거절 시 자동 환불됩니다.</Text>
@@ -35,7 +36,7 @@ export function PurchaseHistoryScreen({ items, onHome, onMap, onLikes, onMyPage,
         </View>
       )}
     </ScrollView>
-    <BottomNavigation active="purchases" onSelect={tab => tab === "home" ? onHome() : tab === "map" ? onMap() : tab === "likes" ? onLikes() : tab === "mypage" ? onMyPage() : undefined} />
+    {showChrome?<BottomNavigation active="purchases" onSelect={tab => tab === "home" ? onHome() : tab === "map" ? onMap() : tab === "likes" ? onLikes() : tab === "mypage" ? onMyPage() : undefined} />:null}
     <Modal transparent visible={!!refunded} animationType="fade" onRequestClose={() => setRefunded(null)}>
       <View style={s.dim}><View style={s.dialog}><Text style={s.dialogTitle}>환불 사유</Text><Text style={s.reason}>{refunded?.rejectReason || "판매자 사유로 결제가 환불되었습니다."}</Text><Pressable style={s.confirm} onPress={() => setRefunded(null)}><Text style={s.confirmText}>확인</Text></Pressable></View></View>
     </Modal>

@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
-import { AppHeader as BaseAppHeader } from "../components/home";
+import { AppHeader as BaseAppHeader, floatingNavigationStyles } from "../components/home";
 import { DeviceFrame } from "../components/DeviceFrame";
 import { colors, radius } from "../theme";
 import { SalesReportScreen } from "./SalesReportScreen";
@@ -128,7 +128,7 @@ export function SellerHomeScreen({
     return <View style={{flex:1,overflow:"hidden"}}>
       <ScreenTransition screenKey={page} direction={pageDirection}>{content}</ScreenTransition>
       {chromeVisible?<View style={{position:"absolute",left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader/></View>:null}
-      {chromeVisible?<View style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:66}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
+      {chromeVisible?<View style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:104}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
     </View>;
   };
   const [dailySalesMap, setDailySalesMap] = useState<Record<string, number>>({});
@@ -468,13 +468,6 @@ export function SellerHomeScreen({
           />
         </DeviceFrame>
       </Modal>
-      <SellerNavigation
-        active="home"
-        onHome={() => navigate("dashboard")}
-        onProducts={() => navigate("products")}
-        onAi={() => navigate("ai")}
-        onMypage={() => navigate("mypage")}
-      />
     </View>
   );
 }
@@ -1362,7 +1355,7 @@ function SellerNavigation({
     ["마이페이지", UserIcon, onMypage ?? (() => {})],
   ] as const;
   return (
-    <View style={s.nav}>
+    <View style={floatingNavigationStyles.nav}>
       {tabs.map(([label, Icon, onPress], i) => {
         const selected =
           (active === "home" && i === 0) ||
@@ -1371,9 +1364,9 @@ function SellerNavigation({
           (active === "mypage" && i === 3);
         const color = selected ? colors.primary500 : colors.g400;
         return (
-          <Pressable key={label} style={s.navItem} onPress={onPress}>
+          <Pressable key={label} style={floatingNavigationStyles.item} onPress={onPress}>
             <Icon width={24} height={24} color={color} />
-            <Text style={[s.navLabel, { color }]}>{label}</Text>
+            <Text style={[floatingNavigationStyles.label, { color }]}>{label}</Text>
           </Pressable>
         );
       })}
@@ -1383,7 +1376,7 @@ function SellerNavigation({
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
-  chromeContent: { flex: 1, paddingTop: 56, paddingBottom: 66, backgroundColor: colors.white },
+  chromeContent: { flex: 1, paddingTop: 56, backgroundColor: colors.white },
   dashboard: { paddingTop: 16, paddingHorizontal: 16, paddingBottom: 100 },
   dashboardTitle: { fontSize: 20, fontWeight: "600", marginBottom: 16 },
   dashboardBody: { fontSize: 14, color: colors.g500, marginBottom: 16 },
@@ -1972,22 +1965,22 @@ const s = StyleSheet.create({
   buttonText: { fontSize: 16, fontWeight: "600", color: colors.white },
   nav: {
     position: "absolute",
-    bottom: 8,
+    bottom: 20,
     left: 16,
     right: 16,
-    height: 66,
-    borderRadius: 100,
-    backgroundColor: "rgba(255,255,255,0.85)",
-    paddingHorizontal: 16,
+    height: 64,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(255,255,255,.78)",
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.05,
     shadowRadius: 10,
-    elevation: 6,
+    elevation: 4,
   },
-  navItem: { flex: 1, paddingVertical: 8, alignItems: "center", gap: 4 },
+  navItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
   navLabel: { fontSize: 12, fontWeight: "600" },
   overlay: {
     flex: 1,

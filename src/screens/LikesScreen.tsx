@@ -24,12 +24,14 @@ export function LikesScreen({
   onPurchases,
   onMyPage,
   onSelectProduct,
+  showChrome=true,
 }: {
   onHome: () => void;
   onMap: () => void;
   onPurchases: () => void;
   onMyPage: () => void;
   onSelectProduct: (product: Product) => void;
+  showChrome?: boolean;
 }) {
   const [items, setItems] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -81,7 +83,7 @@ export function LikesScreen({
 
   return (
     <View style={s.root}>
-      <AppHeader />
+      {showChrome?<AppHeader />:null}
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {/* Title Header Section */}
@@ -214,7 +216,7 @@ export function LikesScreen({
         )}
       </ScrollView>
 
-      <BottomNavigation
+      {showChrome?<BottomNavigation
         active="likes"
         onSelect={(tab) =>
           tab === "home"
@@ -227,7 +229,7 @@ export function LikesScreen({
             ? onMyPage()
             : undefined
         }
-      />
+      />:null}
     </View>
   );
 }

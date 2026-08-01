@@ -65,7 +65,6 @@ export const categories = [
   "숙박",
   "체험",
   "렌탈 / 모빌리티",
-  "빈 시간대 자원",
 ] as const;
 export type BuyerCategory = (typeof categories)[number];
 export const businessTypeByCategory: Partial<Record<BuyerCategory, BusinessType>> = {
@@ -177,15 +176,19 @@ export function BuyerHomeScreen({
 }) {
   const [category, setCategory] = useState<BuyerCategory>("전체");
   const [productItems, setProductItems] = useState<Product[]>([]);
+  const [popularContentVersion, setPopularContentVersion] = useState(0);
+  const popularTransitionPending = useRef(false);
   const [liked, setLiked] = useState<number[]>([]);
   const [purchase, setPurchase] = useState<Product | null>(null);
   const [checkout,setCheckout]=useState<'order'|'payment'|null>(null);
   const [visitTime,setVisitTime]=useState('');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+  const detailSlide = useRef(new Animated.Value(0)).current;
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [tab, setTab] = useState<"home" | "map" | "purchases" | "likes" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
   const [tabDirection,setTabDirection]=useState<-1|1>(1);
+  const [myPageRoot,setMyPageRoot]=useState(true);
   const [sellerMode, setSellerMode] = useState(initialEntry==='seller');
   const [buyerModeComplete,setBuyerModeComplete]=useState(false);
   const [buyerHomeReady,setBuyerHomeReady]=useState(initialEntry!=='seller');
@@ -236,7 +239,7 @@ export function BuyerHomeScreen({
     }).start(({finished})=>{
       if(!finished)return;
       setAiRecommendationOpen(false);
-      if(product)setDetailProduct(apiProductToCard(product));
+      if(product)openProductDetail(apiProductToCard(product));
     });
   };
   const openListView=(next:{ title:string; mode:ProductListMode; category:BuyerCategory; sort:(typeof sorts)[number] })=>{
@@ -258,13 +261,37 @@ export function BuyerHomeScreen({
     }).start(({finished})=>{
       if(!finished)return;
       setListView(null);
-      if(product)setDetailProduct(product);
+      if(product)openProductDetail(product);
     });
   };
-  const tabScreen=(content:React.ReactNode)=>
-    <View style={{flex:1,overflow:'hidden'}}>
-      <ScreenTransition screenKey={tab} direction={tabDirection}>{content}</ScreenTransition>
+  const openProductDetail=(product:Product)=>{
+    detailSlide.setValue(0);
+    setDetailProduct(product);
+    requestAnimationFrame(()=>Animated.timing(detailSlide,{
+      toValue:1,
+      duration:280,
+      easing:Easing.out(Easing.cubic),
+      useNativeDriver:true,
+    }).start());
+  };
+  const closeProductDetail=()=>{
+    Animated.timing(detailSlide,{
+      toValue:0,
+      duration:260,
+      easing:Easing.in(Easing.cubic),
+      useNativeDriver:true,
+    }).start(({finished})=>{if(finished)setDetailProduct(null)});
+  };
+  const tabScreen=(content:React.ReactNode)=>{
+    const chromeVisible=tab!=="mypage"||myPageRoot;
+    return <View style={s.tabRoot}>
+      <ScreenTransition screenKey={tab} direction={tabDirection}>
+        <View style={[s.tabContent,chromeVisible&&s.tabContentWithHeader]}>{content}</View>
+      </ScreenTransition>
+      {chromeVisible?<View style={s.fixedHeader}><AppHeader showBell={tab!=="home"}/></View>:null}
+      {chromeVisible?<View style={s.fixedNavigation}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
     </View>;
+  };
   useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);
@@ -272,6 +299,7 @@ export function BuyerHomeScreen({
   }, []);
   useEffect(() => {
     if (sellerMode || tab !== "home") return;
+    let active=true;
     const businessType=businessTypeByCategory[category];
     const nearby=sort==="가까운 거리순"&&userLocation;
     const sortQuery=nearby?{sort:"DISTANCE_ASC" as const,lat:userLocation.lat,lng:userLocation.lng}:{};
@@ -282,13 +310,18 @@ export function BuyerHomeScreen({
         const all=await buyerApi.products({size:50, ...sortQuery});
         return all.content.filter(product=>product.businessType===businessType);
       })
-      .then(items => {
+      .then(async items => {
         const cards=items.map(apiProductToCard);
-        cards.forEach(card=>card.imageUrls?.forEach(url=>{void Image.prefetch(url)}));
+        cards.forEach(card=>(card.imageUrls??[]).forEach(url=>{void Image.prefetch(url)}));
+        if(!active)return;
         setProductItems(cards);
+        if(popularTransitionPending.current){
+          popularTransitionPending.current=false;
+          setPopularContentVersion(value=>value+1);
+        }
       })
-      .catch(() => setProductItems([]))
-      .finally(()=>setBuyerHomeReady(true));
+      .catch(() => {if(active)setProductItems([])})
+      .finally(()=>{if(active)setBuyerHomeReady(true)});
     void refreshProducts();
     const productInterval=setInterval(refreshProducts,5_000);
     buyerApi
@@ -296,7 +329,7 @@ export function BuyerHomeScreen({
       .then((page) => setLiked(page.content.map((item) => item.id)))
       .catch(() => undefined);
     void refreshPurchases().catch(() => undefined);
-    return()=>clearInterval(productInterval);
+    return()=>{active=false;clearInterval(productInterval)};
   }, [sellerMode, tab, category, refreshPurchases, sort, userLocation]);
   useEffect(() => {
     if (sellerMode) return;
@@ -398,9 +431,33 @@ export function BuyerHomeScreen({
     }
   };
   const productCards = shown.slice(0, 8).map((p) => (
-    <RankedProductCard key={p.id} product={p} onPress={() => setDetailProduct(p)} />
+    <RankedProductCard key={p.id} product={p} onPress={() => openProductDetail(p)} />
   ));
-  if(detailProduct) return <BuyerProductDetail product={detailProduct} liked={liked.includes(detailProduct.id)} onBack={()=>setDetailProduct(null)} onLike={()=>toggleLike(detailProduct.id)} onBuy={()=>{setQuantity(1);setVisitTime(firstVisitTime(detailProduct.deadlineAt));setPurchase(detailProduct);setCheckout('order');setDetailProduct(null)}}/>;
+  const detailLayer=detailProduct?<Animated.View
+    style={[
+      StyleSheet.absoluteFillObject,
+      s.detailLayer,
+      {transform:[{translateX:detailSlide.interpolate({
+        inputRange:[0,1],
+        outputRange:[Math.min(viewportWidth,430),0],
+      })}]},
+    ]}
+  >
+    <BuyerProductDetail
+      product={detailProduct}
+      liked={liked.includes(detailProduct.id)}
+      onBack={closeProductDetail}
+      onLike={()=>toggleLike(detailProduct.id)}
+      onBuy={()=>{
+        setQuantity(1);
+        setVisitTime(firstVisitTime(detailProduct.deadlineAt));
+        setPurchase(detailProduct);
+        setCheckout('order');
+        setDetailProduct(null);
+      }}
+    />
+  </Animated.View>:null;
+  const withDetailLayer=(content:React.ReactNode)=><View style={s.root}>{content}{detailLayer}</View>;
   if(couponView) return <CouponScreen onBack={() => setCouponView(false)} />;
   if(checkout==='order'&&purchase)return <OrderForm product={purchase} quantity={quantity} visitTime={visitTime} onQuantity={setQuantity} onVisitTime={setVisitTime} onBack={()=>{setCheckout(null);setPurchase(null)}} onNext={()=>setCheckout('payment')}/>;
   if(checkout==='payment'&&purchase)return <PaymentForm product={purchase} quantity={quantity} onBack={()=>setCheckout('order')} onPay={confirmPurchase}/>;
@@ -426,6 +483,8 @@ export function BuyerHomeScreen({
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
+        onRootChange={setMyPageRoot}
+        showChrome={false}
       />
     );
   if (tab === "purchases")
@@ -441,42 +500,42 @@ export function BuyerHomeScreen({
             .hidePurchase(id)
             .then(() => setPurchases((v) => v.filter((x) => x.id !== id)));
         }}
+        showChrome={false}
       />
     );
   if (tab === "likes")
-    return tabScreen(
+    return withDetailLayer(tabScreen(
       <LikesScreen
         onHome={() => navigateTab("home")}
         onMap={() => navigateTab("map")}
         onPurchases={() => navigateTab("purchases")}
         onMyPage={() => navigateTab("mypage")}
-        onSelectProduct={(p) => setDetailProduct(p)}
+        onSelectProduct={openProductDetail}
+        showChrome={false}
       />
-    );
+    ));
   if (tab === "map")
-    return tabScreen(
+    return withDetailLayer(tabScreen(
       <BuyerMapScreen
         onHome={() => navigateTab("home")}
         onPurchases={() => navigateTab("purchases")}
         onLikes={() => navigateTab("likes")}
         onMyPage={() => navigateTab("mypage")}
-        onBuy={(item) => {
-          setDetailProduct(apiProductToCard(item));
-          setTab("home");
-        }}
+        onBuy={(item) => openProductDetail(apiProductToCard(item))}
+        showNavigation={false}
       />
-    );
+    ));
 
 
   if (searchResultView)
-    return (
+    return withDetailLayer(
       <SearchResultScreen
         initialQuery={searchResultView.query ?? "바다"}
         onBack={() => {
           setQuery("");
           setSearchResultView(null);
         }}
-        onSelectProduct={(p) => setDetailProduct(p)}
+        onSelectProduct={openProductDetail}
         onHome={() => {
           setQuery("");
           setSearchResultView(null);
@@ -570,7 +629,6 @@ export function BuyerHomeScreen({
     );
   return <View style={s.root}>
     {tabScreen(<View style={s.root}>
-      <AppHeader showBell={false} />
       <ScrollView
         ref={homeScrollRef}
         contentContainerStyle={s.content}
@@ -600,13 +658,18 @@ export function BuyerHomeScreen({
         />
         <PreferenceSection
           products={preferenceItems}
-          onSelect={(item) => setDetailProduct(item)}
+          onSelect={openProductDetail}
           onSeeAll={() => openListView({ title: "내 취향 상품", mode: "preference", category: "전체", sort: "할인율 높은순" })}
         />
         <PopularProductsSection
           categories={categories}
           category={category}
-          onCategory={setCategory}
+          onCategory={next=>{
+            if(next===category)return;
+            popularTransitionPending.current=true;
+            setCategory(next);
+          }}
+          contentVersion={popularContentVersion}
           onSeeAll={() => openListView({ title: "현재 인기 상품", mode: "popular", category, sort })}
         >
           {productCards.length > 0 ? (
@@ -618,7 +681,7 @@ export function BuyerHomeScreen({
         <PromoBanner />
         <NewArrivalsSection
           items={newArrivalItems}
-          onSelect={(item) => setDetailProduct(item)}
+          onSelect={openProductDetail}
           onSeeAll={() => openListView({ title: "신규 상품 · 자원", mode: "new", category: "전체", sort: "할인율 높은순" })}
         />
       </ScrollView>
@@ -629,7 +692,6 @@ export function BuyerHomeScreen({
       >
         <ArrowUpIcon width={24} height={24} color={colors.g700} />
       </Pressable>
-      <BottomNavigation active="home" onSelect={navigateTab} />
     </View>)}
     {listView?<Animated.View
       style={[
@@ -648,7 +710,7 @@ export function BuyerHomeScreen({
         initialSort={listView.sort}
         userLocation={userLocation}
         onBack={()=>closeListView()}
-        onSelectProduct={product=>closeListView(product)}
+        onSelectProduct={openProductDetail}
       />
     </Animated.View>:null}
     {aiRecommendationOpen?<Animated.View
@@ -664,9 +726,10 @@ export function BuyerHomeScreen({
       <BuyerAiRecommendationScreen
         location={userLocation}
         onBack={()=>closeAiRecommendation()}
-        onSelect={(product)=>closeAiRecommendation(product)}
+        onSelect={(product)=>openProductDetail(apiProductToCard(product))}
       />
     </Animated.View>:null}
+    {detailLayer}
   </View>;
 }
 function OrderForm({product,quantity,visitTime,onQuantity,onVisitTime,onBack,onNext}:{product:Product;quantity:number;visitTime:string;onQuantity:(v:number)=>void;onVisitTime:(v:string)=>void;onBack:()=>void;onNext:()=>void}){
@@ -859,6 +922,11 @@ function Summary({ label, value }: { label: string; value: string }) {
 }
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.white },
+  tabRoot:{flex:1,overflow:"hidden",backgroundColor:colors.white},
+  tabContent:{flex:1},
+  tabContentWithHeader:{paddingTop:56},
+  fixedHeader:{position:"absolute",left:0,right:0,top:0,zIndex:30,backgroundColor:colors.white},
+  fixedNavigation:{position:"absolute",left:0,right:0,bottom:0,height:104,zIndex:30},
   aiRecommendationLayer: {
     top: 0,
     zIndex: 100,
@@ -868,6 +936,11 @@ const s = StyleSheet.create({
   fullScreenLayer: {
     zIndex: 100,
     elevation: 100,
+    backgroundColor: colors.white,
+  },
+  detailLayer: {
+    zIndex: 120,
+    elevation: 120,
     backgroundColor: colors.white,
   },
   content: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 92 },

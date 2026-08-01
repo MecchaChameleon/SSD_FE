@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   Image,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -39,6 +40,20 @@ const chunk = <T,>(items: T[], size: number) => {
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
   return out;
 };
+
+function ProgressiveImage({uri,style,children}:{uri:string;style:any;children?:React.ReactNode}) {
+  const opacity=useRef(new Animated.Value(0)).current;
+  useEffect(()=>{opacity.setValue(0)},[opacity,uri]);
+  return <View style={[style,{overflow:"hidden"}]}>
+    <Animated.Image
+      source={{uri}}
+      resizeMode="cover"
+      onLoad={()=>Animated.timing(opacity,{toValue:1,duration:180,easing:Easing.out(Easing.cubic),useNativeDriver:true}).start()}
+      style={[StyleSheet.absoluteFillObject,{opacity}]}
+    />
+    {children}
+  </View>;
+}
 
 export function HeroBannerCarousel({ autoPlayInterval = 3500 }: { autoPlayInterval?: number }) {
   const [index, setIndex] = useState(0);
@@ -137,9 +152,16 @@ export function PreferenceSection({ products, onSelect, onSeeAll }: { products: 
       <ScrollView
         horizontal
         pagingEnabled
+        snapToInterval={frameWidth}
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(event) => {
+          const next=Math.max(0,Math.min(pages.length-1,Math.round(event.nativeEvent.contentOffset.x/frameWidth)));
+          if(next!==index)setIndex(next);
+        }}
         onMomentumScrollEnd={(event) =>
-          setIndex(Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width))
+          setIndex(Math.max(0,Math.min(pages.length-1,Math.round(event.nativeEvent.contentOffset.x/frameWidth))))
         }
       >
         {pages.map((page, i) => (
@@ -185,9 +207,9 @@ export function RankedProductCard({ product, rank, onPress, width = 200, height 
   return (
     <Pressable onPress={onPress} style={[s.rankCard, { width, height }]}>
       {product.imageUrls?.[0] ? (
-        <ImageBackground source={{ uri: product.imageUrls[0] }} style={s.rankCardImage} imageStyle={{ borderRadius: radius.sm }}>
+        <ProgressiveImage uri={product.imageUrls[0]} style={s.rankCardImage}>
           {contents}
-        </ImageBackground>
+        </ProgressiveImage>
       ) : (
         <View style={[s.rankCardImage, { backgroundColor: colors.g100 }]}>{contents}</View>
       )}
@@ -199,16 +221,45 @@ export function PopularProductsSection<T extends string>({
   categories,
   category,
   onCategory,
+  contentVersion = 0,
   onSeeAll,
   children,
 }: {
   categories: readonly T[];
   category: T;
   onCategory: (category: T) => void;
+  contentVersion?: number;
   onSeeAll: () => void;
   children: React.ReactNode;
 }) {
   const rows = chunk(React.Children.toArray(children), 4);
+  const categorySlide = useRef(new Animated.Value(0)).current;
+  const categoryOpacity = useRef(new Animated.Value(1)).current;
+  const categoryDirection = useRef(1);
+  const changeCategory = (next:T) => {
+    if (next === category) return;
+    categoryDirection.current = categories.indexOf(next) > categories.indexOf(category) ? 1 : -1;
+    categorySlide.stopAnimation();
+    categoryOpacity.stopAnimation();
+    Animated.parallel([
+      Animated.timing(categorySlide,{toValue:-categoryDirection.current*32,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
+      Animated.timing(categoryOpacity,{toValue:.72,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
+    ]).start();
+    onCategory(next);
+  };
+  useLayoutEffect(() => {
+    if (!contentVersion) return;
+    categorySlide.stopAnimation();
+    categoryOpacity.stopAnimation();
+    categorySlide.setValue(categoryDirection.current * 72);
+    categoryOpacity.setValue(.45);
+    requestAnimationFrame(() => {
+      Animated.parallel([
+        Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(categoryOpacity, { toValue: 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ]).start();
+    });
+  }, [categoryOpacity, categorySlide, contentVersion]);
   return (
     <View style={s.section}>
       <Pressable onPress={onSeeAll} style={s.sectionHeaderRow}>
@@ -217,19 +268,19 @@ export function PopularProductsSection<T extends string>({
       </Pressable>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chips}>
         {categories.map((c) => (
-          <Chip key={c} selected={category === c} onPress={() => onCategory(c)}>
-            {c}
+          <Chip compact fill key={c} selected={category === c} onPress={() => changeCategory(c)}>
+            {c.replace(" / ", "/")}
           </Chip>
         ))}
       </ScrollView>
       {rows.length ? (
-        <View style={{ gap: 12 }}>
+        <Animated.View style={{ gap: 12, opacity: categoryOpacity, transform: [{ translateX: categorySlide }] }}>
           {rows.map((row, i) => (
             <ScrollView key={i} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rankRow}>
               {row}
             </ScrollView>
           ))}
-        </View>
+        </Animated.View>
       ) : null}
     </View>
   );
@@ -279,7 +330,7 @@ export function NewArrivalsSection({ items, onSelect, onSeeAll }: { items: Produ
         {items.map((item) => (
           <Pressable key={item.id} onPress={() => onSelect(item)} style={s.newCard}>
             {item.imageUrls?.[0] ? (
-              <Image source={{ uri: item.imageUrls[0] }} style={s.newImage} />
+              <ProgressiveImage uri={item.imageUrls[0]} style={s.newImage} />
             ) : (
               <View style={s.newImage} />
             )}
@@ -336,7 +387,7 @@ export function ProductListRow({ product, rank, onPress }: { product: Product; r
     <Pressable onPress={onPress} style={s.prefRow}>
       <View style={s.listThumbWrap}>
         {product.imageUrls?.[0] ? (
-          <Image source={{ uri: product.imageUrls[0] }} style={s.prefThumb} />
+          <ProgressiveImage uri={product.imageUrls[0]} style={s.prefThumb} />
         ) : (
           <View style={s.prefThumb} />
         )}
@@ -401,7 +452,7 @@ const s = StyleSheet.create({
   percentBadgeText: { fontSize: 10, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
   prefDiscountLabel: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.info },
   prefOriginalLabel: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600, textDecorationLine: "line-through" },
-  chips: { gap: 8, paddingRight: 14, marginBottom: 12 },
+  chips: { flexGrow:1, gap: 6, marginBottom: 12 },
   rankRow: { gap: 8, paddingRight: 14 },
   rankCard: { width: 200, height: 180, paddingBottom: 12, borderRadius: radius.lg },
   rankCardImage: { flex: 1, padding: 12, borderRadius: radius.sm, overflow: "hidden" },
@@ -451,9 +502,9 @@ const s = StyleSheet.create({
   sortOptionText: { fontSize: 11, fontFamily: fonts.regular, color: colors.g400 },
   selectedSort: { fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
   tabs: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.g200 },
-  tab: { alignItems: "center", paddingHorizontal: 12, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "transparent", marginBottom: -1 },
+  tab: { flex:1, alignItems: "center", paddingHorizontal: 1, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "transparent", marginBottom: -1 },
   tabOn: { borderBottomWidth: 2, borderBottomColor: colors.g900 },
-  tabText: { fontSize: 14, fontFamily: fonts.regular, color: colors.g500 },
+  tabText: { fontSize: 12, fontFamily: fonts.regular, color: colors.g500 },
   tabTextOn: { color: colors.g900 },
   listThumbWrap: { width: 112, height: 112 },
   listRankBadge: { position: "absolute", left: 12, top: 12, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.g800 },

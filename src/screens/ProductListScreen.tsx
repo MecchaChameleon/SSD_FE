@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
@@ -33,17 +33,47 @@ export function ProductListScreen({
   const [sort, setSort] = useState<(typeof sorts)[number]>(initialSort);
   const [items, setItems] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const categorySlide = useRef(new Animated.Value(0)).current;
+  const categoryOpacity = useRef(new Animated.Value(1)).current;
+  const categoryDirection = useRef(1);
+  const categoryTransitionPending = useRef(false);
+  const [categoryContentVersion, setCategoryContentVersion] = useState(0);
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
+  const changeCategory = (next:BuyerCategory) => {
+    if (next === category) return;
+    categoryDirection.current = listCategories.indexOf(next) > listCategories.indexOf(category) ? 1 : -1;
+    categoryTransitionPending.current = true;
+    categorySlide.stopAnimation();
+    categoryOpacity.stopAnimation();
+    Animated.parallel([
+      Animated.timing(categorySlide,{toValue:-categoryDirection.current*32,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
+      Animated.timing(categoryOpacity,{toValue:.72,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
+    ]).start();
+    setCategory(next);
+  };
+  useLayoutEffect(() => {
+    if (!categoryContentVersion) return;
+    categorySlide.stopAnimation();
+    categoryOpacity.stopAnimation();
+    categorySlide.setValue(categoryDirection.current * 72);
+    categoryOpacity.setValue(.45);
+    requestAnimationFrame(() => {
+      Animated.parallel([
+        Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(categoryOpacity, { toValue: 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ]).start();
+    });
+  }, [categoryContentVersion, categoryOpacity, categorySlide]);
 
   useEffect(() => {
+    let cancelled = false;
     const businessType = businessTypeByCategory[category];
     const query =
       mode === "preference" ? { sort: "AI_RECOMMENDED" as const }
       : mode === "deadline" ? { sort: "DEADLINE_ASC" as const }
       : mode === "nearby" && userLocation ? { sort: "DISTANCE_ASC" as const, lat: userLocation.lat, lng: userLocation.lng }
       : {};
-    setLoaded(false);
     buyerApi
       .products({ size: 50, businessType, ...query })
       .then(async (page) => {
@@ -51,13 +81,21 @@ export function ProductListScreen({
         const all = await buyerApi.products({ size: 50, ...query });
         return all.content.filter((product) => product.businessType === businessType);
       })
-      .then((list) => {
+      .then(async (list) => {
+        if(cancelled)return;
         let cards = list.map(apiProductToCard);
         if (mode === "new") cards = [...cards].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
+        cards.forEach(card=>(card.imageUrls??[]).forEach(url=>{void Image.prefetch(url)}));
+        if(cancelled)return;
         setItems(cards);
+        if(categoryTransitionPending.current){
+          categoryTransitionPending.current=false;
+          setCategoryContentVersion(value=>value+1);
+        }
       })
-      .catch(() => setItems([]))
-      .finally(() => setLoaded(true));
+      .catch(() => {if(!cancelled)setItems([])})
+      .finally(() => {if(!cancelled)setLoaded(true)});
+    return()=>{cancelled=true};
   }, [mode, category, userLocation]);
 
   const sorted = React.useMemo(() => {
@@ -98,7 +136,8 @@ export function ProductListScreen({
         <Text style={[s.headerTitle, rankMode && s.headerTitleMedium]}>{title}</Text>
         <View style={s.headerSide} />
       </View>
-      <CategoryTabs categories={listCategories} category={category} onCategory={setCategory} />
+      <CategoryTabs categories={listCategories} category={category} onCategory={changeCategory} />
+      <Animated.View style={[s.categoryContent,{opacity:categoryOpacity,transform:[{translateX:categorySlide}]}]}>
       {!rankMode ? (
         <View style={s.sortRow}>
           <SortDropdown value={sort} options={sorts} onChange={setSort} />
@@ -143,6 +182,7 @@ export function ProductListScreen({
           </>
         )}
       </ScrollView>
+      </Animated.View>
       <Pressable
         accessibilityLabel="맨 위로"
         style={s.scrollTopButton}
@@ -160,6 +200,7 @@ const s = StyleSheet.create({
   headerSide: { width: 24 },
   headerTitle: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
   headerTitleMedium: { fontFamily: fonts.medium, fontWeight: "500" },
+  categoryContent: { flex: 1 },
   sortRow: { paddingHorizontal: 16, paddingTop: 10, alignItems: "flex-end" },
   content: { paddingHorizontal: 16, paddingBottom: 40 },
   heroRow: { gap: 8, paddingTop: 32, paddingBottom: 16 },
