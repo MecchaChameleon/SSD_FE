@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { colors, fonts, radius, screen } from "../theme";
 import { Chip } from "../components/ui";
-import { Product } from "../components/home";
+import { Product, getBadgeInfo } from "../components/home";
 import MapPinIcon from "../../icon/map_pin_solid.svg";
 import ChevronRightIcon from "../../icon/chevron_right.svg";
 import ChevronDownIcon from "../../icon/chevron_down.svg";
@@ -330,6 +330,8 @@ export function CategoryTabs<T extends string>({ categories, category, onCategor
 }
 
 export function ProductListRow({ product, rank, onPress }: { product: Product; rank?: number; onPress: () => void }) {
+  const badgeInfo = getBadgeInfo(product);
+
   return (
     <Pressable onPress={onPress} style={s.prefRow}>
       <View style={s.listThumbWrap}>
@@ -347,9 +349,9 @@ export function ProductListRow({ product, rank, onPress }: { product: Product; r
       <View style={s.prefInfo}>
         <View style={s.prefNameRow}>
           <Text numberOfLines={1} style={s.prefTitle}>{product.title}</Text>
-          {product.urgent ? (
+          {badgeInfo ? (
             <View style={s.prefTag}>
-              <Text style={s.prefTagText}>마감임박</Text>
+              <Text style={s.prefTagText}>{badgeInfo.text}</Text>
             </View>
           ) : null}
         </View>
@@ -388,9 +390,9 @@ const s = StyleSheet.create({
   prefRow: { flexDirection: "row", alignItems: "center", gap: 12, height: 112 },
   prefThumb: { width: 112, height: 112, borderRadius: radius.sm, backgroundColor: colors.g100 },
   prefInfo: { flex: 1, gap: 4 },
-  prefNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  prefTitle: { fontSize: 14, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
-  prefTag: { paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4, backgroundColor: colors.primary500 },
+  prefNameRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 },
+  prefTitle: { flex: 1, fontSize: 14, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
+  prefTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: colors.primary500, alignSelf: "flex-start" },
   prefTagText: { fontSize: 12, fontFamily: fonts.semibold, fontWeight: "600", color: colors.white },
   prefStoreRow: { flexDirection: "row", alignItems: "center", gap: 2 },
   prefShop: { fontSize: 10, fontFamily: fonts.regular, color: colors.g600 },

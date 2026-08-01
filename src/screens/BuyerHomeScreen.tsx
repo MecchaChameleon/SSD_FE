@@ -19,6 +19,7 @@ import {
   NotificationBell,
   Product,
   PaymentDisplayStatus,
+  getBadgeInfo,
 } from "../components/home";
 import { colors, fonts, radius } from "../theme";
 import ChevronDownIcon from "../../icon/chevron_down.svg";
@@ -106,6 +107,10 @@ export const apiProductToCard = (p: ApiProduct): Product => {
   const deadlineAt = new Date(p.deadline).getTime();
   const discountRate =
     p.discountRate ?? Math.round((1 - p.currentPrice / p.price) * 100);
+  const diffMs = deadlineAt - Date.now();
+  const urgent = diffMs > 0 && diffMs <= 60 * 60 * 1000;
+  const soldOutUrgent = p.qty > 0 && p.qty < 5;
+  const isMaxDiscount = p.minPrice != null && p.currentPrice <= p.minPrice;
   return {
     id: p.id,
     title: p.name,
@@ -118,8 +123,12 @@ export const apiProductToCard = (p: ApiProduct): Product => {
     original: `${p.price.toLocaleString()}원`,
     price: `${p.currentPrice.toLocaleString()}원`,
     remaining: `잔여수량 ${p.qty}개`,
-    urgent:
-      deadlineAt > Date.now() && deadlineAt - Date.now() <= 60 * 60 * 1000,
+    urgent,
+    soldOutUrgent,
+    isMaxDiscount,
+    minPrice: p.minPrice,
+    currentPrice: p.currentPrice,
+    qty: p.qty,
     deadlineAt,
     distanceMeters: p.distanceMeters,
     lat: p.lat,
@@ -639,7 +648,22 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
     <View style={[detailStyles.panel,gestureStyles.panel]}>
       <View style={gestureStyles.dragArea}><View style={gestureStyles.dragHandle}/></View>
       <View style={gestureStyles.panelContent}>
-      <View style={detailStyles.titleRow}><View style={detailStyles.nameRow}><Text style={detailStyles.name}>{product.title}</Text>{product.urgent?<View style={detailStyles.tag}><Text style={detailStyles.tagText}>마감임박</Text></View>:null}</View><Text style={detailStyles.discount}>{product.discount}</Text></View>
+      {(() => {
+        const badgeInfo = getBadgeInfo(product);
+        return (
+          <View style={detailStyles.titleRow}>
+            <View style={detailStyles.nameRow}>
+              <Text style={detailStyles.name}>{product.title}</Text>
+              {badgeInfo ? (
+                <View style={detailStyles.tag}>
+                  <Text style={detailStyles.tagText}>{badgeInfo.text}</Text>
+                </View>
+              ) : null}
+            </View>
+            <Text style={detailStyles.discount}>{product.discount}</Text>
+          </View>
+        );
+      })()}
       <View style={detailStyles.locationRow}><Text style={detailStyles.shop}>{product.shop}</Text><Text numberOfLines={1} style={detailStyles.location}>{product.location}</Text></View>
       <DetailRow label="상품정보" value={product.detail.split('·')[0].trim()}/><DetailRow label="마감시각" value={product.deadlineAt?deadlineLabel(product.deadlineAt):'-'}/><DetailRow label="잔여수량" value={product.remaining.replace(/[^0-9]/g,'')||'-'}/>
       <View style={detailStyles.priceRow}><Text style={detailStyles.original}>{product.original}</Text><View style={detailStyles.sale}><Text style={detailStyles.saleLabel}>[할인가]</Text><Text style={detailStyles.price}>{product.price}</Text></View></View>
