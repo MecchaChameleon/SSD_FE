@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
@@ -35,7 +35,6 @@ export function ProductListScreen({
   const categoryCache = useRef(new Map<BuyerCategory, Product[]>());
   const [loaded, setLoaded] = useState(false);
   const categorySlide = useRef(new Animated.Value(0)).current;
-  const categoryOpacity = useRef(new Animated.Value(1)).current;
   const categoryDirection = useRef(1);
   const categoryTransitionPending = useRef(false);
   const [categoryContentVersion, setCategoryContentVersion] = useState(0);
@@ -53,19 +52,25 @@ export function ProductListScreen({
     }
     setCategory(next);
   };
+  const categorySwipe = React.useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gesture) =>
+      Math.abs(gesture.dx) > 14 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.35,
+    onPanResponderRelease: (_, gesture) => {
+      if (Math.abs(gesture.dx) < 48 && Math.abs(gesture.vx) < 0.35) return;
+      const currentIndex = listCategories.indexOf(category);
+      const nextIndex = gesture.dx < 0 ? currentIndex + 1 : currentIndex - 1;
+      const next = listCategories[nextIndex];
+      if (next) changeCategory(next);
+    },
+  }), [category]);
   useLayoutEffect(() => {
     if (!categoryContentVersion) return;
     categorySlide.stopAnimation();
-    categoryOpacity.stopAnimation();
     categorySlide.setValue(categoryDirection.current * 72);
-    categoryOpacity.setValue(.45);
     requestAnimationFrame(() => {
-      Animated.parallel([
-        Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(categoryOpacity, { toValue: 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      ]).start();
+      Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
     });
-  }, [categoryContentVersion, categoryOpacity, categorySlide]);
+  }, [categoryContentVersion, categorySlide]);
 
   useEffect(() => {
     let cancelled = false;
@@ -170,7 +175,10 @@ export function ProductListScreen({
         <View style={s.headerSide} />
       </View>
       <CategoryTabs categories={listCategories} category={category} onCategory={changeCategory} />
-      <Animated.View style={[s.categoryContent,{opacity:categoryOpacity,transform:[{translateX:categorySlide}]}]}>
+      <Animated.View
+        {...categorySwipe.panHandlers}
+        style={[s.categoryContent,{transform:[{translateX:categorySlide}]}]}
+      >
       {!rankMode ? (
         <View style={s.sortRow}>
           <SortDropdown value={sort} options={sorts} onChange={setSort} />

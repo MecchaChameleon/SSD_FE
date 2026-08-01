@@ -42,14 +42,11 @@ const chunk = <T,>(items: T[], size: number) => {
 };
 
 function ProgressiveImage({uri,style,children}:{uri:string;style:any;children?:React.ReactNode}) {
-  const opacity=useRef(new Animated.Value(0)).current;
-  useEffect(()=>{opacity.setValue(0)},[opacity,uri]);
   return <View style={[style,{overflow:"hidden"}]}>
-    <Animated.Image
+    <Image
       source={{uri}}
       resizeMode="cover"
-      onLoad={()=>Animated.timing(opacity,{toValue:1,duration:180,easing:Easing.out(Easing.cubic),useNativeDriver:true}).start()}
-      style={[StyleSheet.absoluteFillObject,{opacity}]}
+      style={StyleSheet.absoluteFillObject}
     />
     {children}
   </View>;
@@ -234,7 +231,6 @@ export function PopularProductsSection<T extends string>({
 }) {
   const rows = chunk(React.Children.toArray(children), 4);
   const categorySlide = useRef(new Animated.Value(0)).current;
-  const categoryOpacity = useRef(new Animated.Value(1)).current;
   const categoryDirection = useRef(1);
   const changeCategory = (next:T) => {
     if (next === category) return;
@@ -244,16 +240,11 @@ export function PopularProductsSection<T extends string>({
   useLayoutEffect(() => {
     if (!contentVersion) return;
     categorySlide.stopAnimation();
-    categoryOpacity.stopAnimation();
     categorySlide.setValue(categoryDirection.current * 72);
-    categoryOpacity.setValue(.45);
     requestAnimationFrame(() => {
-      Animated.parallel([
-        Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(categoryOpacity, { toValue: 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      ]).start();
+      Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
     });
-  }, [categoryOpacity, categorySlide, contentVersion]);
+  }, [categorySlide, contentVersion]);
   return (
     <View style={s.section}>
       <Pressable onPress={onSeeAll} style={s.sectionHeaderRow}>
@@ -268,7 +259,7 @@ export function PopularProductsSection<T extends string>({
         ))}
       </ScrollView>
       {rows.length ? (
-        <Animated.View style={{ gap: 12, opacity: categoryOpacity, transform: [{ translateX: categorySlide }] }}>
+        <Animated.View style={{ gap: 12, transform: [{ translateX: categorySlide }] }}>
           {rows.map((row, i) => (
             <ScrollView key={i} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rankRow}>
               {row}
