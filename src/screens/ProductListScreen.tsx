@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
 import { CategoryTabs, ProductListRow, RankedProductCard, SortDropdown } from "./BuyerHomeSections";
-import { apiProductToCard, BuyerCategory, businessTypeByCategory, money, sorts } from "./BuyerHomeScreen";
+import { apiProductToCard, BuyerCategory, businessTypeByCategory, money, preloadProductImages, sortProductCards, sorts } from "./BuyerHomeScreen";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import ArrowUpIcon from "../../icon/arrow_up.svg";
 
@@ -85,7 +85,7 @@ export function ProductListScreen({
         if(cancelled)return;
         let cards = list.map(apiProductToCard);
         if (mode === "new") cards = [...cards].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
-        cards.forEach(card=>(card.imageUrls??[]).forEach(url=>{void Image.prefetch(url)}));
+        await preloadProductImages(sortProductCards(cards, sort), mode === "popular" ? 4 : 5);
         if(cancelled)return;
         setItems(cards);
         if(categoryTransitionPending.current){
@@ -96,7 +96,33 @@ export function ProductListScreen({
       .catch(() => {if(!cancelled)setItems([])})
       .finally(() => {if(!cancelled)setLoaded(true)});
     return()=>{cancelled=true};
-  }, [mode, category, userLocation]);
+  }, [mode, category, sort, userLocation]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const query =
+      mode === "preference" ? { sort: "AI_RECOMMENDED" as const }
+      : mode === "deadline" ? { sort: "DEADLINE_ASC" as const }
+      : mode === "nearby" && userLocation ? { sort: "DISTANCE_ASC" as const, lat: userLocation.lat, lng: userLocation.lng }
+      : {};
+    const preloadCount = mode === "popular" ? 4 : 5;
+    const otherBusinessTypes = listCategories
+      .filter((candidate) => candidate !== category)
+      .map((candidate) => businessTypeByCategory[candidate]);
+    void Promise.all(otherBusinessTypes.map(async (businessType) => {
+      const page = await buyerApi.products({ size: 50, businessType, ...query });
+      let products = page.content;
+      if (!products.length && businessType) {
+        const all = await buyerApi.products({ size: 50, ...query });
+        products = all.content.filter((product) => product.businessType === businessType);
+      }
+      if (cancelled) return;
+      let cards = products.map(apiProductToCard);
+      if (mode === "new") cards = [...cards].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
+      await preloadProductImages(sortProductCards(cards, sort), preloadCount);
+    })).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [mode, category, sort, userLocation]);
 
   const sorted = React.useMemo(() => {
     let list = items;

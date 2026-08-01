@@ -87,6 +87,21 @@ const categoryLabels: Record<ApiProduct["category"], string> = {
   TOUR_REMAINDER: "이동/관광 잔여 상품",
 };
 export const money = (v: string) => Number(v.replace(/[^0-9]/g, ""));
+export const preloadProductImages = async (products: Product[], limit: number) => {
+  const urls = products
+    .slice(0, limit)
+    .map((product) => product.imageUrls?.[0])
+    .filter((url): url is string => Boolean(url));
+  await Promise.all(urls.map((url) => Image.prefetch(url).catch(() => false)));
+};
+export const sortProductCards = (products: Product[], sort: (typeof sorts)[number]) => {
+  if (sort === "할인율 높은순") return [...products].sort((a, b) => (b.discountRate ?? 0) - (a.discountRate ?? 0));
+  if (sort === "낮은 가격순") return [...products].sort((a, b) => money(a.price) - money(b.price));
+  if (sort === "높은 가격순") return [...products].sort((a, b) => money(b.price) - money(a.price));
+  if (sort === "가까운 거리순") return [...products].sort((a, b) => (a.distanceMeters ?? Number.MAX_SAFE_INTEGER) - (b.distanceMeters ?? Number.MAX_SAFE_INTEGER));
+  if (sort === "마감 임박순") return [...products].sort((a, b) => (a.deadlineAt ?? Number.MAX_SAFE_INTEGER) - (b.deadlineAt ?? Number.MAX_SAFE_INTEGER));
+  return products;
+};
 const visitLabel=(date:Date)=>date.toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'});
 const seoulDateKey=(date:Date)=>date.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});
 const deadlineLabel=(deadlineAt:number)=>{
@@ -312,7 +327,7 @@ export function BuyerHomeScreen({
       })
       .then(async items => {
         const cards=items.map(apiProductToCard);
-        cards.forEach(card=>(card.imageUrls??[]).forEach(url=>{void Image.prefetch(url)}));
+        await preloadProductImages(sortProductCards(cards, sort), 4);
         if(!active)return;
         setProductItems(cards);
         if(popularTransitionPending.current){
@@ -332,10 +347,34 @@ export function BuyerHomeScreen({
     return()=>{active=false;clearInterval(productInterval)};
   }, [sellerMode, tab, category, refreshPurchases, sort, userLocation]);
   useEffect(() => {
+    if (sellerMode || tab !== "home") return;
+    let cancelled = false;
+    const nearby=sort==="가까운 거리순"&&userLocation;
+    const sortQuery=nearby?{sort:"DISTANCE_ASC" as const,lat:userLocation.lat,lng:userLocation.lng}:{};
+    const otherBusinessTypes = categories
+      .filter((candidate) => candidate !== category)
+      .map((candidate) => businessTypeByCategory[candidate]);
+    void Promise.all(otherBusinessTypes.map(async (businessType) => {
+      const page = await buyerApi.products({ size: 50, businessType, ...sortQuery });
+      let products = page.content;
+      if (!products.length && businessType) {
+        const all = await buyerApi.products({ size: 50, ...sortQuery });
+        products = all.content.filter((product) => product.businessType === businessType);
+      }
+      if (cancelled) return;
+      await preloadProductImages(sortProductCards(products.map(apiProductToCard), sort), 4);
+    })).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [sellerMode, tab, category, sort, userLocation]);
+  useEffect(() => {
     if (sellerMode) return;
     buyerApi
       .products({ size: 8, sort: "AI_RECOMMENDED" })
-      .then((page) => setPreferenceItems(page.content.map(apiProductToCard)))
+      .then(async (page) => {
+        const cards = page.content.map(apiProductToCard);
+        await preloadProductImages(cards, 5);
+        setPreferenceItems(cards);
+      })
       .catch(() => setPreferenceItems([]));
     buyerApi
       .products({ size: 20 })
