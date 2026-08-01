@@ -992,9 +992,9 @@ function RevenueBarChart({
                 <Pressable
                   key={item.date + index}
                   onPress={() => setSelectedIndex(index)}
-                  style={s.barColumnItemMulti}
+                  style={[s.barColumnItemMulti, isSelected && { zIndex: 10 }]}
                 >
-                  <View style={s.yellowBarWrapper}>
+                  <View style={[s.yellowBarWrapper, isSelected && { zIndex: 10 }]}>
                     {/* 선택된 바 꼭대기 위 툴팁 (첫날/마지막날 잘림 방지 및 날짜/금액 2행 줄바꿈) */}
                     {isSelected ? (
                       <View style={[
@@ -1168,7 +1168,7 @@ function RevenueLineChart({
                         style={[
                           s.lineChartTooltip,
                           {
-                            bottom: p.barH + 28,
+                            bottom: p.barH + 38,
                             left: p.index === 0 ? -6 : p.index === points.length - 1 ? -52 : -28,
                           },
                         ]}
@@ -1569,12 +1569,12 @@ const s = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    zIndex: 3,
+    zIndex: 100,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 10,
   },
   lineChartTooltip: {
     position: "absolute",
