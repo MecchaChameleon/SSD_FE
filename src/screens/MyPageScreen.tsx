@@ -46,7 +46,7 @@ const initialCachedNickname=()=>readWebCache<CachedUser>(USER_CACHE_KEY)?.nickna
 async function cachedNickname(){return (await readCache<CachedUser>(USER_CACHE_KEY))?.nickname??''}
 async function cacheNickname(nickname:string){const cached=await readCache<CachedUser>(USER_CACHE_KEY);await writeCache(USER_CACHE_KEY,{...cached,nickname})}
 
-export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onSellerMode, onLogout, onWithdraw, onRootChange }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void>; onRootChange?:(root:boolean)=>void }) {
+export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegistered, onHome, onMap, onPurchases, onLikes, onSellerMode, onLogout, onWithdraw, onRootChange }: { initialBusinessRegistration?:boolean; onBusinessRegistered?:()=>void; onHome: () => void; onMap: () => void; onPurchases: () => void; onLikes: () => void; onSellerMode: () => void; onLogout: () => Promise<void>; onWithdraw: () => Promise<void>; onRootChange?:(root:boolean)=>void }) {
   const [page, setPage] = useState<Page>(initialBusinessRegistration?'businessForm':'main');
   const [pageDirection,setPageDirection]=useState<-1|1>(1);
   const [pageTransitionEnabled,setPageTransitionEnabled]=useState(false);
@@ -80,7 +80,7 @@ export function MyPageScreen({ initialBusinessRegistration=false, onBusinessRegi
     <AppHeader />
     <Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={profileImageUrl} /><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12} /></View></View><ChevronRight width={24} height={24} color={colors.black} /></Pressable>
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black} /> : null}</Pressable>)}
-    <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'purchases' ? onPurchases() : undefined} />
+    <BottomNavigation active="mypage" onSelect={tab => tab === 'home' ? onHome() : tab === 'map' ? onMap() : tab === 'purchases' ? onPurchases() : tab === 'likes' ? onLikes() : undefined} />
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={() => dialog === 'logout' ? onLogout() : onWithdraw()} />
   </View>);
 }

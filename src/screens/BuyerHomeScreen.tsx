@@ -400,6 +400,7 @@ export function BuyerHomeScreen({
         onHome={() => navigateTab("home")}
         onMap={() => navigateTab("map")}
         onPurchases={() => navigateTab("purchases")}
+        onLikes={() => navigateTab("likes")}
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
@@ -411,6 +412,7 @@ export function BuyerHomeScreen({
         items={purchases}
         onHome={() => navigateTab("home")}
         onMap={() => navigateTab("map")}
+        onLikes={() => navigateTab("likes")}
         onMyPage={() => navigateTab("mypage")}
         onDelete={(id) => {
           void buyerApi
@@ -434,6 +436,7 @@ export function BuyerHomeScreen({
       <BuyerMapScreen
         onHome={() => navigateTab("home")}
         onPurchases={() => navigateTab("purchases")}
+        onLikes={() => navigateTab("likes")}
         onMyPage={() => navigateTab("mypage")}
         onBuy={(item) => {
           setDetailProduct(apiProductToCard(item));

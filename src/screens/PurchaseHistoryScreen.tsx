@@ -14,10 +14,11 @@ export type PurchaseItem = {
   rejectReason?: string | null;
 };
 
-export function PurchaseHistoryScreen({ items, onHome, onMap, onMyPage, onDelete }: {
+export function PurchaseHistoryScreen({ items, onHome, onMap, onLikes, onMyPage, onDelete }: {
   items: PurchaseItem[];
   onHome: () => void;
   onMap: () => void;
+  onLikes: () => void;
   onMyPage: () => void;
   onDelete: (id: number) => void;
 }) {
@@ -34,7 +35,7 @@ export function PurchaseHistoryScreen({ items, onHome, onMap, onMyPage, onDelete
         </View>
       )}
     </ScrollView>
-    <BottomNavigation active="purchases" onSelect={tab => tab === "home" ? onHome() : tab === "map" ? onMap() : tab === "mypage" ? onMyPage() : undefined} />
+    <BottomNavigation active="purchases" onSelect={tab => tab === "home" ? onHome() : tab === "map" ? onMap() : tab === "likes" ? onLikes() : tab === "mypage" ? onMyPage() : undefined} />
     <Modal transparent visible={!!refunded} animationType="fade" onRequestClose={() => setRefunded(null)}>
       <View style={s.dim}><View style={s.dialog}><Text style={s.dialogTitle}>환불 사유</Text><Text style={s.reason}>{refunded?.rejectReason || "판매자 사유로 결제가 환불되었습니다."}</Text><Pressable style={s.confirm} onPress={() => setRefunded(null)}><Text style={s.confirmText}>확인</Text></Pressable></View></View>
     </Modal>
