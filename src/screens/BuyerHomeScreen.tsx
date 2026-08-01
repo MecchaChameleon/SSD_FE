@@ -186,7 +186,6 @@ export function BuyerHomeScreen({
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [tab, setTab] = useState<"home" | "map" | "purchases" | "likes" | "mypage">(initialEntry==='businessRegistration'?"mypage":"home");
   const [tabDirection,setTabDirection]=useState<-1|1>(1);
-  const [myPageRoot,setMyPageRoot]=useState(initialEntry!=='businessRegistration');
   const [sellerMode, setSellerMode] = useState(initialEntry==='seller');
   const [buyerModeComplete,setBuyerModeComplete]=useState(false);
   const [buyerHomeReady,setBuyerHomeReady]=useState(initialEntry!=='seller');
@@ -239,14 +238,10 @@ export function BuyerHomeScreen({
       if(product)setDetailProduct(apiProductToCard(product));
     });
   };
-  const tabScreen=(content:React.ReactNode)=>{
-    const chromeVisible=tab!=='mypage'||myPageRoot;
-    return <View style={{flex:1,overflow:'hidden'}}>
+  const tabScreen=(content:React.ReactNode)=>
+    <View style={{flex:1,overflow:'hidden'}}>
       <ScreenTransition key={tab} direction={tabDirection}>{content}</ScreenTransition>
-      {tab!=='map'&&chromeVisible?<View style={{position:'absolute',left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader showBell={tab!=='home'}/></View>:null}
-      {chromeVisible?<View style={{position:'absolute',left:0,right:0,bottom:0,zIndex:20,height:66}}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
     </View>;
-  };
   useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);
@@ -408,7 +403,6 @@ export function BuyerHomeScreen({
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
         onWithdraw={onWithdraw}
-        onRootChange={setMyPageRoot}
       />
     );
   if (tab === "purchases")
