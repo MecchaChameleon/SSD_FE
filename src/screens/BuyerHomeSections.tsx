@@ -239,12 +239,6 @@ export function PopularProductsSection<T extends string>({
   const changeCategory = (next:T) => {
     if (next === category) return;
     categoryDirection.current = categories.indexOf(next) > categories.indexOf(category) ? 1 : -1;
-    categorySlide.stopAnimation();
-    categoryOpacity.stopAnimation();
-    Animated.parallel([
-      Animated.timing(categorySlide,{toValue:-categoryDirection.current*32,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
-      Animated.timing(categoryOpacity,{toValue:.72,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
-    ]).start();
     onCategory(next);
   };
   useLayoutEffect(() => {

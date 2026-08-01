@@ -191,6 +191,7 @@ export function BuyerHomeScreen({
 }) {
   const [category, setCategory] = useState<BuyerCategory>("전체");
   const [productItems, setProductItems] = useState<Product[]>([]);
+  const popularCategoryCache = useRef(new Map<BuyerCategory, Product[]>());
   const [popularContentVersion, setPopularContentVersion] = useState(0);
   const popularTransitionPending = useRef(false);
   const [liked, setLiked] = useState<number[]>([]);
@@ -329,6 +330,7 @@ export function BuyerHomeScreen({
         const cards=items.map(apiProductToCard);
         await preloadProductImages(sortProductCards(cards, sort), 4);
         if(!active)return;
+        popularCategoryCache.current.set(category, cards);
         setProductItems(cards);
         if(popularTransitionPending.current){
           popularTransitionPending.current=false;
@@ -347,14 +349,17 @@ export function BuyerHomeScreen({
     return()=>{active=false;clearInterval(productInterval)};
   }, [sellerMode, tab, category, refreshPurchases, sort, userLocation]);
   useEffect(() => {
+    popularCategoryCache.current.clear();
+  }, [sort, userLocation]);
+  useEffect(() => {
     if (sellerMode || tab !== "home") return;
     let cancelled = false;
     const nearby=sort==="가까운 거리순"&&userLocation;
     const sortQuery=nearby?{sort:"DISTANCE_ASC" as const,lat:userLocation.lat,lng:userLocation.lng}:{};
-    const otherBusinessTypes = categories
+    const otherCategories = categories
       .filter((candidate) => candidate !== category)
-      .map((candidate) => businessTypeByCategory[candidate]);
-    void Promise.all(otherBusinessTypes.map(async (businessType) => {
+      .map((candidate) => ({ candidate, businessType: businessTypeByCategory[candidate] }));
+    void Promise.all(otherCategories.map(async ({ candidate, businessType }) => {
       const page = await buyerApi.products({ size: 50, businessType, ...sortQuery });
       let products = page.content;
       if (!products.length && businessType) {
@@ -362,7 +367,9 @@ export function BuyerHomeScreen({
         products = all.content.filter((product) => product.businessType === businessType);
       }
       if (cancelled) return;
-      await preloadProductImages(sortProductCards(products.map(apiProductToCard), sort), 4);
+      const cards = products.map(apiProductToCard);
+      await preloadProductImages(sortProductCards(cards, sort), 4);
+      if (!cancelled) popularCategoryCache.current.set(candidate, cards);
     })).catch(() => undefined);
     return () => { cancelled = true; };
   }, [sellerMode, tab, category, sort, userLocation]);
@@ -705,7 +712,12 @@ export function BuyerHomeScreen({
           category={category}
           onCategory={next=>{
             if(next===category)return;
-            popularTransitionPending.current=true;
+            const cached = popularCategoryCache.current.get(next);
+            popularTransitionPending.current=!cached;
+            if(cached){
+              setProductItems(cached);
+              setPopularContentVersion(value=>value+1);
+            }
             setCategory(next);
           }}
           contentVersion={popularContentVersion}

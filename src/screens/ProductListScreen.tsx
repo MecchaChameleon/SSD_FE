@@ -32,6 +32,7 @@ export function ProductListScreen({
   const [category, setCategory] = useState<BuyerCategory>(initialCategory);
   const [sort, setSort] = useState<(typeof sorts)[number]>(initialSort);
   const [items, setItems] = useState<Product[]>([]);
+  const categoryCache = useRef(new Map<BuyerCategory, Product[]>());
   const [loaded, setLoaded] = useState(false);
   const categorySlide = useRef(new Animated.Value(0)).current;
   const categoryOpacity = useRef(new Animated.Value(1)).current;
@@ -43,13 +44,13 @@ export function ProductListScreen({
   const changeCategory = (next:BuyerCategory) => {
     if (next === category) return;
     categoryDirection.current = listCategories.indexOf(next) > listCategories.indexOf(category) ? 1 : -1;
-    categoryTransitionPending.current = true;
-    categorySlide.stopAnimation();
-    categoryOpacity.stopAnimation();
-    Animated.parallel([
-      Animated.timing(categorySlide,{toValue:-categoryDirection.current*32,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
-      Animated.timing(categoryOpacity,{toValue:.72,duration:120,easing:Easing.in(Easing.cubic),useNativeDriver:true}),
-    ]).start();
+    const cached = categoryCache.current.get(next);
+    categoryTransitionPending.current = !cached;
+    if(cached){
+      setItems(cached);
+      setLoaded(true);
+      setCategoryContentVersion(value=>value+1);
+    }
     setCategory(next);
   };
   useLayoutEffect(() => {
@@ -87,6 +88,7 @@ export function ProductListScreen({
         if (mode === "new") cards = [...cards].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
         await preloadProductImages(sortProductCards(cards, sort), mode === "popular" ? 4 : 5);
         if(cancelled)return;
+        categoryCache.current.set(category, cards);
         setItems(cards);
         if(categoryTransitionPending.current){
           categoryTransitionPending.current=false;
@@ -99,6 +101,10 @@ export function ProductListScreen({
   }, [mode, category, sort, userLocation]);
 
   useEffect(() => {
+    categoryCache.current.clear();
+  }, [mode, sort, userLocation]);
+
+  useEffect(() => {
     let cancelled = false;
     const query =
       mode === "preference" ? { sort: "AI_RECOMMENDED" as const }
@@ -106,10 +112,10 @@ export function ProductListScreen({
       : mode === "nearby" && userLocation ? { sort: "DISTANCE_ASC" as const, lat: userLocation.lat, lng: userLocation.lng }
       : {};
     const preloadCount = mode === "popular" ? 4 : 5;
-    const otherBusinessTypes = listCategories
+    const otherCategories = listCategories
       .filter((candidate) => candidate !== category)
-      .map((candidate) => businessTypeByCategory[candidate]);
-    void Promise.all(otherBusinessTypes.map(async (businessType) => {
+      .map((candidate) => ({ candidate, businessType: businessTypeByCategory[candidate] }));
+    void Promise.all(otherCategories.map(async ({ candidate, businessType }) => {
       const page = await buyerApi.products({ size: 50, businessType, ...query });
       let products = page.content;
       if (!products.length && businessType) {
@@ -120,6 +126,7 @@ export function ProductListScreen({
       let cards = products.map(apiProductToCard);
       if (mode === "new") cards = [...cards].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
       await preloadProductImages(sortProductCards(cards, sort), preloadCount);
+      if (!cancelled) categoryCache.current.set(candidate, cards);
     })).catch(() => undefined);
     return () => { cancelled = true; };
   }, [mode, category, sort, userLocation]);
