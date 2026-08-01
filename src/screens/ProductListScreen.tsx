@@ -1,10 +1,10 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Animated, Easing, PanResponder, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
 import { CategoryTabs, ProductListRow, RankedProductCard, SortDropdown } from "./BuyerHomeSections";
-import { apiProductToCard, BuyerCategory, businessTypeByCategory, money, preloadProductImages, sortProductCards, sorts } from "./BuyerHomeScreen";
+import { apiProductToCard, BuyerCategory, businessTypeByCategory, preloadProductImages, sortProductCards, sorts } from "./BuyerHomeScreen";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import ArrowUpIcon from "../../icon/arrow_up.svg";
 
@@ -31,107 +31,22 @@ export function ProductListScreen({
 }) {
   const [category, setCategory] = useState<BuyerCategory>(initialCategory);
   const [sort, setSort] = useState<(typeof sorts)[number]>(initialSort);
-  const [items, setItems] = useState<Product[]>([]);
   const categoryCache = useRef(new Map<BuyerCategory, Product[]>());
-  const [loaded, setLoaded] = useState(false);
+  const [, setCacheVersion] = useState(0);
   const { width: viewportWidth } = useWindowDimensions();
-  const categorySlide = useRef(new Animated.Value(0)).current;
-  const categoryOpacity = useRef(new Animated.Value(1)).current;
-  const categoryDirection = useRef(1);
-  const categoryTransitionPending = useRef(false);
-  const [categoryContentVersion, setCategoryContentVersion] = useState(0);
+  const [pageWidth, setPageWidth] = useState(viewportWidth);
+  const pagerRef = useRef<ScrollView>(null);
+  const pageScrollRefs = useRef(new Map<BuyerCategory, ScrollView>());
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
-  const changeCategory = (next:BuyerCategory) => {
+  const changeCategory = (next:BuyerCategory, scrollToPage = true) => {
     if (next === category) return;
-    categoryDirection.current = listCategories.indexOf(next) > listCategories.indexOf(category) ? 1 : -1;
-    const cached = categoryCache.current.get(next);
-    categoryTransitionPending.current = !cached;
-    if(cached){
-      setItems(cached);
-      setLoaded(true);
-      setCategoryContentVersion(value=>value+1);
+    if (scrollToPage) {
+      pagerRef.current?.scrollTo({ x: listCategories.indexOf(next) * pageWidth, animated: true });
+      return;
     }
     setCategory(next);
   };
-  const categorySwipe = React.useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gesture) =>
-      Math.abs(gesture.dx) > 14 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.35,
-    onPanResponderGrant: () => {
-      categorySlide.stopAnimation();
-      categoryOpacity.stopAnimation();
-    },
-    onPanResponderMove: (_, gesture) => {
-      categorySlide.setValue(Math.max(-56, Math.min(56, gesture.dx * 0.55)));
-      categoryOpacity.setValue(1 - Math.min(0.28, Math.abs(gesture.dx) / Math.max(1, viewportWidth) * 0.55));
-    },
-    onPanResponderRelease: (_, gesture) => {
-      const currentIndex = listCategories.indexOf(category);
-      const nextIndex = gesture.dx < 0 ? currentIndex + 1 : currentIndex - 1;
-      const next = listCategories[nextIndex];
-      const shouldChange = Math.abs(gesture.dx) >= 48 || Math.abs(gesture.vx) >= 0.35;
-      if (!next || !shouldChange) {
-        Animated.parallel([
-          Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }),
-          Animated.timing(categoryOpacity, { toValue: 1, duration: 140, useNativeDriver: true }),
-        ]).start();
-        return;
-      }
-      const direction = gesture.dx < 0 ? 1 : -1;
-      if (!categoryCache.current.has(next)) {
-        Animated.parallel([
-          Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }),
-          Animated.timing(categoryOpacity, { toValue: 1, duration: 140, useNativeDriver: true }),
-        ]).start();
-        changeCategory(next);
-        return;
-      }
-      Animated.parallel([
-        Animated.timing(categorySlide, {
-          toValue: -direction * Math.max(320, viewportWidth),
-          duration: 220,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(categoryOpacity, {
-          toValue: 0,
-          duration: 220,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]).start(({ finished }) => { if (finished) changeCategory(next); });
-    },
-    onPanResponderTerminate: () => {
-      Animated.parallel([
-        Animated.spring(categorySlide, { toValue: 0, damping: 22, stiffness: 220, mass: 0.7, useNativeDriver: true }),
-        Animated.timing(categoryOpacity, { toValue: 1, duration: 140, useNativeDriver: true }),
-      ]).start();
-    },
-  }), [category, categoryOpacity, categorySlide, viewportWidth]);
-  useLayoutEffect(() => {
-    if (!categoryContentVersion) return;
-    categorySlide.stopAnimation();
-    categoryOpacity.stopAnimation();
-    categorySlide.setValue(categoryDirection.current * Math.max(320, viewportWidth));
-    categoryOpacity.setValue(0);
-    requestAnimationFrame(() => {
-      Animated.parallel([
-        Animated.spring(categorySlide, {
-          toValue: 0,
-          damping: 20,
-          stiffness: 190,
-          mass: 0.8,
-          useNativeDriver: true,
-        }),
-        Animated.timing(categoryOpacity, {
-          toValue: 1,
-          duration: 240,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-  }, [categoryContentVersion, categoryOpacity, categorySlide, viewportWidth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,19 +70,19 @@ export function ProductListScreen({
         await preloadProductImages(sortProductCards(cards, sort), mode === "popular" ? 4 : 5);
         if(cancelled)return;
         categoryCache.current.set(category, cards);
-        setItems(cards);
-        if(categoryTransitionPending.current){
-          categoryTransitionPending.current=false;
-          setCategoryContentVersion(value=>value+1);
-        }
+        setCacheVersion(value=>value+1);
       })
-      .catch(() => {if(!cancelled)setItems([])})
-      .finally(() => {if(!cancelled)setLoaded(true)});
+      .catch(() => {
+        if(cancelled)return;
+        categoryCache.current.set(category, []);
+        setCacheVersion(value=>value+1);
+      });
     return()=>{cancelled=true};
   }, [mode, category, sort, userLocation]);
 
   useEffect(() => {
     categoryCache.current.clear();
+    setCacheVersion(value=>value+1);
   }, [mode, sort, userLocation]);
 
   useEffect(() => {
@@ -192,23 +107,16 @@ export function ProductListScreen({
       let cards = products.map(apiProductToCard);
       if (mode === "new") cards = [...cards].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
       await preloadProductImages(sortProductCards(cards, sort), preloadCount);
-      if (!cancelled) categoryCache.current.set(candidate, cards);
+      if (!cancelled) {
+        categoryCache.current.set(candidate, cards);
+        setCacheVersion(value=>value+1);
+      }
     })).catch(() => undefined);
     return () => { cancelled = true; };
   }, [mode, category, sort, userLocation]);
 
-  const sorted = React.useMemo(() => {
-    let list = items;
-    if (sort === "할인율 높은순") list = [...list].sort((a, b) => (b.discountRate ?? 0) - (a.discountRate ?? 0));
-    if (sort === "낮은 가격순") list = [...list].sort((a, b) => money(a.price) - money(b.price));
-    if (sort === "높은 가격순") list = [...list].sort((a, b) => money(b.price) - money(a.price));
-    if (sort === "마감 임박순") list = [...list].sort((a, b) => (a.deadlineAt ?? Number.MAX_SAFE_INTEGER) - (b.deadlineAt ?? Number.MAX_SAFE_INTEGER));
-    if (sort === "가까운 거리순" && userLocation)
-      list = [...list].sort((a, b) => (a.distanceMeters ?? Number.MAX_SAFE_INTEGER) - (b.distanceMeters ?? Number.MAX_SAFE_INTEGER));
-    return list;
-  }, [items, sort, userLocation]);
-
-  const groups = React.useMemo(() => {
+  const grouped = (products: Product[]) => {
+    const sorted = sortProductCards(products, sort);
     const result: { item: Product; index: number }[][] = [];
     let current: { item: Product; index: number }[] = [];
     sorted.forEach((item, index) => {
@@ -219,10 +127,12 @@ export function ProductListScreen({
       }
     });
     if (current.length) result.push(current);
-    return result;
-  }, [sorted]);
+    return { sorted, groups: result };
+  };
 
-  const scrollRef = useRef<ScrollView>(null);
+  useEffect(() => {
+    pagerRef.current?.scrollTo({ x: listCategories.indexOf(category) * pageWidth, animated: false });
+  }, [pageWidth]);
 
   return (
     <View style={s.root}>
@@ -235,60 +145,91 @@ export function ProductListScreen({
         <Text style={[s.headerTitle, rankMode && s.headerTitleMedium]}>{title}</Text>
         <View style={s.headerSide} />
       </View>
-      <CategoryTabs categories={listCategories} category={category} onCategory={changeCategory} />
-      <Animated.View
-        {...categorySwipe.panHandlers}
-        style={[s.categoryContent,{opacity:categoryOpacity,transform:[{translateX:categorySlide}]}]}
-      >
+      <CategoryTabs categories={listCategories} category={category} onCategory={(next)=>changeCategory(next)} />
       {!rankMode ? (
         <View style={s.sortRow}>
           <SortDropdown value={sort} options={sorts} onChange={setSort} />
         </View>
       ) : null}
-      <ScrollView ref={scrollRef} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        {!loaded ? null : sorted.length === 0 ? (
-          <Text style={s.empty}>상품이 없습니다.</Text>
-        ) : (
-          <>
-            {heroMode ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.heroRow}>
-                {sorted.slice(0, 4).map((item, index) => (
-                  <RankedProductCard
-                    key={item.id}
-                    product={item}
-                    rank={index + 1}
-                    width={224}
-                    height={235}
-                    onPress={() => onSelectProduct(item)}
-                  />
-                ))}
-              </ScrollView>
-            ) : null}
-            {groups.map((group, gi) => (
-              <View key={gi} style={s.group}>
-                {group.map(({ item, index }) => (
-                  <ProductListRow
-                    key={item.id}
-                    product={item}
-                    rank={rankMode && !heroMode ? index + 1 : undefined}
-                    onPress={() => onSelectProduct(item)}
-                  />
-                ))}
-                {group[group.length - 1].item.insight ? (
-                  <View style={s.insightBox}>
-                    <Text numberOfLines={1} style={s.insightText}>{group[group.length - 1].item.insight}</Text>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-          </>
-        )}
+      <ScrollView
+        ref={pagerRef}
+        horizontal
+        pagingEnabled
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        style={s.categoryContent}
+        scrollEventThrottle={16}
+        onLayout={(event) => {
+          const nextWidth = event.nativeEvent.layout.width;
+          if (nextWidth > 0 && nextWidth !== pageWidth) setPageWidth(nextWidth);
+        }}
+        onMomentumScrollEnd={(event) => {
+          const nextIndex = Math.max(0, Math.min(listCategories.length - 1,
+            Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth))));
+          const next = listCategories[nextIndex];
+          if (next !== category) changeCategory(next, false);
+        }}
+      >
+        {listCategories.map((pageCategory) => {
+          const cached = categoryCache.current.get(pageCategory);
+          const visibleItems = pageCategory === category
+            ? (cached ?? [])
+            : sortProductCards(cached ?? [], sort).slice(0, mode === "popular" ? 4 : 5);
+          const { sorted, groups } = grouped(visibleItems);
+          return <View key={pageCategory} style={{ width: pageWidth, flex: 1 }}>
+            <ScrollView
+              ref={(node) => {
+                if(node)pageScrollRefs.current.set(pageCategory,node);
+                else pageScrollRefs.current.delete(pageCategory);
+              }}
+              contentContainerStyle={s.content}
+              showsVerticalScrollIndicator={false}
+            >
+              {cached === undefined ? null : sorted.length === 0 ? (
+                <Text style={s.empty}>상품이 없습니다.</Text>
+              ) : (
+                <>
+                  {heroMode ? (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.heroRow}>
+                      {sorted.slice(0, 4).map((item, index) => (
+                        <RankedProductCard
+                          key={item.id}
+                          product={item}
+                          rank={index + 1}
+                          width={224}
+                          height={235}
+                          onPress={() => onSelectProduct(item)}
+                        />
+                      ))}
+                    </ScrollView>
+                  ) : null}
+                  {groups.map((group, gi) => (
+                    <View key={gi} style={s.group}>
+                      {group.map(({ item, index }) => (
+                        <ProductListRow
+                          key={item.id}
+                          product={item}
+                          rank={rankMode && !heroMode ? index + 1 : undefined}
+                          onPress={() => onSelectProduct(item)}
+                        />
+                      ))}
+                      {group[group.length - 1].item.insight ? (
+                        <View style={s.insightBox}>
+                          <Text numberOfLines={1} style={s.insightText}>{group[group.length - 1].item.insight}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  ))}
+                </>
+              )}
+            </ScrollView>
+          </View>;
+        })}
       </ScrollView>
-      </Animated.View>
       <Pressable
         accessibilityLabel="맨 위로"
         style={s.scrollTopButton}
-        onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
+        onPress={() => pageScrollRefs.current.get(category)?.scrollTo({ y: 0, animated: true })}
       >
         <ArrowUpIcon width={24} height={24} color={colors.g700} />
       </Pressable>
