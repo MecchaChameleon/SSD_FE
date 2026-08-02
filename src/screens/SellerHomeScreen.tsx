@@ -860,24 +860,23 @@ function RevenueBarChart({
   const [showTooltip, setShowTooltip] = useState<boolean>(true);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
-  const isEmpty = thisWeek === 0 && lastWeek === 0;
-
-  if (isEmpty) {
-    return (
-      <View style={s.chartArea}>
-        <View style={s.chartEmptyWrapper}>
-          <Text style={s.chartEmpty}>조회하신 기간의 매출 데이터가 없어요.</Text>
-        </View>
-      </View>
-    );
-  }
-
-  const maxVal = Math.max(thisWeek, lastWeek, 1);
-  const scale = Math.ceil(maxVal / 100000) * 100000 || 200000;
-  const halfScale = scale / 2;
   const fmt = (v: number) => (v >= 10000 ? `${Math.round(v / 10000)}만원` : `${v.toLocaleString()}원`);
 
   if (isSingleDay) {
+    const isEmpty = thisWeek === 0 && lastWeek === 0;
+    if (isEmpty) {
+      return (
+        <View style={s.chartArea}>
+          <View style={s.chartEmptyWrapper}>
+            <Text style={s.chartEmpty}>조회하신 기간의 매출 데이터가 없어요.</Text>
+          </View>
+        </View>
+      );
+    }
+
+    const maxVal = Math.max(thisWeek, lastWeek, 1);
+    const scale = Math.ceil(maxVal / 100000) * 100000 || 200000;
+    const halfScale = scale / 2;
     const lastH = lastWeek > 0 ? Math.max((lastWeek / scale) * BAR_MAX_H, 16) : 6;
     const thisH = thisWeek > 0 ? Math.max((thisWeek / scale) * BAR_MAX_H, 16) : 6;
 
@@ -1065,9 +1064,8 @@ function RevenueLineChart({
   const [showTooltip, setShowTooltip] = useState<boolean>(true);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
-  const isEmpty = thisWeek === 0 && lastWeek === 0;
-
-  if (isEmpty) {
+  const multiDayData = generateMultiDayData(startDate, endDate ?? undefined, salesByDate);
+  if (multiDayData.length === 0) {
     return (
       <View style={s.chartArea}>
         <View style={s.chartEmptyWrapper}>
@@ -1076,9 +1074,6 @@ function RevenueLineChart({
       </View>
     );
   }
-
-  // 기간 범위 (다중 날짜) 선택 시 — 선 그래프 모드 (가로 스크롤 가능)
-  const multiDayData = generateMultiDayData(startDate, endDate ?? undefined, salesByDate);
   const maxMultiVal = Math.max(...multiDayData.map(x => x.revenue), 100000);
 
   // 💡 1.4배 헤드룸 버퍼를 반영하여 Y축 스케일을 여유있게 결정 (최고점 툴팁 잘림 완전 방지)
