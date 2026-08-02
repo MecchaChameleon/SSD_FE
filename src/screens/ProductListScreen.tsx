@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, PanResponder, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { Product } from "../components/home";
@@ -35,42 +35,49 @@ export function ProductListScreen({
   const [, setCacheVersion] = useState(0);
   const { width: viewportWidth } = useWindowDimensions();
   const [pageWidth, setPageWidth] = useState(viewportWidth);
-  const pagerRef = useRef<ScrollView>(null);
   const pageScrollRefs = useRef(new Map<BuyerCategory, ScrollView>());
   const activeCategoryRef = useRef<BuyerCategory>(initialCategory);
-  const swipeStartIndex = useRef<number | null>(null);
-  const programmaticTarget = useRef<number | null>(null);
-  const scrollSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const swipeStartIndex = useRef(listCategories.indexOf(initialCategory));
+  const pagerX = useRef(new Animated.Value(-listCategories.indexOf(initialCategory) * viewportWidth)).current;
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
   const moveToCategoryIndex = (index:number, animated = true) => {
     const nextIndex = Math.max(0, Math.min(listCategories.length - 1, index));
     const next = listCategories[nextIndex];
-    programmaticTarget.current = nextIndex;
     activeCategoryRef.current = next;
     setCategory(next);
-    pagerRef.current?.scrollTo({ x: nextIndex * pageWidth, animated });
+    swipeStartIndex.current = nextIndex;
+    Animated.timing(pagerX, {
+      toValue: -nextIndex * pageWidth,
+      duration: animated ? 260 : 0,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
   };
-  const changeCategory = (next:BuyerCategory, scrollToPage = true) => {
-    if (scrollToPage) {
-      const nextIndex = listCategories.indexOf(next);
-      if (nextIndex < 0 || next === activeCategoryRef.current) return;
-      moveToCategoryIndex(nextIndex);
-      return;
-    }
-    if (next === activeCategoryRef.current) return;
-    activeCategoryRef.current = next;
-    setCategory(next);
+  const changeCategory = (next:BuyerCategory) => {
+    const nextIndex = listCategories.indexOf(next);
+    if (nextIndex < 0 || next === activeCategoryRef.current) return;
+    moveToCategoryIndex(nextIndex);
   };
-  const settleSwipe = (offsetX:number, velocityX = 0) => {
-    if (programmaticTarget.current != null) return;
-    const startIndex = swipeStartIndex.current ?? listCategories.indexOf(activeCategoryRef.current);
-    const delta = offsetX - startIndex * pageWidth;
-    const direction = Math.abs(delta) >= pageWidth * 0.15 || Math.abs(velocityX) >= 0.2
-      ? (delta !== 0 ? Math.sign(delta) : Math.sign(velocityX))
-      : 0;
-    moveToCategoryIndex(startIndex + direction);
-  };
+  const panResponder = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gesture) =>
+      Math.abs(gesture.dx) > 6 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+    onPanResponderGrant: () => {
+      swipeStartIndex.current = listCategories.indexOf(activeCategoryRef.current);
+      pagerX.stopAnimation();
+    },
+    onPanResponderMove: (_, gesture) => {
+      const base = -swipeStartIndex.current * pageWidth;
+      const minX = -(listCategories.length - 1) * pageWidth;
+      pagerX.setValue(Math.max(minX, Math.min(0, base + gesture.dx)));
+    },
+    onPanResponderRelease: (_, gesture) => {
+      const shouldMove = Math.abs(gesture.dx) >= pageWidth * 0.15 || Math.abs(gesture.vx) >= 0.35;
+      const direction = shouldMove ? (gesture.dx < 0 ? 1 : -1) : 0;
+      moveToCategoryIndex(swipeStartIndex.current + direction);
+    },
+    onPanResponderTerminate: () => moveToCategoryIndex(swipeStartIndex.current),
+  }), [pageWidth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,12 +162,8 @@ export function ProductListScreen({
   };
 
   useEffect(() => {
-    pagerRef.current?.scrollTo({ x: listCategories.indexOf(category) * pageWidth, animated: false });
+    pagerX.setValue(-listCategories.indexOf(activeCategoryRef.current) * pageWidth);
   }, [pageWidth]);
-
-  useEffect(() => () => {
-    if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
-  }, []);
 
   return (
     <View style={s.root}>
@@ -179,56 +182,15 @@ export function ProductListScreen({
           <SortDropdown value={sort} options={sorts} onChange={setSort} />
         </View>
       ) : null}
-      <ScrollView
-        ref={pagerRef}
-        horizontal
-        pagingEnabled
-        snapToInterval={pageWidth}
-        disableIntervalMomentum
-        decelerationRate="fast"
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
+      <View
         style={s.categoryContent}
-        scrollEventThrottle={16}
+        {...panResponder.panHandlers}
         onLayout={(event) => {
           const nextWidth = event.nativeEvent.layout.width;
           if (nextWidth > 0 && nextWidth !== pageWidth) setPageWidth(nextWidth);
         }}
-        onScrollBeginDrag={(event) => {
-          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
-          programmaticTarget.current = null;
-          swipeStartIndex.current = listCategories.indexOf(activeCategoryRef.current);
-        }}
-        onScroll={(event) => {
-          if (programmaticTarget.current != null) return;
-          if (swipeStartIndex.current == null) {
-            swipeStartIndex.current = listCategories.indexOf(activeCategoryRef.current);
-          }
-          const offsetX = event.nativeEvent.contentOffset.x;
-          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
-          scrollSettleTimer.current = setTimeout(() => settleSwipe(offsetX), 80);
-        }}
-        onScrollEndDrag={(event) => {
-          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
-          settleSwipe(event.nativeEvent.contentOffset.x, event.nativeEvent.velocity?.x ?? 0);
-        }}
-        onMomentumScrollEnd={(event) => {
-          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
-          if (programmaticTarget.current == null) {
-            settleSwipe(event.nativeEvent.contentOffset.x);
-            return;
-          }
-          const nextIndex = programmaticTarget.current;
-          const expectedOffset = nextIndex * pageWidth;
-          if (Math.abs(event.nativeEvent.contentOffset.x - expectedOffset) > 1) {
-            pagerRef.current?.scrollTo({ x: expectedOffset, animated: false });
-          }
-          programmaticTarget.current = null;
-          swipeStartIndex.current = null;
-          const next = listCategories[nextIndex];
-          if (next !== activeCategoryRef.current) changeCategory(next, false);
-        }}
       >
+        <Animated.View style={[s.categoryPages, { width: pageWidth * listCategories.length, transform: [{ translateX: pagerX }] }]}>
         {listCategories.map((pageCategory) => {
           const cached = categoryCache.current.get(pageCategory);
           const visibleItems = pageCategory === category
@@ -284,7 +246,8 @@ export function ProductListScreen({
             </ScrollView>
           </View>;
         })}
-      </ScrollView>
+        </Animated.View>
+      </View>
       <Pressable
         accessibilityLabel="맨 위로"
         style={s.scrollTopButton}
@@ -302,7 +265,8 @@ const s = StyleSheet.create({
   headerSide: { width: 24 },
   headerTitle: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600", color: colors.black },
   headerTitleMedium: { fontFamily: fonts.medium, fontWeight: "500" },
-  categoryContent: { flex: 1 },
+  categoryContent: { flex: 1, overflow: "hidden" },
+  categoryPages: { flex: 1, flexDirection: "row" },
   sortRow: { paddingHorizontal: 16, paddingTop: 10, alignItems: "flex-end" },
   content: { paddingHorizontal: 16, paddingBottom: 40 },
   heroRow: { gap: 8, paddingTop: 32, paddingBottom: 16 },
