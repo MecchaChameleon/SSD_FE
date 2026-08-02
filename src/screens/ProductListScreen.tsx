@@ -42,30 +42,24 @@ export function ProductListScreen({
   const programmaticTarget = useRef<number | null>(null);
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
-  const changeCategory = (next:BuyerCategory, scrollToPage = true) => {
-    if (next === activeCategoryRef.current) return;
-    if (scrollToPage) {
-      const nextIndex = listCategories.indexOf(next);
-      programmaticTarget.current = nextIndex;
-      activeCategoryRef.current = next;
-      setCategory(next);
-      pagerRef.current?.scrollTo({ x: nextIndex * pageWidth, animated: true });
-      return;
-    }
+  const moveToCategoryIndex = (index:number, animated = true) => {
+    const nextIndex = Math.max(0, Math.min(listCategories.length - 1, index));
+    const next = listCategories[nextIndex];
+    programmaticTarget.current = nextIndex;
     activeCategoryRef.current = next;
     setCategory(next);
+    pagerRef.current?.scrollTo({ x: nextIndex * pageWidth, animated });
   };
-  const categoryIndexAt = (offsetX:number) => {
-    let index = Math.round(offsetX / Math.max(1, pageWidth));
-    if (swipeStartIndex.current != null) {
-      index = Math.max(swipeStartIndex.current - 1, Math.min(swipeStartIndex.current + 1, index));
+  const changeCategory = (next:BuyerCategory, scrollToPage = true) => {
+    if (scrollToPage) {
+      const nextIndex = listCategories.indexOf(next);
+      if (nextIndex < 0 || next === activeCategoryRef.current) return;
+      moveToCategoryIndex(nextIndex);
+      return;
     }
-    return Math.max(0, Math.min(listCategories.length - 1, index));
-  };
-  const syncCategoryAt = (offsetX:number) => {
-    if (programmaticTarget.current != null) return;
-    const next = listCategories[categoryIndexAt(offsetX)];
-    if (next !== activeCategoryRef.current) changeCategory(next, false);
+    if (next === activeCategoryRef.current) return;
+    activeCategoryRef.current = next;
+    setCategory(next);
   };
 
   useEffect(() => {
@@ -190,13 +184,21 @@ export function ProductListScreen({
           programmaticTarget.current = null;
           swipeStartIndex.current = Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth));
         }}
-        onScroll={(event) => syncCategoryAt(event.nativeEvent.contentOffset.x)}
-        onScrollEndDrag={(event) => syncCategoryAt(event.nativeEvent.contentOffset.x)}
+        onScrollEndDrag={(event) => {
+          const startIndex = swipeStartIndex.current ?? Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth));
+          const delta = event.nativeEvent.contentOffset.x - startIndex * pageWidth;
+          const velocity = event.nativeEvent.velocity?.x ?? 0;
+          const direction = Math.abs(delta) >= pageWidth * 0.15 || Math.abs(velocity) >= 0.2
+            ? (delta !== 0 ? Math.sign(delta) : Math.sign(velocity))
+            : 0;
+          moveToCategoryIndex(startIndex + direction);
+        }}
         onMomentumScrollEnd={(event) => {
-          const nextIndex = programmaticTarget.current ?? categoryIndexAt(event.nativeEvent.contentOffset.x);
+          const nextIndex = programmaticTarget.current
+            ?? Math.max(0, Math.min(listCategories.length - 1, Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth))));
           const expectedOffset = nextIndex * pageWidth;
           if (Math.abs(event.nativeEvent.contentOffset.x - expectedOffset) > 1) {
-            pagerRef.current?.scrollTo({ x: expectedOffset, animated: true });
+            pagerRef.current?.scrollTo({ x: expectedOffset, animated: false });
           }
           programmaticTarget.current = null;
           swipeStartIndex.current = null;
