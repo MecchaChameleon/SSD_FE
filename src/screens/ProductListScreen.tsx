@@ -40,6 +40,7 @@ export function ProductListScreen({
   const activeCategoryRef = useRef<BuyerCategory>(initialCategory);
   const swipeStartIndex = useRef<number | null>(null);
   const programmaticTarget = useRef<number | null>(null);
+  const scrollSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
   const moveToCategoryIndex = (index:number, animated = true) => {
@@ -60,6 +61,15 @@ export function ProductListScreen({
     if (next === activeCategoryRef.current) return;
     activeCategoryRef.current = next;
     setCategory(next);
+  };
+  const settleSwipe = (offsetX:number, velocityX = 0) => {
+    if (programmaticTarget.current != null) return;
+    const startIndex = swipeStartIndex.current ?? listCategories.indexOf(activeCategoryRef.current);
+    const delta = offsetX - startIndex * pageWidth;
+    const direction = Math.abs(delta) >= pageWidth * 0.15 || Math.abs(velocityX) >= 0.2
+      ? (delta !== 0 ? Math.sign(delta) : Math.sign(velocityX))
+      : 0;
+    moveToCategoryIndex(startIndex + direction);
   };
 
   useEffect(() => {
@@ -148,6 +158,10 @@ export function ProductListScreen({
     pagerRef.current?.scrollTo({ x: listCategories.indexOf(category) * pageWidth, animated: false });
   }, [pageWidth]);
 
+  useEffect(() => () => {
+    if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+  }, []);
+
   return (
     <View style={s.root}>
       <View style={s.header}>
@@ -181,21 +195,30 @@ export function ProductListScreen({
           if (nextWidth > 0 && nextWidth !== pageWidth) setPageWidth(nextWidth);
         }}
         onScrollBeginDrag={(event) => {
+          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
           programmaticTarget.current = null;
-          swipeStartIndex.current = Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth));
+          swipeStartIndex.current = listCategories.indexOf(activeCategoryRef.current);
+        }}
+        onScroll={(event) => {
+          if (programmaticTarget.current != null) return;
+          if (swipeStartIndex.current == null) {
+            swipeStartIndex.current = listCategories.indexOf(activeCategoryRef.current);
+          }
+          const offsetX = event.nativeEvent.contentOffset.x;
+          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+          scrollSettleTimer.current = setTimeout(() => settleSwipe(offsetX), 80);
         }}
         onScrollEndDrag={(event) => {
-          const startIndex = swipeStartIndex.current ?? Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth));
-          const delta = event.nativeEvent.contentOffset.x - startIndex * pageWidth;
-          const velocity = event.nativeEvent.velocity?.x ?? 0;
-          const direction = Math.abs(delta) >= pageWidth * 0.15 || Math.abs(velocity) >= 0.2
-            ? (delta !== 0 ? Math.sign(delta) : Math.sign(velocity))
-            : 0;
-          moveToCategoryIndex(startIndex + direction);
+          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+          settleSwipe(event.nativeEvent.contentOffset.x, event.nativeEvent.velocity?.x ?? 0);
         }}
         onMomentumScrollEnd={(event) => {
-          const nextIndex = programmaticTarget.current
-            ?? Math.max(0, Math.min(listCategories.length - 1, Math.round(event.nativeEvent.contentOffset.x / Math.max(1, pageWidth))));
+          if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+          if (programmaticTarget.current == null) {
+            settleSwipe(event.nativeEvent.contentOffset.x);
+            return;
+          }
+          const nextIndex = programmaticTarget.current;
           const expectedOffset = nextIndex * pageWidth;
           if (Math.abs(event.nativeEvent.contentOffset.x - expectedOffset) > 1) {
             pagerRef.current?.scrollTo({ x: expectedOffset, animated: false });
