@@ -39,6 +39,7 @@ export function ProductListScreen({
   const activeCategoryRef = useRef<BuyerCategory>(initialCategory);
   const swipeStartIndex = useRef(listCategories.indexOf(initialCategory));
   const pagerX = useRef(new Animated.Value(-listCategories.indexOf(initialCategory) * viewportWidth)).current;
+  const nestedHorizontalGesture = useRef(false);
   const rankMode = mode === "popular" || mode === "nearby" || mode === "deadline";
   const heroMode = mode === "nearby" || mode === "deadline";
   const moveToCategoryIndex = (index:number, animated = true) => {
@@ -61,7 +62,9 @@ export function ProductListScreen({
   };
   const panResponder = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, gesture) =>
-      Math.abs(gesture.dx) > 6 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+      !nestedHorizontalGesture.current
+      && Math.abs(gesture.dx) > 6
+      && Math.abs(gesture.dx) > Math.abs(gesture.dy),
     onPanResponderGrant: () => {
       swipeStartIndex.current = listCategories.indexOf(activeCategoryRef.current);
       pagerX.stopAnimation();
@@ -211,7 +214,16 @@ export function ProductListScreen({
               ) : (
                 <>
                   {heroMode ? (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.heroRow}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={s.heroRow}
+                      onTouchStart={() => { nestedHorizontalGesture.current = true; }}
+                      onTouchEnd={() => { nestedHorizontalGesture.current = false; }}
+                      onScrollBeginDrag={() => { nestedHorizontalGesture.current = true; }}
+                      onScrollEndDrag={() => { nestedHorizontalGesture.current = false; }}
+                      onMomentumScrollEnd={() => { nestedHorizontalGesture.current = false; }}
+                    >
                       {sorted.slice(0, 4).map((item, index) => (
                         <RankedProductCard
                           key={item.id}
