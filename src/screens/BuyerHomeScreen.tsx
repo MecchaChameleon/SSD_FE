@@ -708,20 +708,7 @@ export function BuyerHomeScreen({
           onSeeAll={() => openListView({ title: "내 취향 상품", mode: "preference", category: "전체", sort: "할인율 높은순" })}
         />
         <PopularProductsSection
-          categories={categories}
-          category={category}
-          onCategory={next=>{
-            if(next===category)return;
-            const cached = popularCategoryCache.current.get(next);
-            popularTransitionPending.current=!cached;
-            if(cached){
-              setProductItems(cached);
-              setPopularContentVersion(value=>value+1);
-            }
-            setCategory(next);
-          }}
-          contentVersion={popularContentVersion}
-          onSeeAll={() => openListView({ title: "현재 인기 상품", mode: "popular", category, sort })}
+          onSeeAll={() => openListView({ title: "현재 인기 상품", mode: "popular", category: "전체", sort })}
         >
           {productCards.length > 0 ? (
             productCards

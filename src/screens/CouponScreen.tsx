@@ -5,20 +5,25 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
+import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from "react-native-svg";
 import { colors, fonts, radius } from "../theme";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import ChevronRightIcon from "../../icon/chevron_right.svg";
-import CoinsIcon from "../../icon/coins.svg";
 
-const recycleIcon = require("../../assets/images/icon_recycle_green.png");
 const locationIllustration = require("../../assets/images/illustration_location_coupon.png");
+const iconClock   = require("../../assets/images/icon_coupon_clock.png");
+const iconCoins   = require("../../assets/images/icon_coupon_coins.png");
+const iconHouse   = require("../../assets/images/icon_coupon_house.png");
+const iconWeather = require("../../assets/images/icon_coupon_weather.png");
 
 export type BenefitItem = {
   id: string;
   title: string;
   subtitle: string;
+  icon: any;
 };
 
 const exclusiveBenefits: BenefitItem[] = [
@@ -26,41 +31,71 @@ const exclusiveBenefits: BenefitItem[] = [
     id: "ex1",
     title: "신규 가입자, 최대 70% 혜택",
     subtitle: "선물 쿠폰 + 결제 할인 받기",
+    icon: iconCoins,
   },
   {
     id: "ex2",
-    title: "첫 결제 감사 5,000원 쿠폰",
-    subtitle: "당일재고 & 시간대 자원 전용",
+    title: "AI가 찾은 제주 로컬 특가",
+    subtitle: "내 주변의 할인 상품을 한눈에 확인하기",
+    icon: iconClock,
   },
   {
     id: "ex3",
-    title: "친구 초대로 최대 10,000원",
-    subtitle: "초대할 때마다 누적 할인 혜택",
+    title: "신규 입점 상품 특별 할인",
+    subtitle: "새롭게 만나는 제주 로컬 상품 할인 받기",
+    icon: iconHouse,
   },
 ];
 
 const monthlyBenefits: BenefitItem[] = [
   {
     id: "mo1",
-    title: "친환경 자원순환 특별 혜택",
-    subtitle: "빈 시간대 자원 예약 시 10% 추가 할인",
+    title: "이번 달 마감딜 최대 50% 할인",
+    subtitle: "제주 로컬 상품을 특별한 가격에!",
+    icon: iconClock,
   },
   {
     id: "mo2",
-    title: "8월 무더위 탈출 여름 쿠폰",
-    subtitle: "숙박 및 모빌리티 15% 즉시 할인",
+    title: "여행객을 위한 제주 특별 혜택",
+    subtitle: "다양한 할인 혜택 확인하기",
+    icon: iconWeather,
   },
   {
     id: "mo3",
-    title: "오늘 마감 임박 푸드 특가",
-    subtitle: "음식점 당일재고 3,000원 중복 쿠폰",
+    title: "놓치면 아쉬운 이달의 특가",
+    subtitle: "이번 달에만 만날 수 있는 할인 상품",
+    icon: iconCoins,
   },
 ];
+
+/** 연파랑 → 흰색 그라데이션 배경 (헤더 아래부터 시작) */
+function GradientBg({ screenHeight }: { screenHeight: number }) {
+  const { width } = useWindowDimensions();
+  const gradH = screenHeight - 54; // 헤더(54) 아래부터
+  return (
+    <Svg
+      width={width}
+      height={gradH}
+      style={[StyleSheet.absoluteFillObject, { top: 54 }]}
+      pointerEvents="none"
+    >
+      <Defs>
+        <SvgLinearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#E3EEF8" stopOpacity="1" />
+          <Stop offset="0.22" stopColor="#F2F7FC" stopOpacity="1" />
+          <Stop offset="0.48" stopColor="#FFFFFF" stopOpacity="1" />
+        </SvgLinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width={width} height={gradH} fill="url(#bgGrad)" />
+    </Svg>
+  );
+}
 
 export function CouponScreen({ onBack }: { onBack: () => void }) {
   const [showAllExclusive, setShowAllExclusive] = useState(false);
   const [showAllMonthly, setShowAllMonthly] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+  const { height: screenH } = useWindowDimensions();
 
   const handleSelectBenefit = (title: string) => {
     setSelectedMessage(`'${title}' 혜택이 적용되었습니다!`);
@@ -71,7 +106,10 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={s.container}>
-      {/* Top Header */}
+      {/* 연파랑 → 흰색 그라데이션 배경 (헤더 아래부터) */}
+      <GradientBg screenHeight={screenH} />
+
+      {/* 헤더 */}
       <View style={s.header}>
         <Pressable hitSlop={12} onPress={onBack} style={s.backButton}>
           <ChevronLeftIcon width={24} height={24} color={colors.g900} />
@@ -81,9 +119,16 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
       </View>
 
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Decorative Location Illustration Top Background */}
-        <View style={s.topBgGraphic}>
-          <Image source={locationIllustration} style={s.illustrationImage} resizeMode="contain" />
+        {/* 우측 상단 배경 일러스트 */}
+        <Image
+          source={locationIllustration}
+          style={s.bgIllustration}
+          resizeMode="contain"
+        />
+
+        {/* 상단 타이틀 영역 */}
+        <View style={s.topTitleWrap}>
+          <Text style={s.heroTitle}>오직 로컬타임에서!</Text>
         </View>
 
         {selectedMessage ? (
@@ -92,17 +137,13 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
           </View>
         ) : null}
 
-        {/* Section 1: 오직 로컬타임에서! */}
-        <View style={s.sectionHeader}>
-          <Text style={s.sectionTitle}>오직 로컬타임에서!</Text>
-        </View>
-
+        {/* 섹션 1 카드 */}
         <View style={s.cardContainer}>
           {exclusiveBenefits.map((item, idx) => (
             <React.Fragment key={item.id}>
               <Pressable style={s.benefitRow} onPress={() => handleSelectBenefit(item.title)}>
-                <View style={s.coinIconWrap}>
-                  <CoinsIcon width={28} height={28} />
+                <View style={s.iconWrap}>
+                  <Image source={item.icon} style={s.iconImage} resizeMode="contain" />
                 </View>
                 <View style={s.benefitTextWrap}>
                   <Text style={s.benefitTitle}>{item.title}</Text>
@@ -113,25 +154,22 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
               {idx < exclusiveBenefits.length - 1 ? <View style={s.divider} /> : null}
             </React.Fragment>
           ))}
-
           <Pressable style={s.seeAllButton} onPress={() => setShowAllExclusive(!showAllExclusive)}>
-            <Text style={s.seeAllText}>
-              {showAllExclusive ? "접기" : "전체 보기"}
-            </Text>
+            <Text style={s.seeAllText}>{showAllExclusive ? "접기" : "전체 보기"}</Text>
           </Pressable>
         </View>
 
-        {/* Section 2: 이 달의 할인 혜택 */}
-        <View style={[s.sectionHeader, { marginTop: 32 }]}>
-          <Text style={s.sectionTitle}>이 달의 할인 혜택</Text>
+        {/* 섹션 2 */}
+        <View style={s.sectionHeader}>
+          <Text style={s.heroTitle}>이달의 할인 혜택</Text>
         </View>
 
-        <View style={s.cardContainer}>
+        <View style={s.cardContainer2}>
           {monthlyBenefits.map((item, idx) => (
             <React.Fragment key={item.id}>
               <Pressable style={s.benefitRow} onPress={() => handleSelectBenefit(item.title)}>
-                <View style={s.recycleIconWrap}>
-                  <Image source={recycleIcon} style={s.recycleImage} resizeMode="contain" />
+                <View style={s.iconWrap}>
+                  <Image source={item.icon} style={s.iconImage} resizeMode="contain" />
                 </View>
                 <View style={s.benefitTextWrap}>
                   <Text style={s.benefitTitle}>{item.title}</Text>
@@ -142,13 +180,11 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
               {idx < monthlyBenefits.length - 1 ? <View style={s.divider} /> : null}
             </React.Fragment>
           ))}
-
           <Pressable style={s.seeAllButton} onPress={() => setShowAllMonthly(!showAllMonthly)}>
-            <Text style={s.seeAllText}>
-              {showAllMonthly ? "접기" : "전체 보기"}
-            </Text>
+            <Text style={s.seeAllText}>{showAllMonthly ? "접기" : "전체 보기"}</Text>
           </Pressable>
         </View>
+
       </ScrollView>
     </View>
   );
@@ -157,12 +193,12 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F5F8",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     height: 54,
     backgroundColor: colors.white,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.g200,
     flexDirection: "row",
     alignItems: "center",
@@ -186,29 +222,36 @@ const s = StyleSheet.create({
     width: 36,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 32,
-    paddingBottom: 48,
+    paddingBottom: 56,
     position: "relative",
   },
-  topBgGraphic: {
+  bgIllustration: {
     position: "absolute",
     right: -10,
-    top: -15,
-    width: 260,
-    height: 240,
+    top: 0,
+    width: 220,
+    height: 200,
     pointerEvents: "none",
   },
-  illustrationImage: {
-    width: "100%",
-    height: "100%",
+  topTitleWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 48,
+    paddingBottom: 14,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontFamily: fonts.bold,
+    fontWeight: "700",
+    color: colors.black,
+    letterSpacing: -0.4,
   },
   toastBanner: {
     backgroundColor: colors.g900,
     borderRadius: radius.md,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
     alignItems: "center",
   },
   toastText: {
@@ -217,26 +260,34 @@ const s = StyleSheet.create({
     fontWeight: "600",
     color: colors.white,
   },
-  sectionHeader: {
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 19,
-    fontFamily: fonts.bold,
-    fontWeight: "700",
-    color: colors.black,
-    letterSpacing: -0.3,
-  },
   cardContainer: {
     backgroundColor: colors.white,
     borderRadius: 22,
     paddingVertical: 8,
     paddingHorizontal: 20,
-    elevation: 3,
+    marginHorizontal: 20,
+    elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+    marginBottom: 14,
+  },
+  cardContainer2: {
+    backgroundColor: colors.white,
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    marginHorizontal: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
   },
   benefitRow: {
     flexDirection: "row",
@@ -244,25 +295,15 @@ const s = StyleSheet.create({
     paddingVertical: 18,
     gap: 16,
   },
-  coinIconWrap: {
+  iconWrap: {
     width: 54,
     height: 54,
-    borderRadius: 16,
-    backgroundColor: "#FFF3D6",
     alignItems: "center",
     justifyContent: "center",
   },
-  recycleIconWrap: {
+  iconImage: {
     width: 54,
     height: 54,
-    borderRadius: 16,
-    backgroundColor: "#DCFCE7",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  recycleImage: {
-    width: 38,
-    height: 38,
   },
   benefitTextWrap: {
     flex: 1,

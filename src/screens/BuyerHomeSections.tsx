@@ -215,90 +215,43 @@ export function RankedProductCard({ product, rank, onPress, width = 200, height 
 }
 
 export function PopularProductsSection<T extends string>({
-  categories,
-  category,
-  onCategory,
-  contentVersion = 0,
   onSeeAll,
   children,
 }: {
-  categories: readonly T[];
-  category: T;
-  onCategory: (category: T) => void;
-  contentVersion?: number;
   onSeeAll: () => void;
   children: React.ReactNode;
 }) {
   const rows = chunk(React.Children.toArray(children), 4);
-  const categorySlide = useRef(new Animated.Value(0)).current;
-  const categoryDirection = useRef(1);
-  const changeCategory = (next:T) => {
-    if (next === category) return;
-    categoryDirection.current = categories.indexOf(next) > categories.indexOf(category) ? 1 : -1;
-    onCategory(next);
-  };
-  useLayoutEffect(() => {
-    if (!contentVersion) return;
-    categorySlide.stopAnimation();
-    categorySlide.setValue(categoryDirection.current * 72);
-    requestAnimationFrame(() => {
-      Animated.timing(categorySlide, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
-    });
-  }, [categorySlide, contentVersion]);
   return (
     <View style={s.section}>
       <Pressable onPress={onSeeAll} style={s.sectionHeaderRow}>
         <Text style={s.sectionTitle}>현재 인기 상품</Text>
         <ChevronRightIcon width={20} height={20} color={colors.g700} />
       </Pressable>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chips}>
-        {categories.map((c) => (
-          <Chip compact fill key={c} selected={category === c} onPress={() => changeCategory(c)}>
-            {c.replace(" / ", "/")}
-          </Chip>
-        ))}
-      </ScrollView>
       {rows.length ? (
-        <Animated.View style={{ gap: 12, transform: [{ translateX: categorySlide }] }}>
+        <View style={{ gap: 12 }}>
           {rows.map((row, i) => (
             <ScrollView key={i} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rankRow}>
               {row}
             </ScrollView>
           ))}
-        </Animated.View>
+        </View>
       ) : null}
     </View>
   );
 }
 
-export function PromoBanner({
-  title,
-  subtitle,
-  imageUrl,
-  imageSource = require("../../assets/images/promo_camping.png"),
-}: {
-  title?: string;
-  subtitle?: string;
-  imageUrl?: string;
-  imageSource?: any;
-}) {
-  const source = imageSource || (imageUrl ? { uri: imageUrl } : null);
+// 프로모 배너 2종 (랜덤으로 표시)
+const promoBanners = [
+  require("../../assets/images/promo_newuser.jpg"),
+  require("../../assets/images/promo_snack.jpg"),
+];
 
-  if (source) {
-    return (
-      <View style={s.promoFullWrap}>
-        <Image source={source} style={s.promoFullImage} resizeMode="cover" />
-      </View>
-    );
-  }
-
+export function PromoBanner() {
+  const [source] = useState(() => promoBanners[Math.floor(Math.random() * promoBanners.length)]);
   return (
-    <View style={s.promoBanner}>
-      <View style={s.promoFallback} />
-      <View style={s.promoText}>
-        {title ? <Text style={s.promoTitle}>{title}</Text> : null}
-        {subtitle ? <Text style={s.promoSubtitle}>{subtitle}</Text> : null}
-      </View>
+    <View style={s.promoFullWrap}>
+      <Image source={source} style={s.promoFullImage} resizeMode="cover" />
     </View>
   );
 }

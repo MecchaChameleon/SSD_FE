@@ -98,7 +98,10 @@ function getProductInsightTip(product: Product): string {
   return "당일 타임세일 상품 · 마감 전 파격 할인 혜택 적용";
 }
 
-const campingBannerAsset = require("../../assets/images/promo_camping.png");
+const promoBanners = [
+  require("../../assets/images/promo_newuser.jpg"),
+  require("../../assets/images/promo_snack.jpg"),
+];
 
 export function SearchResultScreen({
   initialQuery = "바다",
@@ -126,6 +129,7 @@ export function SearchResultScreen({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(10);
+  const [promoBannerSource] = useState(() => promoBanners[Math.floor(Math.random() * promoBanners.length)]);
 
   const scrollRef = useRef<ScrollView>(null);
 
@@ -238,21 +242,6 @@ export function SearchResultScreen({
         </View>
       </View>
 
-      {/* Category Tabs Row */}
-      <View style={s.tabBarRow}>
-        {searchCategories.map((cat) => {
-          const selected = category === cat;
-          return (
-            <Pressable
-              key={cat}
-              onPress={() => setCategory(cat)}
-              style={[s.tabItem, selected && s.tabItemSelected]}
-            >
-              <Text style={[s.tabText, selected && s.tabTextSelected]}>{cat}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
 
       {/* Main Content Scroll View */}
       <ScrollView
@@ -372,11 +361,11 @@ export function SearchResultScreen({
                     </View>
                   ) : null}
 
-                  {/* Promo Camping Banner inserted mid list */}
+                  {/* Promo Banner inserted mid list */}
                   {showCampingBanner ? (
                     <View style={s.promoBannerContainer}>
                       <Image
-                        source={campingBannerAsset}
+                        source={promoBannerSource}
                         style={s.promoBannerImage}
                         resizeMode="cover"
                       />

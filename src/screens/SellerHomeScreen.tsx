@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -30,6 +31,7 @@ import TrelloIcon from "../../icon/trello.svg";
 import UserIcon from "../../icon/user.svg";
 import CloseIcon from "../../icon/x.svg";
 import CoinsIcon from "../../icon/coins.svg";
+import PeriodSalesIcon from "../../icon/period_sales.svg";
 import BoxIcon from "../../icon/box.svg";
 import { CachedSellerDashboard, SELLER_DASHBOARD_CACHE_KEY, readCache, readWebCache, writeCache } from "../cache/appCache";
 import { ScreenTransition } from "../components/ScreenTransition";
@@ -204,7 +206,7 @@ export function SellerHomeScreen({
   if (page === "products")
     return screen(
       <View style={s.chromeContent}>
-        <ProductRegistrationScreen showHeader={false} onBack={() => navigate("dashboard",-1)} />
+        <ProductRegistrationScreen showHeader={false} onBack={() => navigate("dashboard",-1)} onGoToAI={() => navigate("ai")} />
       </View>
     );
   if (page === "ai")
@@ -414,7 +416,7 @@ export function SellerHomeScreen({
             value={!isDefaultToday ? `${dashboard.periodRevenue.toLocaleString()}원` : "0원"}
             cardBg={!isDefaultToday ? "#FFF3DC" : "#F2F2F1"}
             muted={isDefaultToday || !hasPeriodSales}
-            iconType="coins"
+            iconType="period"
             onPress={() => setRangeOpen(true)}
             startDate={startDate}
             endDate={endDate ?? undefined}
@@ -1215,7 +1217,7 @@ function SummaryCard({
   muted?: boolean;
   trend?: string;
   trendColor?: string;
-  iconType?: "coins" | "box";
+  iconType?: "coins" | "box" | "period";
   startDate?: string;
   endDate?: string;
   totalRevenue?: number;
@@ -1253,25 +1255,29 @@ function SummaryCard({
     <>
       <Pressable style={[s.summaryCard, cardBg ? { backgroundColor: cardBg } : null]} onPress={handlePress}>
         <View style={s.summaryInner}>
-          {/* 아이콘 + 트렌드 뱃지 (위) */}
+          {/* 아이콘 (위) */}
           <View style={s.summaryTop}>
             <View style={s.summaryIconContainer}>
               {iconType === "box" ? (
                 <BoxIcon width={36} height={36} />
+              ) : iconType === "period" ? (
+                <PeriodSalesIcon width={36} height={36} />
               ) : (
                 <CoinsIcon width={36} height={36} />
               )}
             </View>
-            {trend ? (
-              <View style={[s.trendBadge, trendColor ? { backgroundColor: trendColor } : null]}>
-                <Text style={s.trendText}>{trend}</Text>
-              </View>
-            ) : null}
           </View>
           {/* 텍스트 (아래) */}
           <View style={s.summaryText}>
             <Text style={[s.summaryLabel, muted ? { color: "#989792" } : { color: "#111111" }]}>{label}</Text>
-            <Text style={[s.summaryValue, muted ? { color: "#989792" } : { color: "#111111" }]}>{value}</Text>
+            <View style={s.summaryValueRow}>
+              <Text style={[s.summaryValue, muted ? { color: "#989792" } : { color: "#111111" }]}>{value}</Text>
+              {trend ? (
+                <View style={[s.trendBadge, trendColor ? { backgroundColor: trendColor } : null]}>
+                  <Text style={s.trendText}>{trend}</Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
         {/* 화살표 */}
@@ -1853,6 +1859,7 @@ const s = StyleSheet.create({
   summaryText: { gap: 6 },
   summaryLabel: { fontSize: 12, color: colors.g800 },
   summaryLabelMuted: { color: colors.g500 },
+  summaryValueRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   summaryValue: { fontSize: 20, fontWeight: "600", color: colors.black },
   summaryValueMuted: { color: colors.g500 },
   // 결제 상태 (이전 스타일 — payments 페이지에서 사용)
