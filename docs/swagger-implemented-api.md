@@ -1,7 +1,7 @@
 # 배포 Swagger 기준 실제 API
 
 확인일: 2026-07-13  
-원본: `https://jeju-localtime-api.onrender.com/v3/api-docs`
+원본: `https://ssd-be.onrender.com/v3/api-docs`
 
 ## 인증
 

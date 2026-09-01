@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://jeju-localtime-api.onrender.com').replace(/\/$/, '');
+const baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://ssd-be.onrender.com').replace(/\/$/, '');
 export const apiUrl = (path:string) => `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 export const resolveApiAssetUrl = (url:string) => /^https?:\/\//i.test(url) ? url : `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
 export const toApiAssetPath = (url:string) => url.startsWith(baseUrl) ? url.slice(baseUrl.length) || '/' : url;
