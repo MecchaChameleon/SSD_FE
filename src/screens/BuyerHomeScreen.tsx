@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  BackHandler,
   Easing,
   Modal,
   Image,
   PanResponder,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -308,6 +311,109 @@ export function BuyerHomeScreen({
       {chromeVisible?<View style={s.fixedNavigation}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
     </View>;
   };
+  const lastBackPress = useRef(0);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      // 1. 주문/결제 화면
+      if (checkout === "payment") {
+        setCheckout("order");
+        return true;
+      }
+      if (checkout === "order") {
+        setCheckout(null);
+        return true;
+      }
+
+      // 2. 결제 완료 모달/화면
+      if (paymentComplete) {
+        setPaymentComplete(false);
+        return true;
+      }
+
+      // 3. 상품 상세 화면
+      if (detailProduct !== null) {
+        closeProductDetail();
+        return true;
+      }
+
+      // 4. 쿠폰 화면
+      if (couponView) {
+        setCouponView(false);
+        return true;
+      }
+
+      // 5. 검색 결과 화면
+      if (searchResultView !== null) {
+        setSearchResultView(null);
+        return true;
+      }
+
+      // 6. 검색창 입력 오버레이
+      if (searching) {
+        setSearching(false);
+        setQuery("");
+        return true;
+      }
+
+      // 7. AI 추천 화면
+      if (aiRecommendationOpen) {
+        closeAiRecommendation();
+        return true;
+      }
+
+      // 8. 상품 목록 전체보기 화면 (내 취향, 인기, 신규, 근처, 마감임박)
+      if (listView !== null) {
+        closeListView();
+        return true;
+      }
+
+      // 9. 판매자 모드 (SellerHomeScreen이 자체 BackHandler로 처리함)
+      if (sellerMode) {
+        return true;
+      }
+
+      // 10. 마이페이지 하위 화면 (사업자 등록 등)
+      if (tab === "mypage" && !myPageRoot) {
+        setMyPageRoot(true);
+        return true;
+      }
+
+      // 11. 메인 외 다른 탭 -> 홈 탭으로 복귀
+      if (tab !== "home") {
+        navigateTab("home");
+        return true;
+      }
+
+      // 12. 홈 화면 최상단: 2초 내 재입력 시 종료
+      const currentTime = Date.now();
+      if (lastBackPress.current && currentTime - lastBackPress.current < 2000) {
+        BackHandler.exitApp();
+        return true;
+      }
+      lastBackPress.current = currentTime;
+      if (Platform.OS === "android") {
+        ToastAndroid.show("'뒤로' 버튼을 한 번 더 누르면 종료됩니다.", ToastAndroid.SHORT);
+      }
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => sub.remove();
+  }, [
+    checkout,
+    paymentComplete,
+    detailProduct,
+    couponView,
+    searchResultView,
+    searching,
+    aiRecommendationOpen,
+    listView,
+    sellerMode,
+    tab,
+    myPageRoot,
+  ]);
+
   useEffect(()=>{navigator.geolocation?.getCurrentPosition(position=>setUserLocation({lat:position.coords.latitude,lng:position.coords.longitude}))},[]);
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000);

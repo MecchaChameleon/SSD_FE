@@ -8,15 +8,11 @@ import {
   View,
 } from "react-native";
 import { AppHeader, BottomNavigation, Product, getBadgeInfo } from "../components/home";
-import { Chip } from "../components/ui";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
 import { apiProductToCard } from "./BuyerHomeScreen";
 import HeartIcon from "../../icon/heart.svg";
 import MapPinSolidIcon from "../../icon/map_pin_solid.svg";
-
-const filterCategories = ["전체", "음식점", "숙박", "체험", "렌탈 / 자원"] as const;
-type FilterCategory = (typeof filterCategories)[number];
 
 export function LikesScreen({
   onHome,
@@ -35,7 +31,6 @@ export function LikesScreen({
 }) {
   const [items, setItems] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<FilterCategory>("전체");
 
   const refresh = useCallback(
     () =>
@@ -60,9 +55,9 @@ export function LikesScreen({
     }
   };
 
-  const clearCategoryWishlist = async () => {
-    const idsToClear = filteredItems.map((x) => x.id);
-    setItems((prev) => prev.filter((item) => !idsToClear.includes(item.id)));
+  const clearAllWishlist = async () => {
+    const idsToClear = items.map((x) => x.id);
+    setItems([]);
     for (const id of idsToClear) {
       try {
         await buyerApi.removeWishlist(id);
@@ -71,15 +66,6 @@ export function LikesScreen({
       }
     }
   };
-
-  const filteredItems = items.filter((item) => {
-    if (selectedCategory === "전체") return true;
-    if (selectedCategory === "음식점") return item.detail.includes("당일 재고") || item.shop.includes("식당") || item.shop.includes("카페");
-    if (selectedCategory === "숙박") return item.detail.includes("당일 공실") || item.shop.includes("호텔") || item.shop.includes("펜션") || item.shop.includes("숙박");
-    if (selectedCategory === "체험") return item.detail.includes("관광") || item.shop.includes("체험");
-    if (selectedCategory === "렌탈 / 자원") return item.detail.includes("빈 시간대 자원") || item.shop.includes("렌탈");
-    return true;
-  });
 
   return (
     <View style={s.root}>
@@ -99,56 +85,33 @@ export function LikesScreen({
           </Text>
         </View>
 
-        {/* Category Filter Chips & Sub Bar */}
+        {/* Sub Bar (Total count & Clear all) */}
         {items.length > 0 ? (
-          <View style={s.filterContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipsScroll}>
-              {filterCategories.map((cat) => (
-                <Chip
-                  key={cat}
-                  selected={selectedCategory === cat}
-                  onPress={() => setSelectedCategory(cat)}
-                >
-                  {cat}
-                </Chip>
-              ))}
-            </ScrollView>
-            {filteredItems.length > 0 ? (
-              <View style={s.subBarRow}>
-                <Text style={s.subCountText}>총 {filteredItems.length}개</Text>
-                <Pressable style={s.clearButton} onPress={clearCategoryWishlist}>
-                  <Text style={s.clearButtonText}>
-                    {selectedCategory === "전체" ? "전체 삭제" : `${selectedCategory} 삭제`}
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
+          <View style={s.subBarRow}>
+            <Text style={s.subCountText}>총 {items.length}개</Text>
+            <Pressable style={s.clearButton} onPress={clearAllWishlist}>
+              <Text style={s.clearButtonText}>전체 삭제</Text>
+            </Pressable>
           </View>
         ) : null}
 
         {/* Main Content Area */}
-        {!loaded ? null : filteredItems.length === 0 ? (
+        {!loaded ? null : items.length === 0 ? (
           <View style={s.emptyWrap}>
             <View style={s.emptyIconCircle}>
               <HeartIcon width={36} height={36} color={colors.primary500} fill={colors.primary500} />
             </View>
-            <Text style={s.emptyTitle}>
-              {items.length === 0 ? "찜한 상품이 없습니다." : "해당 카테고리의 찜한 상품이 없습니다."}
-            </Text>
+            <Text style={s.emptyTitle}>찜한 상품이 없습니다.</Text>
             <Text style={s.emptyBody}>
-              {items.length === 0
-                ? "마음에 드는 마감 임박 상품이나 자원을 찜하고 할인 혜택을 놓치지 마세요!"
-                : "다른 카테고리를 선택하거나 전체 목록을 확인해보세요."}
+              마음에 드는 마감 임박 상품이나 자원을 찜하고 할인 혜택을 놓치지 마세요!
             </Text>
-            {items.length === 0 ? (
-              <Pressable style={s.homeButton} onPress={onHome}>
-                <Text style={s.homeButtonText}>인기 상품 둘러보기</Text>
-              </Pressable>
-            ) : null}
+            <Pressable style={s.homeButton} onPress={onHome}>
+              <Text style={s.homeButtonText}>인기 상품 둘러보기</Text>
+            </Pressable>
           </View>
         ) : (
           <View style={s.listContainer}>
-            {filteredItems.map((item, idx) => (
+            {items.map((item, idx) => (
               <React.Fragment key={item.id}>
                 <Pressable
                   style={s.listItemRow}
@@ -209,7 +172,7 @@ export function LikesScreen({
                   );
                 })()}
                 </Pressable>
-                {idx < filteredItems.length - 1 ? <View style={s.rowDivider} /> : null}
+                {idx < items.length - 1 ? <View style={s.rowDivider} /> : null}
               </React.Fragment>
             ))}
           </View>
@@ -278,20 +241,12 @@ const s = StyleSheet.create({
     color: colors.g600,
     lineHeight: 18,
   },
-  filterContainer: {
-    marginBottom: 16,
-    gap: 8,
-  },
-  chipsScroll: {
-    gap: 8,
-    paddingRight: 14,
-  },
   subBarRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 2,
-    marginTop: 2,
+    marginBottom: 14,
   },
   subCountText: {
     fontSize: 13,

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AppHeader, BottomNavigation } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
@@ -99,6 +99,25 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   const screen=(content:React.ReactNode)=>pageTransitionEnabled?<ScreenTransition screenKey={page} direction={pageDirection}>{content}</ScreenTransition>:<>{content}</>;
   useEffect(() => { cachedNickname().then(value=>{if(value)setName(value)}); authApi.me().then(me => {setName(me.nickname);setSellerProfileImageUrl(me.profileImageUrl);void cacheNickname(me.nickname)}).catch(() => undefined); sellerApi.profile().then(profile => { setSellerProfile(profile);const next=profileToBusiness(profile);setBusiness(next);sellerApi.myApplication().then(application=>setBusiness(current=>withApplication(current,application))).catch(()=>undefined); }).catch(error => setProfileError(error instanceof ApiError ? error.message : '사업자 정보를 불러오지 못했습니다.')); }, []);
   useEffect(()=>onRootChange?.(page==='main'),[page,onRootChange]);
+  useEffect(() => {
+    const onBackPress = () => {
+      if (dialog !== null) {
+        setDialog(null);
+        return true;
+      }
+      if (page === 'businessForm') {
+        go('business', -1);
+        return true;
+      }
+      if (page !== 'main') {
+        go('main', -1);
+        return true;
+      }
+      return false; // main일 때는 상위 SellerHomeScreen의 뒤로가기 핸들러에 위임
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [dialog, page]);
   if (page === 'profile') return screen(<ProfilePage name={name} profileImageUrl={sellerProfileImageUrl} onBack={() => go('main',-1)} onSave={async (nextName,image) => {let url=sellerProfileImageUrl;if(image)url=(await authApi.uploadProfileImage({uri:image.uri,name:image.fileName??'profile.jpg',type:image.mimeType??'image/jpeg',file:image.file})).profileImageUrl;await authApi.updateMe({nickname:nextName});await cacheNickname(nextName);setName(nextName);setSellerProfileImageUrl(url);go('main',-1); }} />);
   if (page === 'business') return screen(<BusinessInfo value={business} onBack={() => go('main',-1)} onEdit={() => go('businessForm')} />);
   if (page === 'businessForm') return screen(<BusinessForm initial={business} editing onBack={() => go('business',-1)} onSave={async value => { try { const profile=await sellerApi.updateProfile({businessName:value.shop,businessNumber:`${value.number1}-${value.number2}-${value.number3}`,representativeName:value.representative,openDate:businessOpenDate(value),address:value.address,latitude:value.latitude??null,longitude:value.longitude??null,bankName:value.bank,accountNumber:value.account,accountHolder:sellerProfile?.accountHolder??sellerProfile?.representativeName??''}); setSellerProfile(profile); setBusiness({...profileToBusiness(profile),representative:value.representative,openYear:value.openYear,openMonth:value.openMonth,openDay:value.openDay}); go('business',-1); } catch(error) { setProfileError(error instanceof ApiError?error.message:'사업자 정보 수정에 실패했습니다.'); } }} />);

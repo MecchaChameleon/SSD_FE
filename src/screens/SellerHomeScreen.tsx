@@ -1,12 +1,15 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  BackHandler,
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
@@ -117,12 +120,44 @@ export function SellerHomeScreen({
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const lastBackPress = useRef(0);
   const navigate=(next:SellerPage,direction?:-1|1)=>{
     if(next===page)return;
     const order={dashboard:0,payments:1,products:1,ai:2,mypage:3};
     setPageDirection(direction??(order[next]>order[page]?1:-1));
     setPage(next);
   };
+
+  useEffect(() => {
+    const onBackPress = () => {
+      // 1. 날짜 범위 선택 모달이 열려있으면 닫기
+      if (rangeOpen) {
+        setRangeOpen(false);
+        return true;
+      }
+
+      // 2. 대시보드가 아닌 다른 탭/페이지일 경우 홈 대시보드로 이동
+      if (page !== "dashboard") {
+        navigate("dashboard", -1);
+        return true;
+      }
+
+      // 3. 대시보드(홈) 최상단: 2초 내 재입력 시 앱 종료
+      const currentTime = Date.now();
+      if (lastBackPress.current && currentTime - lastBackPress.current < 2000) {
+        BackHandler.exitApp();
+        return true;
+      }
+      lastBackPress.current = currentTime;
+      if (Platform.OS === "android") {
+        ToastAndroid.show("'뒤로' 버튼을 한 번 더 누르면 종료됩니다.", ToastAndroid.SHORT);
+      }
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => sub.remove();
+  }, [page, rangeOpen]);
   const screen=(content:React.ReactNode)=>{
     const tabPage=page!=="payments";
     const chromeVisible=tabPage&&(page!=="mypage"||myPageRoot);

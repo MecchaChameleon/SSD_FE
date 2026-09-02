@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, BackHandler, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, radius } from '../theme';
 import { ApiError, sellerApi } from '../api';
@@ -108,15 +108,27 @@ export function ProductRegistrationScreen({
     }).start();
   }, [step, progressAnim]);
 
-  /** 새 단계 노출 시 스크롤 하단으로 이동 */
+  /** 안드로이드 뒤로가기 처리 */
   useEffect(() => {
-    if (step > 1) {
-      const timer = setTimeout(() => {
-        scrollRef.current?.scrollTo({ x: 0, y: 0, animated: true });
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [step]);
+    const onBackPress = () => {
+      if (complete) {
+        onBack();
+        return true;
+      }
+      if (sheet !== null) {
+        setSheet(null);
+        return true;
+      }
+      if (step > 1) {
+        setStep(s => s - 1);
+        return true;
+      }
+      onBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [complete, sheet, step, onBack]);
 
   const invalidPriceRange = !!(regular && minimum && Number(minimum) > Number(regular));
   const invalidTimeRange = !!(start && end && timeMinutes(start) >= timeMinutes(end));
