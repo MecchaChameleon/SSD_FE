@@ -1,13 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, BackHandler, Platform, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
 import { ModeSelectionScreen, ServiceMode } from './src/screens/ModeSelectionScreen';
 import { CompleteScreen } from './src/screens/CompleteScreen';
+import { WithdrawCompleteScreen } from './src/screens/WithdrawCompleteScreen';
 import { ComponentGalleryScreen } from './src/screens/ComponentGalleryScreen';
 import { BuyerHomeScreen } from './src/screens/BuyerHomeScreen';
 import { BusinessRegistrationScreen } from './src/screens/MyPageScreen';
@@ -20,7 +22,7 @@ import { warmUpApi } from './src/api/client';
 import { CachedUser, SELLER_DASHBOARD_CACHE_KEY, USER_CACHE_KEY, readCache, readWebCache, removeCaches, writeCache } from './src/cache/appCache';
 import { useAppFonts } from './src/hooks/useAppFonts';
 
-type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'mode'|'businessRegistration'|'complete'|'home'|'gallery';
+type Route='loading'|'splash'|'onboarding'|'login'|'signup'|'mode'|'businessRegistration'|'complete'|'home'|'gallery'|'withdrawComplete';
 type HomeEntry='buyer'|'seller'|'businessRegistration';
 
 void warmUpApi();
@@ -33,8 +35,56 @@ export default function App(){
   const [profileImageUrl,setProfileImageUrl]=useState<string|null>(initialUser?.profileImageUrl??null);
   const [type,setType]=useState<ServiceMode>('buyer');
   const [homeEntry,setHomeEntry]=useState<HomeEntry>('buyer');
+  const lastExitPress = useRef(0);
 
   useEffect(()=>{Promise.all([AsyncStorage.getItem('localtime:onboarding-complete'),readCache<CachedUser>(USER_CACHE_KEY)]).then(([v,user])=>{if(user?.nickname)setName(user.nickname);if(user?.profileImageUrl)setProfileImageUrl(user.profileImageUrl);setRoute(v==='true'?'login':'splash')}).catch(()=>setRoute('splash'))},[]);
+
+  // 안드로이드 뒤로가기 버튼 처리 (비-홈 화면)
+  useEffect(() => {
+    if (route === 'home') return; // 홈 화면은 BuyerHomeScreen 내부 핸들러가 전담
+
+    const onBackPress = () => {
+      if (route === 'signup') {
+        setRoute('login');
+        return true;
+      }
+      if (route === 'businessRegistration') {
+        setRoute('mode');
+        return true;
+      }
+      if (route === 'gallery') {
+        setRoute('home');
+        return true;
+      }
+      if (route === 'complete') {
+        setRoute('mode');
+        return true;
+      }
+      if (route === 'mode') {
+        setRoute('login');
+        return true;
+      }
+      if (route === 'withdrawComplete') {
+        finishWithdraw();
+        return true;
+      }
+
+      // 로그인 / 온보딩 / 스플래시 화면: 2초 내 재입력 시 종료
+      const now = Date.now();
+      if (lastExitPress.current && now - lastExitPress.current < 2000) {
+        BackHandler.exitApp();
+        return true;
+      }
+      lastExitPress.current = now;
+      if (Platform.OS === 'android') {
+        ToastAndroid.show("'뒤로' 버튼을 한 번 더 누르면 종료됩니다.", ToastAndroid.SHORT);
+      }
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [route]);
   const afterSplash=useCallback(()=>setRoute('onboarding'),[]);
   const finishOnboarding=async()=>{await AsyncStorage.setItem('localtime:onboarding-complete','true');setRoute('login')};
 
@@ -81,7 +131,15 @@ export default function App(){
   const finishBusinessRegistration=()=>{setType('seller');setHomeEntry('seller');setRoute('complete')};
   const start=()=>setRoute('home');
   const logout=async()=>{try{await authApi.logout()}catch{}await removeCaches(['localtime:access-token',USER_CACHE_KEY,'localtime:member','localtime:onboarding-complete',SELLER_DASHBOARD_CACHE_KEY]);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
-  const withdraw=async()=>{await withdrawAccount();await removeCaches(['localtime:access-token',USER_CACHE_KEY,'localtime:member','localtime:onboarding-complete',SELLER_DASHBOARD_CACHE_KEY]);setName('로컬이');setProfileImageUrl(null);setHomeEntry('buyer');setRoute('splash')};
+  const finishWithdraw=()=>{setHomeEntry('buyer');setType('buyer');setRoute('splash')};
+  const withdraw=async(userType:ServiceMode=type)=>{
+    setType(userType);
+    await withdrawAccount();
+    await removeCaches(['localtime:access-token',USER_CACHE_KEY,'localtime:member','localtime:onboarding-complete',SELLER_DASHBOARD_CACHE_KEY]);
+    setName('로컬이');
+    setProfileImageUrl(null);
+    setRoute('withdrawComplete');
+  };
   const purchase=async(payload:PurchasePayload)=>{await AsyncStorage.setItem('localtime:last-purchase',JSON.stringify({...payload,requestedAt:new Date().toISOString()}))};
 
   const content=!fontsLoaded||route==='loading'?<ActivityIndicator color={colors.primary500}/>
@@ -92,7 +150,13 @@ export default function App(){
     :route==='mode'?<ModeSelectionScreen onComplete={selectMode}/>
     :route==='businessRegistration'?<BusinessRegistrationScreen name={name} onBack={()=>setRoute('mode')} onComplete={finishBusinessRegistration}/>
     :route==='complete'?<CompleteScreen name={name} userType={type} onStart={start}/>
+    :route==='withdrawComplete'?<WithdrawCompleteScreen userType={type} onDone={finishWithdraw}/>
     :route==='gallery'?<ComponentGalleryScreen onClose={()=>setRoute('home')}/>
     :<BuyerHomeScreen initialEntry={homeEntry} onBusinessRegistered={finishBusinessRegistration} onLogout={logout} onWithdraw={withdraw} onPurchase={purchase}/>;
-  return <><StatusBar style="dark"/><DeviceFrame>{content}</DeviceFrame></>;
+  return (
+    <SafeAreaProvider>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
+      <DeviceFrame>{content}</DeviceFrame>
+    </SafeAreaProvider>
+  );
 }
