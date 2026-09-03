@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppHeaderHeight } from '../components/home';
 import OnboardingPage1 from '../../icon/onboarding_page1.svg';
 import OnboardingPage2 from '../../icon/onboarding_page2.svg';
 import OnboardingPage3 from '../../icon/onboarding_page3.svg';
@@ -21,6 +22,7 @@ const PAGES = [
 
 export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const insets = useSafeAreaInsets();
+  const { topInset } = useAppHeaderHeight();
   const [currentPage, setCurrentPage] = useState(0);
   const [containerWidth, setContainerWidth] = useState(Dimensions.get('window').width);
   const scrollRef = useRef<ScrollView>(null);
@@ -46,7 +48,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <View
-      style={[s.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}
+      style={[s.root, { paddingTop: topInset, paddingBottom: Math.max(insets.bottom, 16) }]}
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width;
         if (w > 0 && w !== containerWidth) {

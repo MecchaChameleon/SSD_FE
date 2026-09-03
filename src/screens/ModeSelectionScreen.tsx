@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppHeaderHeight } from '../components/home';
 import { ActionButton } from '../components/ui';
 import { colors } from '../theme';
 import BrandLogo from '../../icon/로컬타임_로고1 1.svg';
@@ -8,9 +9,9 @@ import BrandLogo from '../../icon/로컬타임_로고1 1.svg';
 export type ServiceMode='buyer'|'seller';
 
 export function ModeSelectionScreen({onComplete}:{onComplete:(mode:ServiceMode)=>void}) {
-  const insets = useSafeAreaInsets();
+  const { topInset } = useAppHeaderHeight();
   const [mode,setMode]=useState<ServiceMode|null>(null);
-  return <View style={[s.root, { paddingTop: insets.top + 48 }]}>
+  return <View style={[s.root, { paddingTop: topInset + 48 }]}>
     <View style={s.logo}><BrandLogo width="100%" height="100%"/></View>
     <View style={s.titleBlock}>
       <Text style={s.title}>서비스를 어떻게 이용할까요?</Text>

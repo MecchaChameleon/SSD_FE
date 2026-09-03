@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppHeaderHeight } from '../components/home';
 import { ActionButton } from '../components/ui';
 import { colors } from '../theme';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
 import ChevronLeft from '../../icon/chevron_left.svg';
 
 export function SignupScreen({initialNickname,profileImageUrl,onBack,onComplete}:{initialNickname?:string|null;profileImageUrl?:string|null;onBack:()=>void;onComplete:(name:string)=>void}) {
-  const insets = useSafeAreaInsets();
+  const { topInset } = useAppHeaderHeight();
   const [name,setName]=useState(()=>initialNickname?.slice(0,10)??'');
   const valid=name.trim().length>=2&&name.trim().length<=10;
-  return <View style={[s.root, { paddingTop: insets.top }]}>
+  return <View style={[s.root, { paddingTop: topInset }]}>
     <View style={s.header}>
       <Pressable accessibilityLabel="뒤로 가기" onPress={onBack} style={s.back}>
         <ChevronLeft width={24} height={24} color={colors.black}/>

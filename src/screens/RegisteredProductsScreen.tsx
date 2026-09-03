@@ -585,6 +585,10 @@ function parseTime(value: string) {
     ),
   };
 }
+const PERIOD_VALUES = ["오전", "오후"];
+const HOUR_VALUES = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const MINUTE_VALUES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
+
 export function TimeWheel({
   visible,
   value,
@@ -598,11 +602,12 @@ export function TimeWheel({
   onClose: () => void;
   onApply: (value: string) => void;
 }) {
-  const initial = parseTime(value);
+  const initial = useMemo(() => parseTime(value), [value]);
   const [period, setPeriod] = useState(initial.period);
   const [hour, setHour] = useState(initial.hour);
   const [minute, setMinute] = useState(initial.minute);
   const [interacted, setInteracted] = useState({period:false,hour:false,minute:false});
+
   useEffect(() => {
     if (visible) {
       const next = parseTime(value);
@@ -612,6 +617,9 @@ export function TimeWheel({
       setInteracted({period:false,hour:false,minute:false});
     }
   }, [visible, value]);
+
+  if (!visible) return null;
+
   return (
     <Modal
       transparent
@@ -619,21 +627,22 @@ export function TimeWheel({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable style={s.pickerOverlay} onPress={onClose}>
-        <Pressable style={s.pickerSheet} onPress={event => event.stopPropagation()}>
+      <View style={s.pickerOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={s.pickerSheet}>
           <View style={s.pickerHandle} />
           <Text style={s.pickerTitle}>{title}</Text>
           <View style={s.wheels}>
-            <View style={s.wheelHighlight} />
+            <View style={s.wheelHighlight} pointerEvents="none" />
             <Wheel
-              values={["오전", "오후"]}
+              values={PERIOD_VALUES}
               selected={period}
               onSelect={setPeriod}
               emphasize={interacted.period}
               onInteract={()=>setInteracted(value=>({...value,period:true}))}
             />
             <Wheel
-              values={Array.from({ length: 12 }, (_, i) => String(i + 1))}
+              values={HOUR_VALUES}
               selected={hour}
               onSelect={setHour}
               emphasize={interacted.hour}
@@ -641,9 +650,7 @@ export function TimeWheel({
             />
             <Text style={s.timeUnit}>시</Text>
             <Wheel
-              values={Array.from({ length: 12 }, (_, i) =>
-                String(i * 5).padStart(2, "0"),
-              )}
+              values={MINUTE_VALUES}
               selected={minute}
               onSelect={setMinute}
               emphasize={interacted.minute}
@@ -653,12 +660,12 @@ export function TimeWheel({
           </View>
           <Pressable
             style={s.pickerApply}
-            onPress={event => {event.stopPropagation();onApply(`${period} ${hour}:${minute}`);}}
+            onPress={() => onApply(`${period} ${hour}:${minute}`)}
           >
             <Text style={s.buttonText}>선택 완료</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -684,14 +691,17 @@ export function TimeOptionWheel({
     if (visible) setSelected(value || values[0] || "");
   }, [visible, value, values]);
 
+  if (!visible) return null;
+
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <Pressable style={s.pickerOverlay} onPress={onClose}>
-        <Pressable style={s.pickerSheet} onPress={event => event.stopPropagation()}>
+      <View style={s.pickerOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={s.pickerSheet}>
           <View style={s.pickerHandle} />
           <Text style={s.pickerTitle}>{title}</Text>
           <View style={s.wheels}>
-            <View style={s.wheelHighlight} />
+            <View style={s.wheelHighlight} pointerEvents="none" />
             {values.length ? (
               <Wheel
                 values={values}
@@ -705,15 +715,14 @@ export function TimeOptionWheel({
           <Pressable
             disabled={!selected}
             style={[s.pickerApply, !selected && s.disabled]}
-            onPress={event => {
-              event.stopPropagation();
+            onPress={() => {
               if (selected) onApply(selected);
             }}
           >
             <Text style={s.buttonText}>선택 완료</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -733,98 +742,83 @@ function Wheel({
 }) {
   const itemHeight = 44;
   const ref = useRef<ScrollView>(null);
-  const index = Math.max(0, values.indexOf(selected));
-  const lastOffset = useRef(index * itemHeight);
+  const selectedIndex = Math.max(0, values.indexOf(selected));
+  const isScrolling = useRef(false);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastEmitted = useRef(selected);
-  const mounted = useRef(false);
-  const isDragging = useRef(false);
-
-  const selectOffset = (offset: number, animated: boolean) => {
-    const next = Math.max(
-      0,
-      Math.min(values.length - 1, Math.round(offset / itemHeight)),
-    );
-    const snappedOffset = next * itemHeight;
-    lastOffset.current = snappedOffset;
-    if (values[next] !== lastEmitted.current) {
-      lastEmitted.current = values[next];
-      onSelect(values[next]);
-    }
-    if (Math.abs(offset - snappedOffset) > 0.5) {
-      ref.current?.scrollTo({ y: snappedOffset, animated });
-    }
-  };
 
   useEffect(() => {
-    if (mounted.current && selected === lastEmitted.current) return;
-    mounted.current = true;
-    lastEmitted.current = selected;
-    const offset = index * itemHeight;
-    lastOffset.current = offset;
+    const targetOffset = selectedIndex * itemHeight;
     const timer = setTimeout(() => {
-      ref.current?.scrollTo({ y: offset, animated: false });
-    }, 0);
-    return () => {
-      clearTimeout(timer);
-      if (settleTimer.current) clearTimeout(settleTimer.current);
-    };
-  }, [index, itemHeight]);
+      ref.current?.scrollTo({ y: targetOffset, animated: false });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [selectedIndex]);
 
-  const finish = (event: any) => {
-    const offset = event.nativeEvent.contentOffset.y;
-    lastOffset.current = offset;
+  const handleScrollEnd = (offsetY: number) => {
     if (settleTimer.current) clearTimeout(settleTimer.current);
-    selectOffset(offset, true);
+    isScrolling.current = false;
+    const nextIndex = Math.max(
+      0,
+      Math.min(values.length - 1, Math.round(offsetY / itemHeight))
+    );
+    if (values[nextIndex]) {
+      if (values[nextIndex] !== selected) {
+        onSelect(values[nextIndex]);
+      }
+      onInteract();
+    }
   };
+
   return (
     <ScrollView
       ref={ref}
-      key={values.join("-")}
       style={s.wheel}
       contentContainerStyle={s.wheelContent}
       showsVerticalScrollIndicator={false}
-      snapToOffsets={values.map((_,itemIndex)=>itemIndex*itemHeight)}
+      nestedScrollEnabled={true}
+      snapToInterval={itemHeight}
       snapToAlignment="start"
-      decelerationRate="normal"
+      decelerationRate="fast"
       scrollEventThrottle={16}
+      contentOffset={{ x: 0, y: selectedIndex * itemHeight }}
+      onLayout={() => {
+        ref.current?.scrollTo({ y: selectedIndex * itemHeight, animated: false });
+      }}
       onScrollBeginDrag={() => {
-        isDragging.current = true;
-        if (settleTimer.current) clearTimeout(settleTimer.current);
+        isScrolling.current = true;
         onInteract();
       }}
-      onScroll={event => {
-        const offset = event.nativeEvent.contentOffset.y;
-        lastOffset.current = offset;
-        const next = Math.max(
-          0,
-          Math.min(values.length - 1, Math.round(offset / itemHeight)),
-        );
-        if (values[next] !== lastEmitted.current) {
-          lastEmitted.current = values[next];
-          onSelect(values[next]);
-        }
+      onScroll={(e) => {
+        const offsetY = e.nativeEvent.contentOffset.y;
         if (settleTimer.current) clearTimeout(settleTimer.current);
-        if (!isDragging.current) {
-          settleTimer.current = setTimeout(() => selectOffset(lastOffset.current, true), 80);
+        settleTimer.current = setTimeout(() => {
+          handleScrollEnd(offsetY);
+        }, 120);
+      }}
+      onScrollEndDrag={(e) => {
+        const velocity = e.nativeEvent.velocity?.y ?? 0;
+        if (Math.abs(velocity) < 0.1) {
+          handleScrollEnd(e.nativeEvent.contentOffset.y);
         }
       }}
-      onScrollEndDrag={event => {
-        isDragging.current = false;
-        const velocity = event.nativeEvent.velocity?.y ?? 0;
-        if (Math.abs(velocity) < 0.01) finish(event);
-      }}
-      onMomentumScrollEnd={event => {
-        isDragging.current = false;
-        finish(event);
+      onMomentumScrollEnd={(e) => {
+        handleScrollEnd(e.nativeEvent.contentOffset.y);
       }}
     >
-      {values.map((item) => (
-        <View key={item} style={s.wheelItem}>
+      {values.map((item, idx) => (
+        <Pressable
+          key={item + "_" + idx}
+          style={s.wheelItem}
+          onPress={() => {
+            ref.current?.scrollTo({ y: idx * itemHeight, animated: true });
+            onSelect(item);
+            onInteract();
+          }}
+        >
           <Text style={[s.wheelText, emphasize && item === selected && s.wheelSelected]}>
             {item}
           </Text>
-        </View>
+        </Pressable>
       ))}
     </ScrollView>
   );
@@ -851,8 +845,9 @@ function OptionSheet({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable style={s.pickerOverlay} onPress={onClose}>
-        <Pressable style={s.optionSheet} onPress={() => undefined}>
+      <View style={s.pickerOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={s.optionSheet}>
           <View style={s.pickerHandle} />
           <Text style={s.pickerTitle}>{title}</Text>
           {options.length ? (
@@ -885,8 +880,8 @@ function OptionSheet({
               사업자 정보에 등록된 매장 주소가 없습니다.
             </Text>
           )}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }

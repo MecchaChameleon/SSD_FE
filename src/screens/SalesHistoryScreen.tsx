@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SalesHistoryItem, sellerApi } from "../api";
+import { useAppHeaderHeight } from "../components/home";
 import { colors, radius } from "../theme";
 import ChevronLeft from "../../icon/chevron_left.svg";
 
@@ -58,9 +59,11 @@ export function SalesHistoryScreen({
       .finally(() => setLoading(false));
   };
 
+  const { topInset, headerHeight } = useAppHeaderHeight();
+
   return (
     <View style={s.root}>
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
         <Pressable hitSlop={10} onPress={onBack}>
           <ChevronLeft width={24} height={24} color={colors.black} />
         </Pressable>

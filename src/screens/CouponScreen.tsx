@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from "react-native-svg";
 import { colors, fonts, radius } from "../theme";
+import { useAppHeaderHeight } from "../components/home";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import ChevronRightIcon from "../../icon/chevron_right.svg";
 
@@ -69,14 +70,14 @@ const monthlyBenefits: BenefitItem[] = [
 ];
 
 /** 연파랑 → 흰색 그라데이션 배경 (헤더 아래부터 시작) */
-function GradientBg({ screenHeight }: { screenHeight: number }) {
+function GradientBg({ screenHeight, headerHeight }: { screenHeight: number; headerHeight: number }) {
   const { width } = useWindowDimensions();
-  const gradH = screenHeight - 54; // 헤더(54) 아래부터
+  const gradH = screenHeight - headerHeight; // 헤더 아래부터
   return (
     <Svg
       width={width}
       height={gradH}
-      style={[StyleSheet.absoluteFillObject, { top: 54 }]}
+      style={[StyleSheet.absoluteFillObject, { top: headerHeight }]}
       pointerEvents="none"
     >
       <Defs>
@@ -96,6 +97,8 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
   const [showAllMonthly, setShowAllMonthly] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const { height: screenH } = useWindowDimensions();
+  const { topInset } = useAppHeaderHeight();
+  const headerHeight = 54 + topInset;
 
   const handleSelectBenefit = (title: string) => {
     setSelectedMessage(`'${title}' 혜택이 적용되었습니다!`);
@@ -107,10 +110,10 @@ export function CouponScreen({ onBack }: { onBack: () => void }) {
   return (
     <View style={s.container}>
       {/* 연파랑 → 흰색 그라데이션 배경 (헤더 아래부터) */}
-      <GradientBg screenHeight={screenH} />
+      <GradientBg screenHeight={screenH} headerHeight={headerHeight} />
 
       {/* 헤더 */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
         <Pressable hitSlop={12} onPress={onBack} style={s.backButton}>
           <ChevronLeftIcon width={24} height={24} color={colors.g900} />
         </Pressable>

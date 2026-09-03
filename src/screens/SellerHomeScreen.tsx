@@ -642,9 +642,10 @@ function PaymentStatus({
     setItems((v) => v.map((x) => (x.id === id ? { ...x, state } : x)));
     await onChanged();
   };
+  const { topInset, headerHeight } = useAppHeaderHeight();
   return (
     <View style={s.root}>
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
         <Pressable onPress={onBack}>
           <ChevronLeft width={24} height={24} color={colors.black} />
         </Pressable>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppHeaderHeight } from '../components/home';
 import BuyerSignupComplete from '../../icon/buyer_signup_complete.svg';
 import SellerSignupComplete from '../../icon/seller_signup_complete.svg';
 import { authApi } from '../api';
@@ -17,6 +18,7 @@ export function CompleteScreen({
   onStart: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { topInset } = useAppHeaderHeight();
   const SvgComponent = userType === 'seller' ? SellerSignupComplete : BuyerSignupComplete;
   const [nickname, setNickname] = useState(propName);
 
@@ -43,7 +45,7 @@ export function CompleteScreen({
     : '로컬이님';
 
   return (
-    <View style={[s.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
+    <View style={[s.root, { paddingTop: topInset, paddingBottom: Math.max(insets.bottom, 16) }]}>
       <View style={s.svgWrapper}>
         <SvgComponent width="100%" height="100%" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
         <Text style={s.welcomeTitle} numberOfLines={1} adjustsFontSizeToFit>

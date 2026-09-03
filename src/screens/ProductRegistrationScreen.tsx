@@ -511,8 +511,9 @@ function ChoiceSheet({ kind, options, selected, onClose, onSelect, disabledOptio
   if (!kind) return null;
   return (
     <Modal transparent visible animationType="slide" onRequestClose={onClose}>
-      <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={s.sheet} onPress={() => {}}>
+      <View style={s.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={s.sheet}>
           <View style={s.sheetHead}>
             <View>
               <Text style={s.sheetTitle}>{titles[kind]}</Text>
@@ -536,8 +537,8 @@ function ChoiceSheet({ kind, options, selected, onClose, onSelect, disabledOptio
               );
             })}
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -572,9 +573,9 @@ const s = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '600', color: colors.black, marginBottom: 12 },
   progressTrack: { height: 3, backgroundColor: colors.g200, borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: 3, backgroundColor: colors.primary500, borderRadius: 2 },
-  form: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 160 },
+  form: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 176 },
   stepSection: { marginBottom: 24 },
-  bottomBar: { position: 'absolute', bottom: 82, left: 16, right: 16 },
+  bottomBar: { position: 'absolute', bottom: 100, left: 16, right: 16 },
   bottomBtn: { height: 56, borderRadius: radius.md, backgroundColor: colors.primary500, alignItems: 'center', justifyContent: 'center' },
   bottomBtnDisabled: { backgroundColor: colors.g200 },
   bottomBtnText: { fontSize: 16, fontWeight: '600', color: colors.white },

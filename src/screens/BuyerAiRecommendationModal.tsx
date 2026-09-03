@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { AiRecommendationResponse, ApiError, buyerApi, Product } from "../api";
+import { useAppHeaderHeight } from "../components/home";
 import { colors, fonts, radius } from "../theme";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
 import AiBrainIcon from "../../icon/ai-brain.svg";
@@ -38,9 +39,11 @@ export function BuyerAiRecommendationScreen({
     }
   };
 
+  const { topInset, headerHeight } = useAppHeaderHeight();
+
   return (
     <View style={s.root}>
-      <View style={s.pageHeader}>
+      <View style={[s.pageHeader, { paddingTop: topInset, height: headerHeight }]}>
         <Pressable accessibilityRole="button" accessibilityLabel="뒤로가기" onPress={onBack} hitSlop={10} style={s.back}>
           <ChevronLeftIcon width={24} height={24} color={colors.black} />
         </Pressable>

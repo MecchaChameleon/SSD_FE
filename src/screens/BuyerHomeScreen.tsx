@@ -106,24 +106,54 @@ export const sortProductCards = (products: Product[], sort: (typeof sorts)[numbe
   if (sort === "마감 임박순") return [...products].sort((a, b) => (a.deadlineAt ?? Number.MAX_SAFE_INTEGER) - (b.deadlineAt ?? Number.MAX_SAFE_INTEGER));
   return products;
 };
-const visitLabel=(date:Date)=>date.toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'});
-const seoulDateKey=(date:Date)=>date.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});
-const deadlineLabel=(deadlineAt:number)=>{
-  const deadline=new Date(deadlineAt);
-  const today=new Date();
-  const tomorrow=new Date(today.getTime()+24*60*60*1000);
-  const deadlineKey=seoulDateKey(deadline);
-  const day=deadlineKey===seoulDateKey(today)
-    ? '오늘'
-    : deadlineKey===seoulDateKey(tomorrow)
-      ? '내일'
-      : deadline.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric',timeZone:'Asia/Seoul'});
-  const time=deadline.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'});
-  return `${day} ${time}`;
+const visitLabel = (date: Date) => {
+  try {
+    return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Seoul' });
+  } catch {
+    const hours = date.getHours();
+    const period = hours >= 12 ? '오후' : '오전';
+    const h = hours % 12 === 0 ? 12 : hours % 12;
+    const m = String(date.getMinutes()).padStart(2, '0');
+    return `${period} ${h}:${m}`;
+  }
 };
-const firstVisitTime=(deadlineAt?:number)=>{const date=new Date();date.setSeconds(0,0);date.setMinutes(Math.ceil(date.getMinutes()/5)*5);if(deadlineAt&&date.getTime()>deadlineAt)return '';return visitLabel(date)};
+const seoulDateKey = (date: Date) => {
+  try {
+    return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  } catch {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+};
+const deadlineLabel = (deadlineAt: number) => {
+  try {
+    const deadline = new Date(deadlineAt);
+    const today = new Date();
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    const deadlineKey = seoulDateKey(deadline);
+    const day = deadlineKey === seoulDateKey(today)
+      ? '오늘'
+      : deadlineKey === seoulDateKey(tomorrow)
+        ? '내일'
+        : `${deadline.getMonth() + 1}월 ${deadline.getDate()}일`;
+    const hours = String(deadline.getHours()).padStart(2, '0');
+    const minutes = String(deadline.getMinutes()).padStart(2, '0');
+    return `${day} ${hours}:${minutes}`;
+  } catch {
+    return '오늘 마감';
+  }
+};
+const firstVisitTime = (deadlineAt?: number) => {
+  const date = new Date();
+  date.setSeconds(0, 0);
+  date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5);
+  return visitLabel(date);
+};
 export const apiProductToCard = (p: ApiProduct): Product => {
-  const deadlineAt = new Date(p.deadline).getTime();
+  const rawDeadline = typeof p.deadline === 'string' && p.deadline.includes(' ') && !p.deadline.includes('T')
+    ? p.deadline.replace(' ', 'T')
+    : p.deadline;
+  const parsedDeadline = new Date(rawDeadline).getTime();
+  const deadlineAt = isNaN(parsedDeadline) ? Date.now() + 2 * 3600 * 1000 : parsedDeadline;
   const discountRate =
     p.discountRate ?? Math.round((1 - p.currentPrice / p.price) * 100);
   const diffMs = deadlineAt - Date.now();
@@ -302,7 +332,7 @@ export function BuyerHomeScreen({
       useNativeDriver:true,
     }).start(({finished})=>{if(finished)setDetailProduct(null)});
   };
-  const { headerHeight } = useAppHeaderHeight();
+  const { headerHeight, topInset } = useAppHeaderHeight();
   const tabScreen=(content:React.ReactNode)=>{
     const chromeVisible=tab!=="mypage"||myPageRoot;
     return <View style={s.tabRoot}>
@@ -721,7 +751,7 @@ export function BuyerHomeScreen({
   if (searching)
     return (
       <View style={s.root}>
-        <View style={s.searchHeader}>
+        <View style={[s.searchHeader, { paddingTop: topInset, height: 60 + topInset }]}>
           <Pressable onPress={() => { setSearching(false); setQuery(""); }}>
             <ChevronLeftIcon width={24} height={24} color={colors.black} />
           </Pressable>
@@ -879,9 +909,10 @@ export function BuyerHomeScreen({
   </View>;
 }
 function OrderForm({product,quantity,visitTime,onQuantity,onVisitTime,onBack,onNext}:{product:Product;quantity:number;visitTime:string;onQuantity:(v:number)=>void;onVisitTime:(v:string)=>void;onBack:()=>void;onNext:()=>void}){
+  if (!product) return null;
   const [picker,setPicker]=useState(false);
-  const [quantityText,setQuantityText]=useState(String(quantity));
-  const maxQuantity=Number(product.remaining.replace(/[^0-9]/g,''))||99;
+  const [quantityText,setQuantityText]=useState(String(quantity || 1));
+  const maxQuantity=Number(String(product.remaining ?? '').replace(/[^0-9]/g,''))||99;
   const validQuantity=quantityText!==''&&Number(quantityText)>=1;
   const changeQuantity=(value:string)=>{
     const digits=value.replace(/\D/g,'');
@@ -893,12 +924,33 @@ function OrderForm({product,quantity,visitTime,onQuantity,onVisitTime,onBack,onN
     onQuantity(next);
   };
   const commitQuantity=()=>{if(!validQuantity){setQuantityText('1');onQuantity(1)}};
-  const times=useMemo(()=>{const values:string[]=[];const cursor=new Date();cursor.setSeconds(0,0);cursor.setMinutes(Math.ceil(cursor.getMinutes()/5)*5);const deadline=product.deadlineAt??cursor.getTime();while(cursor.getTime()<=deadline){values.push(visitLabel(cursor));cursor.setMinutes(cursor.getMinutes()+5)}return values},[product.deadlineAt]);
+  const times=useMemo(()=>{
+    const values:string[]=[];
+    const cursor=new Date();
+    cursor.setSeconds(0,0);
+    cursor.setMinutes(Math.ceil(cursor.getMinutes()/5)*5);
+    const maxSlots = 36;
+    let targetEnd = cursor.getTime() + 2 * 60 * 60 * 1000;
+    if (product.deadlineAt && !isNaN(product.deadlineAt) && product.deadlineAt > cursor.getTime()) {
+      targetEnd = Math.max(targetEnd, Math.min(cursor.getTime() + 4 * 60 * 60 * 1000, product.deadlineAt));
+    }
+    while(cursor.getTime()<=targetEnd && values.length < maxSlots){
+      values.push(visitLabel(cursor));
+      cursor.setMinutes(cursor.getMinutes()+5);
+    }
+    return values;
+  },[product.deadlineAt]);
+  useEffect(()=>{
+    if(!visitTime && times.length > 0){
+      onVisitTime(times[0]);
+    }
+  },[times]);
   // The time list is intentionally constrained by its containing bottom sheet.
   // @ts-ignore React Native accepts an optional style key generated below at runtime.
-  return <View style={checkoutStyles.root}><CheckoutHeader title="주문하기" onBack={onBack}/><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={checkoutStyles.content}><Text style={checkoutStyles.sectionTitle}>상품 정보</Text><CheckoutProduct product={product}/><Text style={[checkoutStyles.sectionTitle,{marginTop:24}]}>주문 정보 작성</Text><Text style={checkoutStyles.label}>수량<Text style={checkoutStyles.required}> *</Text></Text><TextInput value={quantityText} onChangeText={changeQuantity} onBlur={commitQuantity} keyboardType="number-pad" style={checkoutStyles.input}/><Text style={checkoutStyles.label}>방문 시각<Text style={checkoutStyles.required}> *</Text></Text><Pressable disabled={!times.length} onPress={()=>setPicker(true)} style={checkoutStyles.input}><Text style={[checkoutStyles.inputText,!visitTime&&{color:colors.g400}]}>{visitTime||'선택 가능한 시간이 없습니다.'}</Text><ChevronDownIcon width={24} height={24} color={colors.g400}/></Pressable></ScrollView><View style={checkoutStyles.bottom}><Pressable disabled={!visitTime||!validQuantity} onPress={onNext} style={[checkoutStyles.primaryButton,(!visitTime||!validQuantity)&&checkoutStyles.disabled]}><Text style={[checkoutStyles.primaryText,(!visitTime||!validQuantity)&&checkoutStyles.disabledText]}>다음</Text></Pressable></View><TimeOptionWheel visible={picker} value={visitTime} values={times} title="방문 시각 선택" onClose={()=>setPicker(false)} onApply={time=>{onVisitTime(time);setPicker(false)}}/></View>
+  return <View style={checkoutStyles.root}><CheckoutHeader title="주문하기" onBack={onBack}/><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={checkoutStyles.content}><Text style={checkoutStyles.sectionTitle}>상품 정보</Text><CheckoutProduct product={product}/><Text style={[checkoutStyles.sectionTitle,{marginTop:24}]}>주문 정보 작성</Text><Text style={checkoutStyles.label}>수량<Text style={checkoutStyles.required}> *</Text></Text><TextInput value={quantityText} onChangeText={changeQuantity} onBlur={commitQuantity} keyboardType="number-pad" style={checkoutStyles.input}/><Text style={checkoutStyles.label}>방문 시각<Text style={checkoutStyles.required}> *</Text></Text><Pressable disabled={!times.length} onPress={()=>setPicker(true)} style={checkoutStyles.input}><Text style={[checkoutStyles.inputText,!visitTime&&{color:colors.g400}]}>{visitTime||'선택 가능한 시간이 없습니다.'}</Text><ChevronDownIcon width={24} height={24} color={colors.g400}/></Pressable></ScrollView><View style={checkoutStyles.bottom}><Pressable disabled={!visitTime||!validQuantity} onPress={onNext} style={[checkoutStyles.primaryButton,(!visitTime||!validQuantity)&&checkoutStyles.disabled]}><Text style={[checkoutStyles.primaryText,(!visitTime||!validQuantity)&&checkoutStyles.disabledText]}>다음</Text></Pressable></View><TimeOptionWheel visible={picker} value={visitTime} values={times} title="방문 시각 선택" onClose={()=>setPicker(false)} onApply={time=>{onVisitTime(time);setPicker(false)}}/></View>;
 }
 function PaymentForm({product,quantity,onBack,onPay}:{product:Product;quantity:number;onBack:()=>void;onPay:()=>Promise<void>}){
+  if (!product) return null;
   const [method,setMethod]=useState<string|null>(null);
   const [unsupported,setUnsupported]=useState(false);
   const [submitting,setSubmitting]=useState(false);
@@ -918,16 +970,30 @@ function PaymentForm({product,quantity,onBack,onPay}:{product:Product;quantity:n
       setPaymentError(error instanceof Error?error.message:'결제를 완료하지 못했습니다. 다시 시도해 주세요.');
     }
   };
-  return <View style={checkoutStyles.root}><CheckoutHeader title="결제하기" onBack={onBack}/><View style={checkoutStyles.content}><Text style={checkoutStyles.sectionTitle}>결제 상품</Text><View style={checkoutStyles.paymentRows}><PayRow label="상품명" value={product.title}/><PayRow label="정가" value={product.original}/><PayRow label="할인가" value={product.price}/><PayRow label="구매 수량" value={`${quantity}개`}/><PayRow label="결제금액" value={`${total.toLocaleString()}원`} bold/></View><View style={checkoutStyles.totalPay}><Text style={checkoutStyles.sectionTitle}>총 결제금액</Text><Text style={checkoutStyles.totalValue}>{total.toLocaleString()}원</Text></View><Text style={[checkoutStyles.sectionTitle,{marginTop:32}]}>결제 수단</Text><View style={checkoutStyles.methods}>{['토스페이','네이버페이','카카오페이'].map(value=><Pressable key={value} disabled={submitting} onPress={()=>setMethod(value)} style={[checkoutStyles.method,method===value&&checkoutStyles.methodOn]}><Text style={checkoutStyles.methodLogo}>{value==='토스페이'?'toss pay':value==='네이버페이'?'N pay':'● pay'}</Text><Text style={checkoutStyles.methodName}>{value}</Text></Pressable>)}</View>{paymentError?<Text style={checkoutStyles.paymentError}>{paymentError}</Text>:null}</View><View style={checkoutStyles.bottom}><Pressable accessibilityRole="button" accessibilityState={{disabled:!method||submitting,busy:submitting}} disabled={!method||submitting} onPress={()=>void submit()} style={[checkoutStyles.primaryButton,(!method||submitting)&&checkoutStyles.disabled]}><Text style={[checkoutStyles.primaryText,(!method||submitting)&&checkoutStyles.disabledText]}>{submitting?'결제 처리 중...':'결제하기'}</Text></Pressable></View><Modal transparent visible={unsupported} animationType="fade"><View style={checkoutStyles.alertOverlay}><View style={checkoutStyles.alert}><Text style={checkoutStyles.alertIcon}>ⓘ</Text><Text style={checkoutStyles.alertText}>아직 지원하지 않는 결제수단 입니다.</Text><Pressable onPress={()=>setUnsupported(false)} style={checkoutStyles.primaryButton}><Text style={checkoutStyles.primaryText}>확인</Text></Pressable></View></View></Modal></View>
+  return <View style={checkoutStyles.root}><CheckoutHeader title="결제하기" onBack={onBack}/><View style={checkoutStyles.content}><Text style={checkoutStyles.sectionTitle}>결제 상품</Text><View style={checkoutStyles.paymentRows}><PayRow label="상품명" value={product.title}/><PayRow label="정가" value={product.original}/><PayRow label="할인가" value={product.price}/><PayRow label="구매 수량" value={`${quantity}개`}/><PayRow label="결제금액" value={`${total.toLocaleString()}원`} bold/></View><View style={checkoutStyles.totalPay}><Text style={checkoutStyles.sectionTitle}>총 결제금액</Text><Text style={checkoutStyles.totalValue}>{total.toLocaleString()}원</Text></View><Text style={[checkoutStyles.sectionTitle,{marginTop:32}]}>결제 수단</Text><View style={checkoutStyles.methods}>{['토스페이','네이버페이','카카오페이'].map(value=><Pressable key={value} disabled={submitting} onPress={()=>setMethod(value)} style={[checkoutStyles.method,method===value&&checkoutStyles.methodOn]}><Text style={checkoutStyles.methodLogo}>{value==='토스페이'?'toss pay':value==='네이버페이'?'N pay':'● pay'}</Text><Text style={checkoutStyles.methodName}>{value}</Text></Pressable>)}</View>{paymentError?<Text style={checkoutStyles.paymentError}>{paymentError}</Text>:null}</View><View style={checkoutStyles.bottom}><Pressable accessibilityRole="button" accessibilityState={{disabled:!method||submitting,busy:submitting}} disabled={!method||submitting} onPress={()=>void submit()} style={[checkoutStyles.primaryButton,(!method||submitting)&&checkoutStyles.disabled]}><Text style={[checkoutStyles.primaryText,(!method||submitting)&&checkoutStyles.disabledText]}>{submitting?'결제 처리 중...':'결제하기'}</Text></Pressable></View><Modal transparent visible={unsupported} animationType="fade"><View style={checkoutStyles.alertOverlay}><View style={checkoutStyles.alert}><Text style={checkoutStyles.alertIcon}>ⓘ</Text><Text style={checkoutStyles.alertText}>아직 지원하지 않는 결제수단 입니다.</Text><Pressable onPress={()=>setUnsupported(false)} style={checkoutStyles.primaryButton}><Text style={checkoutStyles.primaryText}>확인</Text></Pressable></View></View></Modal></View>;
 }
-function CheckoutHeader({title,onBack}:{title:string;onBack:()=>void}){return <View style={checkoutStyles.header}><Pressable onPress={onBack}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Text style={checkoutStyles.headerTitle}>{title}</Text><View style={{width:24}}/></View>}
-function CheckoutProduct({product}:{product:Product}){return <View style={checkoutStyles.productBox}><Text style={checkoutStyles.productShop}>{product.shop}</Text><Text style={checkoutStyles.productDetail}>{product.detail}</Text><View style={checkoutStyles.productPriceRow}><Text style={checkoutStyles.productOriginal}>{product.original}</Text><Text style={checkoutStyles.productPrice}><Text style={checkoutStyles.saleLabel}>[할인가] </Text>{product.price}</Text></View><Text style={checkoutStyles.productDetail}>{product.remaining}</Text></View>}
+function CheckoutHeader({title,onBack}:{title:string;onBack:()=>void}){
+  const { topInset, headerHeight } = useAppHeaderHeight();
+  return <View style={[checkoutStyles.header, { paddingTop: topInset, height: headerHeight }]}><Pressable onPress={onBack} hitSlop={10}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Text style={checkoutStyles.headerTitle}>{title}</Text><View style={{width:24}}/></View>;
+}
+function CheckoutProduct({product}:{product:Product}){
+  return <View style={checkoutStyles.productBox}>
+    <Text style={checkoutStyles.productShop}>{product?.shop ?? ''}</Text>
+    <Text style={checkoutStyles.productDetail}>{product?.detail ?? ''}</Text>
+    <View style={checkoutStyles.productPriceRow}>
+      <Text style={checkoutStyles.productOriginal}>{product?.original ?? ''}</Text>
+      <Text style={checkoutStyles.productPrice}><Text style={checkoutStyles.saleLabel}>[할인가] </Text>{product?.price ?? ''}</Text>
+    </View>
+    <Text style={checkoutStyles.productDetail}>{product?.remaining ?? ''}</Text>
+  </View>;
+}
 function PayRow({label,value,bold}:{label:string;value:string;bold?:boolean}){return <View style={checkoutStyles.payRow}><Text style={checkoutStyles.payLabel}>{label}</Text><Text numberOfLines={2} style={[checkoutStyles.payValue,bold&&checkoutStyles.payBold]}>{value}</Text></View>}
 
 function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product;liked:boolean;onBack:()=>void;onLike:()=>void;onBuy:()=>void}) {
   const images=product.imageUrls??[];
   const [index,setIndex]=useState(0);
   const {width}=useWindowDimensions();const frameWidth=Math.min(width,402);
+  const { topInset } = useAppHeaderHeight();
   const heroCollapse=useRef(new Animated.Value(0)).current;
   const collapseStart=useRef(0);
   const panResponder=useRef(PanResponder.create({
@@ -947,7 +1013,7 @@ function BuyerProductDetail({product,liked,onBack,onLike,onBuy}:{product:Product
   const heroOpacity=heroCollapse.interpolate({inputRange:[0,245,319],outputRange:[1,.35,0],extrapolate:'clamp'});
   const heroScale=heroCollapse.interpolate({inputRange:[0,319],outputRange:[1,.78],extrapolate:'clamp'});
   return <View style={[detailStyles.root,gestureStyles.root,{width:frameWidth,alignSelf:'center'}]} {...panResponder.panHandlers}>
-    <Animated.View style={[detailStyles.hero,{height:heroHeight,opacity:heroOpacity,transform:[{scale:heroScale}]}]}>{images.length?<ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={event=>setIndex(Math.round(event.nativeEvent.contentOffset.x/event.nativeEvent.layoutMeasurement.width))}>{images.map((url,i)=><Image key={`${url}-${i}`} source={{uri:url}} resizeMode="cover" style={[detailStyles.heroImage,{width:frameWidth}]}/>)}</ScrollView>:<View style={detailStyles.fallback}/>}<View style={detailStyles.heroActions}><Pressable onPress={onBack} style={detailStyles.circle}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Pressable onPress={onLike} style={detailStyles.circle}><Text style={[detailStyles.heart,liked&&detailStyles.heartLiked]}>♥</Text></Pressable></View>{images.length>1?<View style={detailStyles.dots}>{images.map((_,i)=><View key={i} style={[detailStyles.dot,index===i&&detailStyles.dotOn]}/>)}</View>:null}</Animated.View>
+    <Animated.View style={[detailStyles.hero,{height:heroHeight,opacity:heroOpacity,transform:[{scale:heroScale}]}]}>{images.length?<ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={event=>setIndex(Math.round(event.nativeEvent.contentOffset.x/event.nativeEvent.layoutMeasurement.width))}>{images.map((url,i)=><Image key={`${url}-${i}`} source={{uri:url}} resizeMode="cover" style={[detailStyles.heroImage,{width:frameWidth}]}/>)}</ScrollView>:<View style={detailStyles.fallback}/>}<View style={[detailStyles.heroActions, { top: Math.max(16, topInset + 12) }]}><Pressable onPress={onBack} style={detailStyles.circle}><ChevronLeftIcon width={24} height={24} color={colors.black}/></Pressable><Pressable onPress={onLike} style={detailStyles.circle}><Text style={[detailStyles.heart,liked&&detailStyles.heartLiked]}>♥</Text></Pressable></View>{images.length>1?<View style={detailStyles.dots}>{images.map((_,i)=><View key={i} style={[detailStyles.dot,index===i&&detailStyles.dotOn]}/>)}</View>:null}</Animated.View>
     <View style={[detailStyles.panel,gestureStyles.panel]}>
       <View style={gestureStyles.dragArea}><View style={gestureStyles.dragHandle}/></View>
       <View style={gestureStyles.panelContent}>

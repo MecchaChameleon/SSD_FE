@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi } from "../api";
-import { Product } from "../components/home";
+import { Product, useAppHeaderHeight } from "../components/home";
 import { ProductListRow, RankedProductCard, SortDropdown } from "./BuyerHomeSections";
 import { apiProductToCard, BuyerCategory, preloadProductImages, sortProductCards, sorts } from "./BuyerHomeScreen";
 import ChevronLeftIcon from "../../icon/chevron_left.svg";
@@ -84,10 +84,11 @@ export function ProductListScreen({
   };
 
   const { sorted, groups } = grouped(products);
+  const { topInset, headerHeight } = useAppHeaderHeight();
 
   return (
     <View style={s.root}>
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
         <View style={s.headerSide}>
           <Pressable hitSlop={10} onPress={onBack}>
             <ChevronLeftIcon width={24} height={24} color={colors.black} />
