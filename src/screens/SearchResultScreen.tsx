@@ -13,6 +13,7 @@ import {
   BottomNavigation,
   Product,
   getBadgeInfo,
+  useAppHeaderHeight,
 } from "../components/home";
 import { colors, fonts, radius } from "../theme";
 import { buyerApi, Product as ApiProduct, ProductCategory } from "../api";
@@ -217,10 +218,11 @@ export function SearchResultScreen({
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 
+  const { topInset } = useAppHeaderHeight();
   return (
     <View style={s.root}>
       {/* Header Search Bar Row */}
-      <View style={s.headerRow}>
+      <View style={[s.headerRow, { paddingTop: 12 + topInset }]}>
         <Pressable onPress={onBack} hitSlop={10} style={s.backButton}>
           <ChevronLeftIcon width={22} height={22} color={colors.black} />
         </Pressable>

@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, BackHandler, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, radius } from '../theme';
 import { ApiError, sellerApi } from '../api';
 import ChevronDown from '../../icon/chevron_down.svg';
 import CloseIcon from '../../icon/x.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
+import SellerRegisterComplete from '../../icon/seller_register_complete.svg';
 import { TimeWheel } from './RegisteredProductsScreen';
 import { AppHeader } from '../components/home';
 import { normalizePickedImages } from '../utils/normalizePickedImage';
@@ -542,19 +544,23 @@ function ChoiceSheet({ kind, options, selected, onClose, onSelect, disabledOptio
 
 function Completion({ onGoToAI, onGoHome }: { onGoToAI: () => void; onGoHome: () => void }) {
   return (
-    <View style={s.complete}>
-      <View style={s.completeBody}>
-        <Character width={108} height={108} />
-        <Text style={s.completeTitle}>상품 등록 완료!</Text>
-        <Text style={s.completeText}>AI 추천가를 확인하고, 매장 운영의 효율성을 극대화해보세요.</Text>
-      </View>
-      <View style={s.completeActions}>
-        <Pressable style={s.bottomBtn} onPress={onGoToAI}>
-          <Text style={s.bottomBtnText}>AI 추천 할인가 확인하기</Text>
-        </Pressable>
-        <Pressable style={[s.bottomBtn, s.btnSecondary]} onPress={onGoHome}>
-          <Text style={[s.bottomBtnText, s.btnSecondaryText]}>홈 화면으로 이동</Text>
-        </Pressable>
+    <View style={s.completeContainer}>
+      <View style={s.completeSvgWrapper}>
+        <SellerRegisterComplete width="100%" height="100%" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="AI 추천 할인가 확인하기"
+          hitSlop={16}
+          style={({ pressed }) => [s.completeBtnAi, pressed && { opacity: 0.7 }]}
+          onPress={onGoToAI}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="홈 화면으로 이동"
+          hitSlop={16}
+          style={({ pressed }) => [s.completeBtnHome, pressed && { opacity: 0.7 }]}
+          onPress={onGoHome}
+        />
       </View>
     </View>
   );
@@ -621,11 +627,17 @@ const s = StyleSheet.create({
   radioOn: { borderColor: colors.primary500 },
   radioDisabled: { borderColor: colors.g200, backgroundColor: colors.g100 },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary500 },
-  complete: { flex: 1, backgroundColor: colors.white, paddingHorizontal: 16, paddingTop: 40, paddingBottom: 60, justifyContent: 'space-between' },
-  completeBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
-  completeTitle: { fontSize: 20, fontWeight: '700', color: colors.black, marginTop: 18 },
-  completeText: { fontSize: 13, lineHeight: 19, color: colors.g500, textAlign: 'center', marginTop: 8 },
-  completeActions: { gap: 0 },
+  completeContainer: { flex: 1, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
+  completeSvgWrapper: {
+    width: '100%',
+    maxHeight: '100%',
+    aspectRatio: 402 / 550,
+    maxWidth: 430,
+    position: 'relative',
+    transform: [{ translateY: -18 }],
+  },
+  completeBtnAi: { position: 'absolute', left: '4%', right: '4%', top: '75.5%', height: '10.2%', zIndex: 100, elevation: 10, backgroundColor: 'rgba(0,0,0,0)' },
+  completeBtnHome: { position: 'absolute', left: '4%', right: '4%', top: '87.1%', height: '10.2%', zIndex: 100, elevation: 10, backgroundColor: 'rgba(0,0,0,0)' },
   header: { height: 56 },
   headerTitle: { fontSize: 16, fontWeight: '600', color: colors.black },
 });

@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View
 import { colors, radius } from '../theme';
 import ChevronLeft from '../../icon/chevron_left.svg';
 import Character from '../../icon/로컬타임_캐릭터 1.svg';
+import { useAppHeaderHeight } from '../components/home';
 import { sellerApi, type SalesReport } from '../api/seller';
 
 const money = (value: number) => `${value.toLocaleString()}원`;
@@ -62,7 +63,16 @@ export function SalesReportScreen({ onBack, startDate, endDate }: { onBack: () =
   </View>;
 }
 
-function Header({onBack}:{onBack:()=>void}) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black}/></Pressable><Text style={s.headerTitle}>당일 매출 · 정산 금액</Text><View style={{width:24}}/></View>; }
+function Header({onBack}:{onBack:()=>void}) {
+  const { topInset, headerHeight } = useAppHeaderHeight();
+  return (
+    <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
+      <Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black}/></Pressable>
+      <Text style={s.headerTitle}>당일 매출 · 정산 금액</Text>
+      <View style={{width:24}}/>
+    </View>
+  );
+}
 function Section({title,hint,compact,children}:{title:string;hint?:string;compact?:boolean;children:React.ReactNode}) { return <View style={[s.section,compact&&s.compact]}><View style={s.sectionHead}><Text style={s.sectionTitle}>{title}</Text>{hint?<Text style={s.hint}>{hint}</Text>:null}</View>{children}</View>; }
 function Row({label,value,muted}:{label:string;value:string;muted?:boolean}) { return <View style={s.row}><Text style={[s.label,muted&&s.muted]}>{label}</Text><Text numberOfLines={1} style={[s.value,muted&&s.muted]}>{value}</Text></View>; }
 function TotalRow({label,value,accent}:{label:string;value:string;accent?:boolean}) { return <View style={s.totalRow}><Text style={s.totalLabel}>{label}</Text><Text style={[s.totalValue,accent&&s.accent]}>{value}</Text></View>; }

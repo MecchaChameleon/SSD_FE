@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { normalizePickedImages } from "../utils/normalizePickedImage";
 import { ActionButton } from "../components/ui";
+import { useAppHeaderHeight } from "../components/home";
 import { colors, radius } from "../theme";
 import { ApiError, Product as ApiProduct, resolveApiAssetUrl, sellerApi } from "../api";
 import ChevronDown from "../../icon/chevron_down.svg";
@@ -222,8 +223,9 @@ export function RegisteredProductsScreen({ onBack }: { onBack: () => void }) {
   );
 }
 function Header({ title, onBack }: { title: string; onBack: () => void }) {
+  const { topInset, headerHeight } = useAppHeaderHeight();
   return (
-    <View style={s.header}>
+    <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
       <Pressable onPress={onBack}>
         <ChevronLeft width={24} height={24} color={colors.black} />
       </Pressable>

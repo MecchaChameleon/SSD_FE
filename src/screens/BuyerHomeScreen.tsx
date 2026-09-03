@@ -23,6 +23,7 @@ import {
   Product,
   PaymentDisplayStatus,
   getBadgeInfo,
+  useAppHeaderHeight,
 } from "../components/home";
 import { colors, fonts, radius } from "../theme";
 import ChevronDownIcon from "../../icon/chevron_down.svg";
@@ -189,7 +190,7 @@ export function BuyerHomeScreen({
   initialEntry?: 'buyer'|'seller'|'businessRegistration';
   onBusinessRegistered?: () => void;
   onLogout: () => Promise<void>;
-  onWithdraw: () => Promise<void>;
+  onWithdraw: (userType?: 'buyer' | 'seller') => Promise<void>;
   onPurchase?: (payload: PurchasePayload) => void | Promise<void>;
 }) {
   const [category, setCategory] = useState<BuyerCategory>("전체");
@@ -301,11 +302,12 @@ export function BuyerHomeScreen({
       useNativeDriver:true,
     }).start(({finished})=>{if(finished)setDetailProduct(null)});
   };
+  const { headerHeight } = useAppHeaderHeight();
   const tabScreen=(content:React.ReactNode)=>{
     const chromeVisible=tab!=="mypage"||myPageRoot;
     return <View style={s.tabRoot}>
       <ScreenTransition screenKey={tab} direction={tabDirection}>
-        <View style={[s.tabContent,chromeVisible&&s.tabContentWithHeader]}>{content}</View>
+        <View style={[s.tabContent, chromeVisible && { paddingTop: headerHeight }]}>{content}</View>
       </ScreenTransition>
       {chromeVisible?<View style={s.fixedHeader}><AppHeader showBell={tab!=="home"}/></View>:null}
       {chromeVisible?<View style={s.fixedNavigation}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
@@ -620,7 +622,7 @@ export function BuyerHomeScreen({
       <SellerHomeScreen
         onBuyerMode={() => {setBuyerHomeReady(false);setSellerMode(false);setTab('home');setBuyerModeComplete(true);}}
         onLogout={onLogout}
-        onWithdraw={onWithdraw}
+        onWithdraw={() => onWithdraw('seller')}
       />
     );
   if (tab === "mypage")
@@ -634,7 +636,7 @@ export function BuyerHomeScreen({
         onLikes={() => navigateTab("likes")}
         onSellerMode={() => setSellerMode(true)}
         onLogout={onLogout}
-        onWithdraw={onWithdraw}
+        onWithdraw={() => onWithdraw('buyer')}
         onRootChange={setMyPageRoot}
         showChrome={false}
       />

@@ -1,27 +1,116 @@
-import React,{useState} from 'react';
-import { StyleSheet,Text,View } from 'react-native';
-import { ActionButton } from '../components/ui';
-import { colors } from '../theme';
-import Character from '../../icon/로컬타임_캐릭터 1.svg';
-import LocalTimeIcon from '../../icon/로컬타임_아이콘 1.svg';
-import CommunityArt from '../../icon/Group 2.svg';
+import React, { useRef, useState } from 'react';
+import {
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import OnboardingPage1 from '../../icon/onboarding_page1.svg';
+import OnboardingPage2 from '../../icon/onboarding_page2.svg';
+import OnboardingPage3 from '../../icon/onboarding_page3.svg';
 
-const pages=[
-  {title:'여행 중 만나는 실시간 마감 혜택',body:'내 위치와 취향을 기반으로 합리적인 상품을 추천해요.',Art:LocalTimeIcon},
-  {title:'AI와 함께 똑똑한 소비',body:'남은 재고와 마감 시간을 분석해 최적의 할인 상품을 추천해요.',Art:Character},
-  {title:'지역과 소비를 연결하는 서비스',body:'낭비는 줄이고 합리적인 소비는 늘려요.',Art:CommunityArt},
+const PAGES = [
+  { key: 'page1', Component: OnboardingPage1 },
+  { key: 'page2', Component: OnboardingPage2 },
+  { key: 'page3', Component: OnboardingPage3 },
 ];
 
-export function OnboardingScreen({onDone}:{onDone:()=>void}) {
-  const [page,setPage]=useState(0);
-  const next=()=>page===pages.length-1?onDone():setPage(page+1);
-  const {title,body,Art}=pages[page];
-  return <View style={s.root}>
-    <View style={s.hero}><Art width="100%" height="100%"/></View>
-    <View style={s.copy}><Text style={s.title}>{title}</Text><Text style={s.body}>{body}</Text></View>
-    <View style={s.dots}>{pages.map((_,i)=><View key={i} style={[s.dot,i===page&&s.dotOn]}/>)}</View>
-    <View style={s.button}><ActionButton onPress={next}>{page===pages.length-1?'시작하기':'다음'}</ActionButton></View>
-  </View>;
+export function OnboardingScreen({ onDone }: { onDone: () => void }) {
+  const insets = useSafeAreaInsets();
+  const [currentPage, setCurrentPage] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(Dimensions.get('window').width);
+  const scrollRef = useRef<ScrollView>(null);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (containerWidth <= 0) return;
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const pageIndex = Math.round(offsetX / containerWidth);
+    if (pageIndex !== currentPage && pageIndex >= 0 && pageIndex < PAGES.length) {
+      setCurrentPage(pageIndex);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentPage < PAGES.length - 1) {
+      const nextIndex = currentPage + 1;
+      scrollRef.current?.scrollTo({ x: nextIndex * containerWidth, animated: true });
+      setCurrentPage(nextIndex);
+    } else {
+      onDone();
+    }
+  };
+
+  return (
+    <View
+      style={[s.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0 && w !== containerWidth) {
+          setContainerWidth(w);
+        }
+      }}
+    >
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        style={s.scrollView}
+      >
+        {PAGES.map(({ key, Component }, index) => (
+          <View key={key} style={[s.pageContainer, { width: containerWidth }]}>
+            <View style={s.pageSvgWrapper}>
+              <Component width="100%" height="100%" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+              {/* 하단 '시작하기'/'다음' 버튼 터치 오버레이 (402x786 기준: x: 16, y: 784-54=730, w: 370, h: 56) */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={index === PAGES.length - 1 ? '시작하기' : '다음'}
+                hitSlop={16}
+                style={({ pressed }) => [s.buttonOverlay, pressed && { opacity: 0.7 }]}
+                onPress={handleNext}
+              />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
 }
 
-const s=StyleSheet.create({root:{flex:1,backgroundColor:colors.white},hero:{position:'absolute',top:'13%',left:52,right:52,height:300,alignItems:'center',justifyContent:'center'},copy:{position:'absolute',top:'58.6%',left:16,right:16,alignItems:'center'},title:{fontSize:24,fontWeight:'600',color:colors.black,textAlign:'center'},body:{marginTop:8,fontSize:16,lineHeight:23,color:colors.g500,textAlign:'center'},dots:{position:'absolute',top:'77%',alignSelf:'center',flexDirection:'row',gap:6},dot:{width:6,height:6,borderRadius:3,backgroundColor:colors.g300},dotOn:{width:24,backgroundColor:colors.primary500},button:{position:'absolute',top:'89.7%',left:16,right:16}});
+const s = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  pageContainer: {
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageSvgWrapper: {
+    width: '100%',
+    maxHeight: '100%',
+    aspectRatio: 402 / 786,
+    maxWidth: 430,
+    position: 'relative',
+  },
+  // 402 x 786 기준: left: 16/402 ≈ 4%, right: 4%, top: (784-54)/786 = 730/786 ≈ 92.9%, height: 56/786 ≈ 7.1%
+  buttonOverlay: {
+    position: 'absolute',
+    left: '4%',
+    right: '4%',
+    top: '92.9%',
+    height: '7.1%',
+    zIndex: 100,
+    elevation: 10,
+    backgroundColor: 'rgba(0,0,0,0)',
+  },
+});

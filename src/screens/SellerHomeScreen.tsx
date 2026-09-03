@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
-import { AppHeader as BaseAppHeader, floatingNavigationStyles } from "../components/home";
+import { AppHeader as BaseAppHeader, floatingNavigationStyles, useAppHeaderHeight } from "../components/home";
 import { DeviceFrame } from "../components/DeviceFrame";
 import { colors, radius } from "../theme";
 import { SalesReportScreen } from "./SalesReportScreen";
@@ -158,6 +158,7 @@ export function SellerHomeScreen({
     const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress);
     return () => sub.remove();
   }, [page, rangeOpen]);
+  const { headerHeight } = useAppHeaderHeight();
   const screen=(content:React.ReactNode)=>{
     const tabPage=page!=="payments";
     const chromeVisible=tabPage&&(page!=="mypage"||myPageRoot);
@@ -240,13 +241,13 @@ export function SellerHomeScreen({
     );
   if (page === "products")
     return screen(
-      <View style={s.chromeContent}>
+      <View style={[s.chromeContent, { paddingTop: headerHeight }]}>
         <ProductRegistrationScreen showHeader={false} onBack={() => navigate("dashboard",-1)} onGoToAI={() => navigate("ai")} />
       </View>
     );
   if (page === "ai")
     return screen(
-      <View style={s.chromeContent}>
+      <View style={[s.chromeContent, { paddingTop: headerHeight }]}>
         <AIRecommendationScreen />
       </View>
     );
@@ -285,7 +286,7 @@ export function SellerHomeScreen({
   }
 
   return screen(
-    <View style={s.chromeContent}>
+    <View style={[s.chromeContent, { paddingTop: headerHeight }]}>
       <ScrollView contentContainerStyle={s.dashboard} showsVerticalScrollIndicator={false}>
         {/* 타이틀 */}
         <Text style={s.dashboardTitle}>판매 · 결제 현황</Text>

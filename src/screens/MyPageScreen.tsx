@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, BackHandler, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { AppHeader, BottomNavigation } from '../components/home';
+import { AppHeader, BottomNavigation, useAppHeaderHeight } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
 import { colors, radius } from '../theme';
 import { ApiError, SellerProfile, authApi, buyerApi, notificationApi, sellerApi } from '../api';
@@ -130,7 +130,8 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
     ['로그아웃', () => setDialog('logout'), false],
     ['회원 탈퇴', () => setDialog('withdraw'), false],
   ];
-  return screen(<View style={[s.root, { paddingTop: 56, paddingBottom: 66 }]}><Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
+  const { topInset, headerHeight } = useAppHeaderHeight();
+  return screen(<View style={[s.root, { paddingTop: headerHeight, paddingBottom: 66 }]}><Pressable style={s.profileRow} onPress={() => go('profile')}><Avatar size={68} url={sellerProfileImageUrl}/><View style={s.nameRow}><Text style={s.name}>{name}</Text><View style={s.kakao}><KakaoLogo width={12} height={12}/></View></View><ChevronRight width={24} height={24} color={colors.black}/></Pressable>{profileError?<Text style={s.apiError}>{profileError}</Text>:null}
     {rows.map(([label, onPress, arrow]) => <Pressable key={label} style={s.listRow} onPress={onPress}><Text style={s.rowText}>{label}</Text>{arrow ? <ChevronRight width={24} height={24} color={colors.black}/> : null}</Pressable>)}
     <ConfirmDialog type={dialog} onClose={() => setDialog(null)} onConfirm={() => dialog === 'logout' ? onLogout?.() : onWithdraw?.()} />
   </View>);
@@ -160,7 +161,16 @@ function SellerNotificationPage({ onBack }: { onBack: () => void }) {
   return <View style={s.root}><Header title="알림 설정" onBack={onBack}/><View style={s.notice}><Text style={s.noticeText}>ⓘ  중요한 정보를 놓칠 수 있으므로 알림을 꼭 켜주세요.</Text></View><ScrollView contentContainerStyle={s.notifications}>{groups.map(([title, items]) => <View key={title} style={s.notifyGroup}><Text style={s.notifyGroupTitle}>{title}</Text>{items.map(item => <View key={item} style={s.notifyRow}><Text style={s.notifyText}>{item}</Text><Toggle value={!!values[item]} onChange={value => change(item,value)}/></View>)}</View>)}</ScrollView></View>;
 }
 
-function Header({ title, onBack }: { title: string; onBack: () => void }) { return <View style={s.header}><Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable><Text style={s.headerTitle}>{title}</Text><View style={s.headerSide} /></View>; }
+function Header({ title, onBack }: { title: string; onBack: () => void }) {
+  const { topInset, headerHeight } = useAppHeaderHeight();
+  return (
+    <View style={[s.header, { paddingTop: topInset, height: headerHeight }]}>
+      <Pressable hitSlop={10} onPress={onBack}><ChevronLeft width={24} height={24} color={colors.black} /></Pressable>
+      <Text style={s.headerTitle}>{title}</Text>
+      <View style={s.headerSide} />
+    </View>
+  );
+}
 function LocaltimeCharacter({ size }: { size: number }) { return <View style={{ width: size, height: size, zIndex: 1 }}><Character width={size} height={size} /></View>; }
 function Avatar({ size,url }: { size: number;url?:string|null }) { return <View style={[s.avatar, { width: size, height: size, borderRadius: size / 2 }]}>{url?<Image source={{uri:url}} resizeMode="cover" style={{width:size,height:size}}/>:<LocaltimeCharacter size={size} />}</View>; }
 

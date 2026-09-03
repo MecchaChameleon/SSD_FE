@@ -16,4 +16,18 @@ export function SignupScreen({initialNickname,profileImageUrl,onBack,onComplete}
   </View>;
 }
 
-const s=StyleSheet.create({root:{flex:1,backgroundColor:colors.white},header:{position:'absolute',top:54,left:0,right:0,height:56,borderBottomWidth:1,borderBottomColor:colors.g200,alignItems:'center',justifyContent:'center'},back:{position:'absolute',left:16,width:40,height:56,justifyContent:'center'},headerTitle:{fontSize:16,fontWeight:'600',color:colors.black},avatar:{position:'absolute',top:154,alignSelf:'center',width:120,height:120,borderRadius:60,overflow:'visible',backgroundColor:colors.g200,alignItems:'center',justifyContent:'center'},avatarImage:{width:120,height:120,borderRadius:60},add:{position:'absolute',right:0,bottom:0,width:29,height:29,borderRadius:15,borderWidth:1,borderColor:colors.g300,backgroundColor:colors.white,alignItems:'center',justifyContent:'center'},addText:{fontSize:18,lineHeight:22,color:colors.g800},form:{position:'absolute',top:351,left:16,right:16,gap:8},label:{fontSize:14,fontWeight:'500',color:colors.black},required:{color:colors.primary500,fontSize:16},input:{height:52,borderWidth:1,borderColor:colors.g300,borderRadius:8,paddingHorizontal:16,fontSize:16,color:colors.black},button:{position:'absolute',top:512,left:16,right:16}});
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.white },
+  header: { position: 'absolute', top: 54, left: 0, right: 0, height: 56, borderBottomWidth: 1, borderBottomColor: colors.g200, alignItems: 'center', justifyContent: 'center' },
+  back: { position: 'absolute', left: 16, width: 40, height: 56, justifyContent: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '600', color: colors.black },
+  avatar: { position: 'absolute', top: 154, alignSelf: 'center', width: 120, height: 120, borderRadius: 60, overflow: 'visible', backgroundColor: colors.g200, alignItems: 'center', justifyContent: 'center' },
+  avatarImage: { width: 120, height: 120, borderRadius: 60 },
+  add: { position: 'absolute', right: 0, bottom: 0, width: 29, height: 29, borderRadius: 15, borderWidth: 1, borderColor: colors.g300, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
+  addText: { fontSize: 18, lineHeight: 22, color: colors.g800 },
+  form: { position: 'absolute', top: 304, left: 16, right: 16, gap: 8 },
+  label: { fontSize: 14, fontWeight: '500', color: colors.black },
+  required: { color: colors.primary500, fontSize: 16 },
+  input: { height: 52, borderWidth: 1, borderColor: colors.g300, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, color: colors.black },
+  button: { position: 'absolute', top: 464, left: 16, right: 16 },
+});
