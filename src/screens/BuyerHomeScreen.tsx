@@ -24,6 +24,7 @@ import {
   PaymentDisplayStatus,
   getBadgeInfo,
   useAppHeaderHeight,
+  useAppBottomNavHeight,
 } from "../components/home";
 import { colors, fonts, radius } from "../theme";
 import ChevronDownIcon from "../../icon/chevron_down.svg";
@@ -333,6 +334,7 @@ export function BuyerHomeScreen({
     }).start(({finished})=>{if(finished)setDetailProduct(null)});
   };
   const { headerHeight, topInset } = useAppHeaderHeight();
+  const { navTotalHeight } = useAppBottomNavHeight();
   const tabScreen=(content:React.ReactNode)=>{
     const chromeVisible=tab!=="mypage"||myPageRoot;
     return <View style={s.tabRoot}>
@@ -340,7 +342,7 @@ export function BuyerHomeScreen({
         <View style={[s.tabContent, chromeVisible && { paddingTop: headerHeight }]}>{content}</View>
       </ScreenTransition>
       {chromeVisible?<View style={s.fixedHeader}><AppHeader showBell={tab!=="home"}/></View>:null}
-      {chromeVisible?<View style={s.fixedNavigation}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
+      {chromeVisible?<View pointerEvents="box-none" style={[s.fixedNavigation, { height: navTotalHeight }]}><BottomNavigation active={tab} onSelect={navigateTab}/></View>:null}
     </View>;
   };
   const lastBackPress = useRef(0);
@@ -815,7 +817,7 @@ export function BuyerHomeScreen({
     {tabScreen(<View style={s.root}>
       <ScrollView
         ref={homeScrollRef}
-        contentContainerStyle={s.content}
+        contentContainerStyle={[s.content, { paddingBottom: navTotalHeight + 16 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={s.searchRow}>

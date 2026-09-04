@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { buyerApi, MapPin, Product } from '../api';
-import { BottomNavigation } from '../components/home';
+import { BottomNavigation, useAppBottomNavHeight } from '../components/home';
 import { colors, radius } from '../theme';
 import CrosshairIcon from '../../icon/crosshair.svg';
 import HeartIcon from '../../icon/heart.svg';
@@ -80,8 +80,9 @@ export function BuyerMapScreen({onHome,onPurchases,onLikes,onMyPage,onBuy,showNa
   }).catch(cause=>setError(cause instanceof Error?cause.message:'지도를 불러오지 못했습니다.'));
   return()=>{disposed=true;productOverlays.current.forEach(item=>{item.setMap(null);item._localtimeRoot?.unmount()});currentLocationOverlay.current?.setMap(null);};
   },[]);
+  const { navTotalHeight } = useAppBottomNavHeight();
   const currentLocation=()=>navigator.geolocation?.getCurrentPosition(position=>mapObject.current?.panTo(new window.kakao.maps.LatLng(position.coords.latitude,position.coords.longitude)));
-  return <View style={s.root}><View ref={mapElement} style={s.map}/>{error?<View style={s.error}><Text style={s.errorTitle}>카카오 지도를 표시할 수 없습니다.</Text><Text style={s.errorText}>{error}</Text></View>:null}<Pressable style={[s.locationButton,selected&&s.locationButtonRaised]} onPress={currentLocation}><CrosshairIcon width={24} height={24} color={colors.g500}/></Pressable>{selected?<Animated.View {...sheetPan.panHandlers} style={[s.sheetGesture,{transform:[{translateY:sheetTranslateY}]}]}><ProductSheet product={selected} onClose={closeSheet} onBuy={()=>onBuy(selected)}/></Animated.View>:null}{showNavigation?<BottomNavigation active="map" onSelect={tab=>tab==='home'?onHome():tab==='purchases'?onPurchases():tab==='likes'?onLikes():tab==='mypage'?onMyPage():undefined}/>:null}</View>
+  return <View style={s.root}><View ref={mapElement} style={s.map}/>{error?<View style={s.error}><Text style={s.errorTitle}>카카오 지도를 표시할 수 없습니다.</Text><Text style={s.errorText}>{error}</Text></View>:null}<Pressable style={[s.locationButton, { bottom: navTotalHeight + 16 }, selected&&s.locationButtonRaised]} onPress={currentLocation}><CrosshairIcon width={24} height={24} color={colors.g500}/></Pressable>{selected?<Animated.View {...sheetPan.panHandlers} style={[s.sheetGesture,{transform:[{translateY:sheetTranslateY}]}]}><ProductSheet product={selected} onClose={closeSheet} onBuy={()=>onBuy(selected)}/></Animated.View>:null}{showNavigation?<BottomNavigation active="map" onSelect={tab=>tab==='home'?onHome():tab==='purchases'?onPurchases():tab==='likes'?onLikes():tab==='mypage'?onMyPage():undefined}/>:null}</View>;
 }
 
 function deadlineLabel(deadline:string){const date=new Date(deadline);const now=new Date();const tomorrow=new Date(now.getTime()+86400000);const key=(value:Date)=>value.toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'});const day=key(date)===key(now)?'오늘':key(date)===key(tomorrow)?'내일':date.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric',timeZone:'Asia/Seoul'});const time=date.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'});return `${day} ${time}`}

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, BackHandler, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { AppHeader, BottomNavigation, useAppHeaderHeight } from '../components/home';
+import { AppHeader, BottomNavigation, useAppBottomNavHeight, useAppHeaderHeight } from '../components/home';
 import { ActionButton, Toggle } from '../components/ui';
 import { colors, radius } from '../theme';
 import { ApiError, SellerProfile, authApi, buyerApi, notificationApi, sellerApi } from '../api';
@@ -137,7 +137,11 @@ export function SellerMyPageScreen({ onBack, onProducts, onAi, onBuyerMode, onLo
   </View>);
 }
 
-function SellerMyNavigation({ onHome, onProducts, onAi }: { onHome: () => void; onProducts?: () => void; onAi?:()=>void }) { const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const; return <View style={s.sellerNav}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; const onPress = index === 0 ? onHome : index === 1 ? onProducts : index===2?onAi:undefined; return <Pressable key={label} onPress={onPress} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>; }
+function SellerMyNavigation({ onHome, onProducts, onAi }: { onHome: () => void; onProducts?: () => void; onAi?:()=>void }) {
+  const { bottomOffset } = useAppBottomNavHeight();
+  const tabs = [['홈', HomeIcon], ['상품등록', ShoppingIcon], ['AI추천가', TrelloIcon], ['마이페이지', UserIcon]] as const;
+  return <View style={[s.sellerNav, { bottom: bottomOffset }]}>{tabs.map(([label, Icon], index) => { const active = index === 3; const color = active ? colors.primary500 : colors.g400; const onPress = index === 0 ? onHome : index === 1 ? onProducts : index===2?onAi:undefined; return <Pressable key={label} onPress={onPress} style={s.sellerNavItem}><Icon width={24} height={24} color={color}/><Text style={[s.sellerNavLabel, { color }]}>{label}</Text></Pressable>; })}</View>;
+}
 
 function SellerModePage({ onBack, onBuyerMode }: { onBack: () => void; onBuyerMode: () => void }) {
   const [buyer, setBuyer] = useState(false);

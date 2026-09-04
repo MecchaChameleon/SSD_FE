@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
-import { AppHeader as BaseAppHeader, floatingNavigationStyles, useAppHeaderHeight } from "../components/home";
+import { AppHeader as BaseAppHeader, floatingNavigationStyles, useAppBottomNavHeight, useAppHeaderHeight } from "../components/home";
 import { DeviceFrame } from "../components/DeviceFrame";
 import { colors, radius } from "../theme";
 import { SalesReportScreen } from "./SalesReportScreen";
@@ -159,6 +159,7 @@ export function SellerHomeScreen({
     return () => sub.remove();
   }, [page, rangeOpen]);
   const { headerHeight } = useAppHeaderHeight();
+  const { navTotalHeight } = useAppBottomNavHeight();
   const screen=(content:React.ReactNode)=>{
     const tabPage=page!=="payments";
     const chromeVisible=tabPage&&(page!=="mypage"||myPageRoot);
@@ -166,7 +167,7 @@ export function SellerHomeScreen({
     return <View style={{flex:1,overflow:"hidden"}}>
       <ScreenTransition screenKey={page} direction={pageDirection}>{content}</ScreenTransition>
       {chromeVisible?<View style={{position:"absolute",left:0,right:0,top:0,zIndex:20,backgroundColor:colors.white}}><AppHeader/></View>:null}
-      {chromeVisible?<View style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:104}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
+      {chromeVisible?<View pointerEvents="box-none" style={{position:"absolute",left:0,right:0,bottom:0,zIndex:20,height:navTotalHeight}}><SellerNavigation active={active as "home"|"products"|"ai"|"mypage"} onHome={()=>navigate("dashboard")} onProducts={()=>navigate("products")} onAi={()=>navigate("ai")} onMypage={()=>navigate("mypage")}/></View>:null}
     </View>;
   };
   const [dailySalesMap, setDailySalesMap] = useState<Record<string, number>>({});
@@ -1386,6 +1387,7 @@ function SellerNavigation({
   onAi?: () => void;
   onMypage?: () => void;
 }) {
+  const { bottomOffset } = useAppBottomNavHeight();
   const tabs = [
     ["홈", HomeIcon, onHome],
     ["상품등록", ShoppingIcon, onProducts ?? (() => {})],
@@ -1393,7 +1395,7 @@ function SellerNavigation({
     ["마이페이지", UserIcon, onMypage ?? (() => {})],
   ] as const;
   return (
-    <View style={floatingNavigationStyles.nav}>
+    <View style={[floatingNavigationStyles.nav, { bottom: bottomOffset }]}>
       {tabs.map(([label, Icon, onPress], i) => {
         const selected =
           (active === "home" && i === 0) ||
