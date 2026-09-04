@@ -182,7 +182,28 @@ function ProfilePage({ name,profileImageUrl,onBack,onSave }: { name: string;prof
   const trimmed = value.trim();
   const valid = trimmed.length >= 2 && trimmed.length <= 10;
   const changed = trimmed !== name || !!image;
-  const pick=async()=>{const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!permission.granted)return;const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],allowsMultipleSelection:false,quality:.85,preferredAssetRepresentationMode:ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible});if(!result.canceled){setImageError('');try{setImage(await normalizePickedImage(result.assets[0]))}catch{setImageError('선택한 사진을 JPEG 형식으로 변환하지 못했습니다.')}}};
+  const pick = async () => {
+    try {
+      await ImagePicker.requestMediaLibraryPermissionsAsync().catch(() => null);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: false,
+        quality: 0.85,
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setImageError('');
+        try {
+          setImage(await normalizePickedImage(result.assets[0]));
+        } catch {
+          setImage(result.assets[0]);
+        }
+      }
+    } catch (error) {
+      console.warn('Image picker error in profile:', error);
+      setImageError('사진을 불러오지 못했습니다. 다시 시도해 주세요.');
+    }
+  };
   return <View style={s.root}><Header title="프로필 수정" onBack={onBack} />
     <Pressable accessibilityLabel="프로필 사진 선택" onPress={pick} style={s.profileAvatar}><Avatar size={120} url={image?.uri??profileImageUrl} /><View style={s.editBadge}><Text style={s.editBadgeText}>＋</Text></View></Pressable>
     {imageError?<Text style={[s.invalidText,{position:'absolute',top:292,left:16,right:16,textAlign:'center'}]}>{imageError}</Text>:null}

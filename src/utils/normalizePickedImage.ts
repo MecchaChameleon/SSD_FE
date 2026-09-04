@@ -4,27 +4,32 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 const unsupportedPattern = /(?:image\/(?:hei[cf]|avif)|\.(?:hei[cf]|avif)(?:$|[?#]))/i;
 
 export async function normalizePickedImage(asset: ImagePickerAsset): Promise<ImagePickerAsset> {
-  const sourceInfo = [asset.mimeType, asset.fileName, asset.uri, asset.file?.type, asset.file?.name]
-    .filter(Boolean)
-    .join(' ');
-  if (!unsupportedPattern.test(sourceInfo)) return asset;
+  try {
+    const sourceInfo = [asset.mimeType, asset.fileName, asset.uri, asset.file?.type, asset.file?.name]
+      .filter(Boolean)
+      .join(' ');
+    if (!unsupportedPattern.test(sourceInfo)) return asset;
 
-  const context = ImageManipulator.manipulate(asset.uri);
-  const rendered = await context.renderAsync();
-  const converted = await rendered.saveAsync({ compress: 0.85, format: SaveFormat.JPEG });
-  const baseName = (asset.fileName ?? 'image').replace(/\.[^.]+$/, '') || 'image';
-  const fileName = `${baseName}.jpg`;
+    const context = ImageManipulator.manipulate(asset.uri);
+    const rendered = await context.renderAsync();
+    const converted = await rendered.saveAsync({ compress: 0.85, format: SaveFormat.JPEG });
+    const baseName = (asset.fileName ?? 'image').replace(/\.[^.]+$/, '') || 'image';
+    const fileName = `${baseName}.jpg`;
 
-  return {
-    ...asset,
-    uri: converted.uri,
-    width: converted.width,
-    height: converted.height,
-    fileName,
-    mimeType: 'image/jpeg',
-    fileSize: undefined,
-    file: undefined,
-  };
+    return {
+      ...asset,
+      uri: converted.uri,
+      width: converted.width,
+      height: converted.height,
+      fileName,
+      mimeType: 'image/jpeg',
+      fileSize: undefined,
+      file: undefined,
+    };
+  } catch (error) {
+    console.warn('Failed to normalize image, falling back to original:', error);
+    return asset;
+  }
 }
 
 export async function normalizePickedImages(assets: ImagePickerAsset[]) {

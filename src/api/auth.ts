@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { apiRequest, apiUrl } from './client';
 import type { LoginResponse, MeResponse } from './types';
 
@@ -11,7 +12,22 @@ export const authApi = {
   exchangeKakaoTicket: (ticket:string) => apiRequest<LoginResponse>('/api/auth/kakao/ticket', {method:'POST', body:{ticket}, auth:false}),
   me: () => apiRequest<MeResponse>('/api/auth/me'),
   updateMe: (body:{nickname?:string;profileImageUrl?:string}) => apiRequest<MeResponse>('/api/users/me', {method:'PATCH', body}),
-  uploadProfileImage: (image:{uri:string;name:string;type:string;file?:Blob|null}) => {const form=new FormData();form.append('image',image.file??image as unknown as Blob,image.name);return apiRequest<{profileImageUrl:string}>('/api/users/me/profile-image',{method:'POST',body:form})},
+  uploadProfileImage: (image:{uri:string;name:string;type:string;file?:Blob|null}) => {
+    const form = new FormData();
+    if (image.file) {
+      form.append('image', image.file, image.name || 'profile.jpg');
+    } else {
+      const fileUri = Platform.OS === 'android' && !image.uri.startsWith('file://') && !image.uri.startsWith('content://')
+        ? `file://${image.uri}`
+        : image.uri;
+      form.append('image', {
+        uri: fileUri,
+        name: image.name || 'profile.jpg',
+        type: image.type || 'image/jpeg',
+      } as any);
+    }
+    return apiRequest<{profileImageUrl:string}>('/api/users/me/profile-image', {method:'POST', body:form});
+  },
   withdraw: () => apiRequest<void>('/api/auth/me', {method:'DELETE'}),
   logout: () => apiRequest<void>('/api/auth/logout', {method:'POST'}),
 };
