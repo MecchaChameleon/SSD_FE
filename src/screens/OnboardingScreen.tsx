@@ -3,13 +3,13 @@ import {
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppHeaderHeight } from '../components/home';
+import { ActionButton } from '../components/ui';
 import OnboardingPage1 from '../../icon/onboarding_page1.svg';
 import OnboardingPage2 from '../../icon/onboarding_page2.svg';
 import OnboardingPage3 from '../../icon/onboarding_page3.svg';
@@ -61,25 +61,26 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         onMomentumScrollEnd={handleScroll}
         style={s.scrollView}
       >
-        {PAGES.map(({ key, Component }, index) => (
+        {PAGES.map(({ key, Component }) => (
           <View key={key} style={[s.pageContainer, { width: containerWidth }]}>
             <View style={s.pageSvgWrapper}>
               <Component width="100%" height="100%" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
-              {/* 하단 '시작하기'/'다음' 버튼 터치 오버레이 (402x786 기준: x: 16, y: 784-54=730, w: 370, h: 56) */}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={index === PAGES.length - 1 ? '시작하기' : '다음'}
-                hitSlop={16}
-                style={({ pressed }) => [s.buttonOverlay, pressed && { opacity: 0.7 }]}
-                onPress={handleNext}
-              />
             </View>
           </View>
         ))}
       </ScrollView>
+
+      {/* 하단 고정 액션 버튼: 스와이프나 클릭 시 버튼이 밀려나지 않고 고정되어 있음 */}
+      <View style={s.bottomBar}>
+        <ActionButton onPress={handleNext}>
+          {currentPage === PAGES.length - 1 ? '시작하기' : '다음'}
+        </ActionButton>
+      </View>
     </View>
   );
 }
@@ -104,15 +105,8 @@ const s = StyleSheet.create({
     maxWidth: 430,
     position: 'relative',
   },
-  // 402 x 786 기준: left: 16/402 ≈ 4%, right: 4%, top: (784-54)/786 = 730/786 ≈ 92.9%, height: 56/786 ≈ 7.1%
-  buttonOverlay: {
-    position: 'absolute',
-    left: '4%',
-    right: '4%',
-    top: '92.9%',
-    height: '7.1%',
-    zIndex: 100,
-    elevation: 10,
-    backgroundColor: 'rgba(0,0,0,0)',
+  bottomBar: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
 });
