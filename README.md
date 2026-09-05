@@ -45,6 +45,7 @@ EXPO_PUBLIC_API_URL=백엔드_API_URL
 
 ```env
 EXPO_PUBLIC_KAKAO_JAVASCRIPT_KEY=카카오_JavaScript_키
+EXPO_PUBLIC_WEB_APP_URL=https://프론트엔드-배포-도메인
 ```
 
 Kakao Developers의 플랫폼 > Web에 로컬 개발 주소(예: `http://localhost:8081`)와 배포 도메인을 등록해야 지도가 로드됩니다. REST API 키와 JavaScript 키는 서로 다른 키입니다.

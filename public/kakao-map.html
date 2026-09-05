@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <style>
+    html,body,#map{width:100%;height:100%;margin:0;overflow:hidden}
+    .pin{max-width:142px;height:32px;padding:4px 10px;border:0;border-radius:18px;background:#fff;box-shadow:2px 2px 4px rgba(0,0,0,.22);display:flex;align-items:center;gap:6px}
+    .dot{width:9px;height:9px;border-radius:50%;background:#f3ab24;flex:none}
+    .label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#111}
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    (function(){
+      const send=value=>window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify(value));
+      const key=new URLSearchParams(location.search).get('appkey');
+      if(!key){send({type:'error',message:'카카오 JavaScript 키가 없습니다.'});return}
+      const script=document.createElement('script');
+      script.src='https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services&appkey='+encodeURIComponent(key);
+      script.onerror=()=>send({type:'error',message:'카카오 지도 SDK를 불러오지 못했습니다. 도메인 등록을 확인해 주세요.'});
+      script.onload=()=>kakao.maps.load(init);
+      document.head.appendChild(script);
+
+      function init(){
+        const map=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(33.3938,126.5627),level:9});
+        const geocoder=new kakao.maps.services.Geocoder();
+        let overlays=[];let locationOverlay=null;
+        const geocode=product=>new Promise(resolve=>{
+          if(!product.address)return resolve(null);
+          geocoder.addressSearch(product.address,(result,status)=>resolve(status===kakao.maps.services.Status.OK?{...product,lat:Number(result[0].y),lng:Number(result[0].x)}:null));
+        });
+        async function render(products){
+          const pins=(await Promise.all(products.map(geocode))).filter(Boolean);
+          overlays.forEach(item=>item.setMap(null));
+          overlays=pins.map(pin=>{
+            const button=document.createElement('button');button.className='pin';
+            button.innerHTML='<span class="dot"></span><span class="label"></span>';
+            button.querySelector('.label').textContent=pin.name;
+            button.onclick=()=>send({type:'select',id:String(pin.id)});
+            const overlay=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(pin.lat,pin.lng),content:button,yAnchor:.5});
+            overlay.setMap(map);return overlay;
+          });
+        }
+        window.localtimeMap={locate(){navigator.geolocation.getCurrentPosition(position=>{
+          const here=new kakao.maps.LatLng(position.coords.latitude,position.coords.longitude);map.panTo(here);
+          if(locationOverlay)locationOverlay.setMap(null);
+          const dot=document.createElement('div');dot.style.cssText='width:16px;height:16px;border:4px solid white;border-radius:50%;background:#307fe7;box-shadow:0 0 0 2px rgba(48,127,231,.35)';
+          locationOverlay=new kakao.maps.CustomOverlay({position:here,content:dot});locationOverlay.setMap(map);
+        },()=>send({type:'error',message:'현재 위치 권한을 확인해 주세요.'}),{enableHighAccuracy:true})}};
+        function receive(event){try{const message=JSON.parse(event.data);if(message.type==='products')void render(message.products)}catch(e){}}
+        document.addEventListener('message',receive);window.addEventListener('message',receive);
+        send({type:'ready'});
+      }
+    })();
+  </script>
+</body>
+</html>

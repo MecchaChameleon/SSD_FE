@@ -8,6 +8,7 @@ import CrosshairIcon from '../../icon/crosshair.svg';
 import HeartIcon from '../../icon/heart.svg';
 import LoaderIcon from '../../icon/loader.svg';
 import LocaltimePinIcon from '../../icon/로컬타임_아이콘 2.svg';
+import { NativeBuyerMapScreen } from './NativeBuyerMapScreen';
 
 declare global { interface Window { kakao: any; } }
 
@@ -35,7 +36,13 @@ function loadKakao(){
   return new Promise<void>((resolve,reject)=>{const existing=document.querySelector<HTMLScriptElement>('script[data-localtime-kakao-map]');const done=()=>window.kakao.maps.load(resolve);if(existing){existing.addEventListener('load',done,{once:true});existing.addEventListener('error',()=>reject(new Error('카카오 지도 SDK를 불러오지 못했습니다.')),{once:true});return}const script=document.createElement('script');script.dataset.localtimeKakaoMap='true';script.async=true;script.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false&libraries=services`;script.onload=done;script.onerror=()=>reject(new Error('카카오 지도 SDK를 불러오지 못했습니다.'));document.head.appendChild(script)});
 }
 
-export function BuyerMapScreen({onHome,onPurchases,onLikes,onMyPage,onBuy,showNavigation=true}:{onHome:()=>void;onPurchases:()=>void;onLikes:()=>void;onMyPage:()=>void;onBuy:(product:Product)=>void;showNavigation?:boolean}){
+type BuyerMapScreenProps={onHome:()=>void;onPurchases:()=>void;onLikes:()=>void;onMyPage:()=>void;onBuy:(product:Product)=>void;showNavigation?:boolean};
+
+export function BuyerMapScreen(props:BuyerMapScreenProps){
+  return Platform.OS==='web'?<WebBuyerMapScreen {...props}/>:<NativeBuyerMapScreen {...props}/>;
+}
+
+function WebBuyerMapScreen({onHome,onPurchases,onLikes,onMyPage,onBuy,showNavigation=true}:BuyerMapScreenProps){
   const mapElement=useRef<any>(null);const mapObject=useRef<any>(null);const productOverlays=useRef<any[]>([]);const currentLocationOverlay=useRef<any>(null);const[selected,setSelected]=useState<Product|null>(null);const[error,setError]=useState('');
   const sheetTranslateY=useRef(new Animated.Value(0)).current;
   const closeSheet=()=>Animated.timing(sheetTranslateY,{toValue:520,duration:220,useNativeDriver:true}).start(()=>{setSelected(null);sheetTranslateY.setValue(0)});
